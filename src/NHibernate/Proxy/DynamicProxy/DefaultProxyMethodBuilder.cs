@@ -17,7 +17,7 @@ namespace NHibernate.Proxy.DynamicProxy
 {
 	internal class DefaultyProxyMethodBuilder : IProxyMethodBuilder
 	{
-		public DefaultyProxyMethodBuilder() : this(new DefaultMethodEmitter()) { }
+		public DefaultyProxyMethodBuilder() : this(new DefaultMethodEmitter()) {}
 
 		public DefaultyProxyMethodBuilder(IMethodBodyEmitter emitter)
 		{
@@ -30,17 +30,21 @@ namespace NHibernate.Proxy.DynamicProxy
 
 		public IMethodBodyEmitter MethodBodyEmitter { get; private set; }
 
-		private static MethodBuilder GenerateMethodSignature(string name, MethodInfo method, TypeBuilder typeBuilder)
+		#region IProxyMethodBuilder Members
+
+		public void CreateProxiedMethod(FieldInfo field, MethodInfo method, TypeBuilder typeBuilder)
 		{
-			const MethodAttributes methodAttributes = MethodAttributes.Public | MethodAttributes.HideBySig |
-													  MethodAttributes.Virtual;
+			//TODO: Should we use attributes of base method?
+			var methodAttributes = MethodAttributes.Public | MethodAttributes.HideBySig | MethodAttributes.Virtual;
+
+			if (method.IsSpecialName)
+				methodAttributes |= MethodAttributes.SpecialName;
+
 			ParameterInfo[] parameters = method.GetParameters();
 
-			MethodBuilder methodBuilder = typeBuilder.DefineMethod(name,
-																   methodAttributes,
-																   CallingConventions.HasThis,
-																   method.ReturnType,
-																   parameters.Select(param => param.ParameterType).ToArray());
+			MethodBuilder methodBuilder = typeBuilder.DefineMethod(method.Name, methodAttributes,
+			                                                       CallingConventions.HasThis, method.ReturnType,
+			                                                       parameters.Select(param => param.ParameterType).ToArray());
 
 			System.Type[] typeArgs = method.GetGenericArguments();
 
@@ -57,29 +61,16 @@ namespace NHibernate.Proxy.DynamicProxy
 
 				for (int index = 0; index < typeArgs.Length; index++)
 				{
-					// Copy generic parameter attributes (Covariant, Contravariant, ReferenceTypeConstraint,
-					// NotNullableValueTypeConstraint, DefaultConstructorConstraint).
-					typeArgsBuilder[index].SetGenericParameterAttributes(typeArgs[index].GenericParameterAttributes);
-
-					// Copy generic parameter constraints (class and interfaces).
-					var typeConstraints = typeArgs[index].GetGenericParameterConstraints();
-
-					var baseTypeConstraint = typeConstraints.SingleOrDefault(x => x.IsClass);
-					typeArgsBuilder[index].SetBaseTypeConstraint(baseTypeConstraint);
-
-					var interfaceTypeConstraints = typeConstraints.Where(x => !x.IsClass).ToArray();
-					typeArgsBuilder[index].SetInterfaceConstraints(interfaceTypeConstraints);
+					typeArgsBuilder[index].SetInterfaceConstraints(typeArgs[index].GetGenericParameterConstraints());
 				}
 			}
-			return methodBuilder;
+
+			ILGenerator IL = methodBuilder.GetILGenerator();
+
+			Debug.Assert(MethodBodyEmitter != null);
+			MethodBodyEmitter.EmitMethodBody(IL, method, field);
 		}
 
-		public void CreateProxiedMethod(FieldInfo field, MethodInfo method, TypeBuilder typeBuilder)
-		{
-			var callbackMethod = GenerateMethodSignature(method.Name + "_callback", method, typeBuilder);
-			var proxyMethod = GenerateMethodSignature(method.Name, method, typeBuilder);
-
-			MethodBodyEmitter.EmitMethodBody(proxyMethod, callbackMethod, method, field);
-		}
+		#endregion
 	}
 }
