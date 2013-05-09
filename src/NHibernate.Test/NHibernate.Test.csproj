@@ -678,6 +678,7 @@
     <Compile Include="NHSpecificTest\NH3058\SampleTest.cs" />
     <Compile Include="NHSpecificTest\NH1818\DomainClass.cs" />
     <Compile Include="NHSpecificTest\NH1818\Fixture1818.cs" />
+    <Compile Include="NHSpecificTest\NH3405\Fixture.cs" />
     <Compile Include="NHSpecificTest\NH3428\Entity.cs" />
     <Compile Include="NHSpecificTest\NH3428\Fixture.cs" />
     <Compile Include="NHSpecificTest\NH3408\Fixture.cs" />
