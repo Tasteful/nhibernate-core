@@ -2,14 +2,14 @@
 Imports NUnit.Framework
 
 Namespace Issues.NH2963
-    <TestFixture()> _
+    <TestFixture()>
     Public Class Fixture
-        <Test> _
+        <Test>
         Public Sub GenericDecodeMemberAccessExpressionForCollectionAsEnumerableShouldReturnMemberOfDeclaringClass()
             TypeExtensions.DecodeMemberAccessExpression (Of Entity, IEnumerable(Of String))(Function(mc) mc.Childs)
         End Sub
 
-        <Test> _
+        <Test>
         Public Sub GenericDecodeMemberAccessExpressionOfForCollectionAsEnumerableShouldReturnMemberOfDeclaringClass()
             TypeExtensions.DecodeMemberAccessExpressionOf (Of Entity, IEnumerable(Of String))(Function(mc) mc.Childs)
         End Sub
