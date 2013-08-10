@@ -69,7 +69,7 @@ namespace NHibernate.Classic
 		/// </remarks>
 		/// <param name="s">The session</param>
 		/// <param name="id">The identifier</param>
-		Task OnLoad(ISession s, object id);
+		void OnLoad(ISession s, object id);
 	}
 
 	public enum LifecycleVeto

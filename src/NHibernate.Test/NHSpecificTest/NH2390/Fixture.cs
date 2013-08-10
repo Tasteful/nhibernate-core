@@ -1,3 +1,4 @@
+using System.Threading.Tasks;
 using NUnit.Framework;
 
 namespace NHibernate.Test.NHSpecificTest.NH2390
@@ -29,13 +30,13 @@ namespace NHibernate.Test.NHSpecificTest.NH2390
 		}
 
 		[Test]
-		public void Test()
+		public async Task Test()
 		{
 			var rowsUpdated = 0;
 			using (ISession s = OpenSession())
 			using (ITransaction t = s.BeginTransaction())
 			{
-				rowsUpdated = s.CreateQuery("UPDATE VERSIONED Class1 c SET c.Property1 = :value1, c.Property2 = :value2, c.Property3 = :value3, c.Property4 = :value4, c.Property5 = :value5")
+				rowsUpdated = await s.CreateQuery("UPDATE VERSIONED Class1 c SET c.Property1 = :value1, c.Property2 = :value2, c.Property3 = :value3, c.Property4 = :value4, c.Property5 = :value5")
 									.SetParameter("value1", 1)
 									.SetParameter("value2", 2)
 									.SetParameter("value3", 3)

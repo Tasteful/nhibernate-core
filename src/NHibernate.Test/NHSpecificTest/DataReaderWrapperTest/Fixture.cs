@@ -1,4 +1,5 @@
 using System.Collections;
+using System.Threading.Tasks;
 using NUnit.Framework;
 using SharpTestsEx;
 
@@ -36,7 +37,7 @@ namespace NHibernate.Test.NHSpecificTest.DataReaderWrapperTest
 		}
 
 		[Test]
-		public void CanUseDatareadersGetValue()
+		public async Task CanUseDatareadersGetValue()
 		{
 			using (var s = OpenSession())
 			using (s.BeginTransaction())
@@ -44,7 +45,7 @@ namespace NHibernate.Test.NHSpecificTest.DataReaderWrapperTest
 				var crit = s.CreateCriteria(typeof (TheEntity));
 				var multi = s.CreateMultiCriteria();
 				multi.Add(crit);
-				var res = (IList) multi.List()[0];
+				var res = (IList) (await multi.List())[0];
 				res.Count
 					.Should().Be.EqualTo(1);
 			}

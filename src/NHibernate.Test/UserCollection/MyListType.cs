@@ -1,5 +1,6 @@
 using System;
 using System.Collections;
+using System.Threading.Tasks;
 using NHibernate.Collection;
 using NHibernate.Engine;
 using NHibernate.Persister.Collection;
@@ -34,7 +35,7 @@ namespace NHibernate.Test.UserCollection
 			return ((IList) collection).IndexOf(entity);
 		}
 
-		public object ReplaceElements(object original, object target, ICollectionPersister persister, object owner,
+		public Task<object> ReplaceElements(object original, object target, ICollectionPersister persister, object owner,
 		                              IDictionary copyCache, ISessionImplementor session)
 		{
 			IList result = (IList) target;
@@ -43,7 +44,7 @@ namespace NHibernate.Test.UserCollection
 			{
 				result.Add(o);
 			}
-			return result;
+			return Task.FromResult<object>(result);
 		}
 
 		public object Instantiate(int anticipatedSize)
