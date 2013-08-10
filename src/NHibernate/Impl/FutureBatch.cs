@@ -2,6 +2,7 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using Nito.AsyncEx;
 
 namespace NHibernate.Impl
 {
@@ -64,14 +65,14 @@ namespace NHibernate.Impl
 			return new DelayedEnumerator<TResult>(() => GetCurrentResult<TResult>(currentIndex));
 		}
 
-		private async Task GetResults()
+		private void GetResults()
 		{
 			var multiApproach = CreateMultiApproach(isCacheable, cacheRegion);
 			for (int i = 0; i < queries.Count; i++)
 			{
 				AddTo(multiApproach, queries[i], resultTypes[i]);
 			}
-			results = await GetResultsFrom(multiApproach);
+			results = AsyncContext.Run(() => GetResultsFrom(multiApproach));
 			ClearCurrentFutureBatch();
 		}
 

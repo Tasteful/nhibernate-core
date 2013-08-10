@@ -1,4 +1,5 @@
 using System;
+using System.Threading.Tasks;
 
 namespace NHibernate.Event.Default
 {
@@ -9,13 +10,13 @@ namespace NHibernate.Event.Default
 	[Serializable]
 	public class DefaultFlushEventListener : AbstractFlushingEventListener, IFlushEventListener
 	{
-		public virtual void OnFlush(FlushEvent @event)
+		public virtual async Task OnFlush(FlushEvent @event)
 		{
 			IEventSource source = @event.Session;
 
 			if ((source.PersistenceContext.EntityEntries.Count > 0) || (source.PersistenceContext.CollectionEntries.Count > 0))
 			{
-				FlushEverythingToExecutions(@event);
+				await FlushEverythingToExecutions(@event);
 				PerformExecutions(source);
 				PostFlush(source);
 

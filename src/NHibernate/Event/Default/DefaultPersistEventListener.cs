@@ -64,7 +64,7 @@ namespace NHibernate.Event.Default
 			switch (entityState)
 			{
 				case EntityState.Persistent:
-					EntityIsPersistent(@event, createdAlready);
+					await EntityIsPersistent(@event, createdAlready);
 					break;
 				case EntityState.Transient:
 					EntityIsTransient(@event, createdAlready);
@@ -76,7 +76,7 @@ namespace NHibernate.Event.Default
 			}
 		}
 
-		protected virtual void EntityIsPersistent(PersistEvent @event, IDictionary createCache)
+		protected virtual async Task EntityIsPersistent(PersistEvent @event, IDictionary createCache)
 		{
 			log.Debug("ignoring persistent instance");
 			IEventSource source = @event.Session;
@@ -100,8 +100,8 @@ namespace NHibernate.Event.Default
 			if (tempObject == null)
 			{
 				//TODO: merge into one method!
-				CascadeBeforeSave(source, persister, entity, createCache);
-				CascadeAfterSave(source, persister, entity, createCache);
+				await CascadeBeforeSave(source, persister, entity, createCache);
+				await CascadeAfterSave(source, persister, entity, createCache);
 			}
 		}
 

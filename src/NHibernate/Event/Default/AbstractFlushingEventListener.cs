@@ -36,7 +36,7 @@ namespace NHibernate.Event.Default
 		/// entities and collections to their respective execution queues. 
 		/// </summary>
 		/// <param name="event">The flush event.</param>
-		protected virtual void FlushEverythingToExecutions(FlushEvent @event)
+		protected virtual async Task FlushEverythingToExecutions(FlushEvent @event)
 		{
 			log.Debug("flushing session");
 
@@ -45,7 +45,7 @@ namespace NHibernate.Event.Default
 
 			session.Interceptor.PreFlush((ICollection) persistenceContext.EntitiesByKey.Values);
 
-			PrepareEntityFlushes(session);
+			await PrepareEntityFlushes(session);
 			// we could move this inside if we wanted to
 			// tolerate collection initializations during
 			// collection dirty checking:

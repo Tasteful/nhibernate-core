@@ -2691,7 +2691,7 @@ namespace NHibernate.Persister.Entity
 				{
 					//if all fields are null, we might need to delete existing row
 					isRowToUpdate = true;
-					Delete(id, oldVersion, j, obj, SqlDeleteStrings[j], session, null);
+					await Delete(id, oldVersion, j, obj, SqlDeleteStrings[j], session, null);
 				}
 				else
 				{
@@ -2946,7 +2946,7 @@ namespace NHibernate.Persister.Entity
 				return lazy ? SQLLazyUpdateStrings : SqlUpdateStrings;
 		}
 
-		public void Update(object id, object[] fields, int[] dirtyFields, bool hasDirtyCollection,
+		public async Task Update(object id, object[] fields, int[] dirtyFields, bool hasDirtyCollection,
 			object[] oldFields, object oldVersion, object obj, object rowId, ISessionImplementor session)
 		{
 			//note: dirtyFields==null means we had no snapshot, and we couldn't get one using select-before-update
@@ -3007,12 +3007,12 @@ namespace NHibernate.Persister.Entity
 				// Now update only the tables with dirty properties (and the table with the version number)
 				if (tableUpdateNeeded[j])
 				{
-					UpdateOrInsert(id, fields, oldFields, j == 0 ? rowId : null, propsToUpdate, j, oldVersion, obj, updateStrings[j], session);
+					await UpdateOrInsert(id, fields, oldFields, j == 0 ? rowId : null, propsToUpdate, j, oldVersion, obj, updateStrings[j], session);
 				}
 			}
 		}
 
-		public object Insert(object[] fields, object obj, ISessionImplementor session)
+		public async Task<object> Insert(object[] fields, object obj, ISessionImplementor session)
 		{
 			int span = TableSpan;
 			object id;
@@ -3024,7 +3024,7 @@ namespace NHibernate.Persister.Entity
 				id = Insert(fields, notNull, GenerateInsertString(true, notNull), obj, session);
 				for (int j = 1; j < span; j++)
 				{
-					Insert(id, fields, notNull, j, GenerateInsertString(notNull, j), obj, session);
+					await Insert(id, fields, notNull, j, GenerateInsertString(notNull, j), obj, session);
 				}
 			}
 			else
@@ -3033,14 +3033,14 @@ namespace NHibernate.Persister.Entity
 				id = Insert(fields, PropertyInsertability, SQLIdentityInsertString, obj, session);
 				for (int j = 1; j < span; j++)
 				{
-					Insert(id, fields, PropertyInsertability, j, SqlInsertStrings[j], obj, session);
+					await Insert(id, fields, PropertyInsertability, j, SqlInsertStrings[j], obj, session);
 				}
 			}
 
 			return id;
 		}
 
-		public void Insert(object id, object[] fields, object obj, ISessionImplementor session)
+		public async Task Insert(object id, object[] fields, object obj, ISessionImplementor session)
 		{
 			int span = TableSpan;
 			if (entityMetamodel.IsDynamicInsert)
@@ -3049,7 +3049,7 @@ namespace NHibernate.Persister.Entity
 				// For the case of dynamic-insert="true", we need to generate the INSERT SQL
 				for (int j = 0; j < span; j++)
 				{
-					Insert(id, fields, notNull, j, GenerateInsertString(notNull, j), obj, session);
+					await Insert(id, fields, notNull, j, GenerateInsertString(notNull, j), obj, session);
 				}
 			}
 			else
@@ -3057,12 +3057,12 @@ namespace NHibernate.Persister.Entity
 				// For the case of dynamic-insert="false", use the static SQL
 				for (int j = 0; j < span; j++)
 				{
-					Insert(id, fields, PropertyInsertability, j, SqlInsertStrings[j], obj, session);
+					await Insert(id, fields, PropertyInsertability, j, SqlInsertStrings[j], obj, session);
 				}
 			}
 		}
 
-		public void Delete(object id, object version, object obj, ISessionImplementor session)
+		public async Task Delete(object id, object version, object obj, ISessionImplementor session)
 		{
 			int span = TableSpan;
 			bool isImpliedOptimisticLocking = !entityMetamodel.IsVersioned &&
@@ -3097,7 +3097,7 @@ namespace NHibernate.Persister.Entity
 
 			for (int j = span - 1; j >= 0; j--)
 			{
-				Delete(id, version, j, obj, deleteStrings[j], session, loadedState);
+				await Delete(id, version, j, obj, deleteStrings[j], session, loadedState);
 			}
 		}
 
@@ -3959,22 +3959,22 @@ namespace NHibernate.Persister.Entity
 			return GetTuplizer(session.EntityMode).GetPropertyValuesToInsert(obj, mergeMap, session);
 		}
 
-		public void ProcessInsertGeneratedProperties(object id, object entity, object[] state, ISessionImplementor session)
+		public async Task ProcessInsertGeneratedProperties(object id, object entity, object[] state, ISessionImplementor session)
 		{
 			if (!HasInsertGeneratedProperties)
 			{
 				throw new AssertionFailure("no insert-generated properties");
 			}
-			ProcessGeneratedProperties(id, entity, state, session, sqlInsertGeneratedValuesSelectString, PropertyInsertGenerationInclusions);
+			await ProcessGeneratedProperties(id, entity, state, session, sqlInsertGeneratedValuesSelectString, PropertyInsertGenerationInclusions);
 		}
 
-		public void ProcessUpdateGeneratedProperties(object id, object entity, object[] state, ISessionImplementor session)
+		public Task ProcessUpdateGeneratedProperties(object id, object entity, object[] state, ISessionImplementor session)
 		{
 			if (!HasUpdateGeneratedProperties)
 			{
 				throw new AssertionFailure("no update-generated properties");
 			}
-			ProcessGeneratedProperties(id, entity, state, session, sqlUpdateGeneratedValuesSelectString, PropertyUpdateGenerationInclusions);
+			return ProcessGeneratedProperties(id, entity, state, session, sqlUpdateGeneratedValuesSelectString, PropertyUpdateGenerationInclusions);
 		}
 
 		private async Task ProcessGeneratedProperties(object id, object entity, object[] state,

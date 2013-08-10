@@ -352,17 +352,17 @@ namespace NHibernate.Persister.Entity
 		/// <summary>
 		/// Persist an instance
 		/// </summary>
-		void Insert(object id, object[] fields, object obj, ISessionImplementor session);
+		Task Insert(object id, object[] fields, object obj, ISessionImplementor session);
 
 		/// <summary>
 		/// Persist an instance, using a natively generated identifier (optional operation)
 		/// </summary>
-		object Insert(object[] fields, object obj, ISessionImplementor session);
+		Task<object> Insert(object[] fields, object obj, ISessionImplementor session);
 
 		/// <summary>
 		/// Delete a persistent instance
 		/// </summary>
-		void Delete(object id, object version, object obj, ISessionImplementor session);
+		Task Delete(object id, object version, object obj, ISessionImplementor session);
 
 		/// <summary>
 		/// Update a persistent instance
@@ -376,7 +376,7 @@ namespace NHibernate.Persister.Entity
 		/// <param name="obj">The obj.</param>
 		/// <param name="rowId">The rowId</param>
 		/// <param name="session">The session.</param>
-		void Update(object id, object[] fields, int[] dirtyFields, bool hasDirtyCollection, object[] oldFields,
+		Task Update(object id, object[] fields, int[] dirtyFields, bool hasDirtyCollection, object[] oldFields,
 								object oldVersion, object obj, object rowId, ISessionImplementor session);
 
 		/// <summary>
@@ -467,7 +467,7 @@ namespace NHibernate.Persister.Entity
 		/// <param name="entity">The entity for which to get the state.</param>
 		/// <param name="state">The entity state (at the time of Save).</param>
 		/// <param name="session">The session.</param>
-		void ProcessInsertGeneratedProperties(object id, object entity, object[] state, ISessionImplementor session);
+		Task ProcessInsertGeneratedProperties(object id, object entity, object[] state, ISessionImplementor session);
 
 		/// <summary>
 		/// Perform a select to retrieve the values of any generated properties
@@ -483,7 +483,7 @@ namespace NHibernate.Persister.Entity
 		/// <param name="entity">The entity for which to get the state.</param>
 		/// <param name="state">The entity state (at the time of Save).</param>
 		/// <param name="session">The session.</param>
-		void ProcessUpdateGeneratedProperties(object id, object entity, object[] state, ISessionImplementor session);
+		Task ProcessUpdateGeneratedProperties(object id, object entity, object[] state, ISessionImplementor session);
 
 		#endregion
 

@@ -205,7 +205,7 @@ namespace NHibernate.Event.Default
 		/// The id used to save the entity; may be null depending on the
 		/// type of id generator used and the requiresImmediateIdAccess value
 		/// </returns>
-		protected virtual object PerformSaveOrReplicate(object entity, EntityKey key, IEntityPersister persister, bool useIdentityColumn, object anything, IEventSource source, bool requiresImmediateIdAccess)
+		protected virtual async Task<object> PerformSaveOrReplicate(object entity, EntityKey key, IEntityPersister persister, bool useIdentityColumn, object anything, IEventSource source, bool requiresImmediateIdAccess)
 		{
 			Validate(entity, persister, source);
 
@@ -221,7 +221,7 @@ namespace NHibernate.Event.Default
 			// likewise, should it be done before onUpdate()?
 			source.PersistenceContext.AddEntry(entity, Status.Saving, null, null, id, null, LockMode.Write, useIdentityColumn, persister, false, false);
 
-			CascadeBeforeSave(source, persister, entity, anything);
+			await CascadeBeforeSave(source, persister, entity, anything);
 
 			// NH-962: This was originally done before many-to-one cascades.
 			if (useIdentityColumn && !shouldDelayIdentityInserts)
@@ -290,7 +290,7 @@ namespace NHibernate.Event.Default
 				source.ActionQueue.AddAction(new EntityInsertAction(id, values, entity, version, persister, source));
 			}
 
-			CascadeAfterSave(source, persister, entity, anything);
+			await CascadeAfterSave(source, persister, entity, anything);
 
 			MarkInterceptorDirty(entity, persister, source);
 

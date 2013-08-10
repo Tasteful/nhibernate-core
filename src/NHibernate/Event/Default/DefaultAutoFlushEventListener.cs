@@ -1,5 +1,5 @@
 using System;
-
+using System.Threading.Tasks;
 using NHibernate.Engine;
 
 namespace NHibernate.Event.Default
@@ -19,7 +19,7 @@ namespace NHibernate.Event.Default
 		/// Handle the given auto-flush event.
 		/// </summary>
 		/// <param name="event">The auto-flush event to be handled.</param>
-		public virtual void OnAutoFlush(AutoFlushEvent @event)
+		public virtual async Task OnAutoFlush(AutoFlushEvent @event)
 		{
 			IEventSource source = @event.Session;
 
@@ -27,7 +27,7 @@ namespace NHibernate.Event.Default
 			{
 				int oldSize = source.ActionQueue.CollectionRemovalsCount;
 
-				FlushEverythingToExecutions(@event);
+				await FlushEverythingToExecutions(@event);
 
 				if (FlushIsReallyNeeded(@event, source))
 				{
