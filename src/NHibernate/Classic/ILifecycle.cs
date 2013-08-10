@@ -1,3 +1,5 @@
+using System.Threading.Tasks;
+
 namespace NHibernate.Classic
 {
 	/// <summary>
@@ -67,7 +69,7 @@ namespace NHibernate.Classic
 		/// </remarks>
 		/// <param name="s">The session</param>
 		/// <param name="id">The identifier</param>
-		void OnLoad(ISession s, object id);
+		Task OnLoad(ISession s, object id);
 	}
 
 	public enum LifecycleVeto

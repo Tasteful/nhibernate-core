@@ -25,6 +25,7 @@ using NHibernate.Proxy;
 using NHibernate.Stat;
 using NHibernate.Type;
 using NHibernate.Util;
+using Nito.AsyncEx;
 
 namespace NHibernate.Impl
 {
@@ -482,25 +483,37 @@ namespace NHibernate.Impl
 		/// <returns></returns>
 		public object Save(object obj)
 		{
+			return AsyncContext.Run(() => SaveAsync(obj));
+		}
+		public async Task<object> SaveAsync(object obj)
+		{
 			using (new SessionIdLoggingContext(SessionId))
 			{
-				return FireSave(new SaveOrUpdateEvent(null, obj, this));
+				return await FireSave(new SaveOrUpdateEvent(null, obj, this));
 			}
 		}
 
 		public object Save(string entityName, object obj)
 		{
+			return AsyncContext.Run(() => SaveAsync(entityName, obj));
+		}
+		public async Task<object> SaveAsync(string entityName, object obj)
+		{
 			using (new SessionIdLoggingContext(SessionId))
 			{
-				return FireSave(new SaveOrUpdateEvent(entityName, obj, this));
+				return await FireSave(new SaveOrUpdateEvent(entityName, obj, this));
 			}
 		}
 
 		public void Save(string entityName, object obj, object id)
 		{
+			AsyncContext.Run(() => SaveAsync(entityName, obj, id));
+		}
+		public async Task SaveAsync(string entityName, object obj, object id)
+		{
 			using (new SessionIdLoggingContext(SessionId))
 			{
-				FireSave(new SaveOrUpdateEvent(entityName, obj, id, this));
+				await FireSave(new SaveOrUpdateEvent(entityName, obj, id, this));
 			}
 		}
 
@@ -511,9 +524,13 @@ namespace NHibernate.Impl
 		/// <param name="id"></param>
 		public void Save(object obj, object id)
 		{
+			AsyncContext.Run(() => SaveAsync(obj, id));
+		}
+		public async Task SaveAsync(object obj, object id)
+		{
 			using (new SessionIdLoggingContext(SessionId))
 			{
-				FireSave(new SaveOrUpdateEvent(null, obj, id, this));
+				await FireSave(new SaveOrUpdateEvent(null, obj, id, this));
 			}
 		}
 
@@ -523,74 +540,110 @@ namespace NHibernate.Impl
 		/// <param name="obj"></param>
 		public void Delete(object obj)
 		{
+			AsyncContext.Run(() => DeleteAsync(obj));
+		}
+		public async Task DeleteAsync(object obj)
+		{
 			using (new SessionIdLoggingContext(SessionId))
 			{
-				FireDelete(new DeleteEvent(obj, this));
+				await FireDelete(new DeleteEvent(obj, this));
 			}
 		}
 
 		/// <summary> Delete a persistent object (by explicit entity name)</summary>
 		public void Delete(string entityName, object obj)
 		{
+			AsyncContext.Run(() => DeleteAsync(entityName, obj));
+		}
+		public async Task DeleteAsync(string entityName, object obj)
+		{
 			using (new SessionIdLoggingContext(SessionId))
 			{
-				FireDelete(new DeleteEvent(entityName, obj, this));
+				await FireDelete(new DeleteEvent(entityName, obj, this));
 			}
 		}
 
 		public void Update(object obj)
 		{
+			AsyncContext.Run(() => UpdateAsync(obj));
+		}
+		public async Task UpdateAsync(object obj)
+		{
 			using (new SessionIdLoggingContext(SessionId))
 			{
-				FireUpdate(new SaveOrUpdateEvent(null, obj, this));
+				await FireUpdate(new SaveOrUpdateEvent(null, obj, this));
 			}
 		}
 
 		public void Update(string entityName, object obj)
 		{
+			AsyncContext.Run(() => UpdateAsync(entityName, obj));
+		}
+		public async Task UpdateAsync(string entityName, object obj)
+		{
 			using (new SessionIdLoggingContext(SessionId))
 			{
-				FireUpdate(new SaveOrUpdateEvent(entityName, obj, this));
+				await FireUpdate(new SaveOrUpdateEvent(entityName, obj, this));
 			}
 		}
 
 		public void Update(string entityName, object obj, object id)
 		{
+			AsyncContext.Run(() => UpdateAsync(entityName, obj, id));
+		}
+		public async Task UpdateAsync(string entityName, object obj, object id)
+		{
 			using (new SessionIdLoggingContext(SessionId))
 			{
-				FireUpdate(new SaveOrUpdateEvent(entityName, obj, id, this));
+				await FireUpdate(new SaveOrUpdateEvent(entityName, obj, id, this));
 			}
 		}
 
 		public void SaveOrUpdate(object obj)
 		{
+			AsyncContext.Run(() => SaveOrUpdateAsync(obj));
+		}
+		public async Task SaveOrUpdateAsync(object obj)
+		{
 			using (new SessionIdLoggingContext(SessionId))
 			{
-				FireSaveOrUpdate(new SaveOrUpdateEvent(null, obj, this));
+				await FireSaveOrUpdate(new SaveOrUpdateEvent(null, obj, this));
 			}
 		}
 
 		public void SaveOrUpdate(string entityName, object obj)
 		{
+			AsyncContext.Run(() => SaveOrUpdateAsync(entityName, obj));
+		}
+		public async Task SaveOrUpdateAsync(string entityName, object obj)
+		{
 			using (new SessionIdLoggingContext(SessionId))
 			{
-				FireSaveOrUpdate(new SaveOrUpdateEvent(entityName, obj, this));
+				await FireSaveOrUpdate(new SaveOrUpdateEvent(entityName, obj, this));
 			}
 		}
 
 		public void SaveOrUpdate(string entityName, object obj, object id)
 		{
+			AsyncContext.Run(() => SaveOrUpdateAsync(entityName, obj, id));
+		}
+		public async Task SaveOrUpdateAsync(string entityName, object obj, object id)
+		{
 			using (new SessionIdLoggingContext(SessionId))
 			{
-				FireSaveOrUpdate(new SaveOrUpdateEvent(entityName, obj, id, this));
+				await FireSaveOrUpdate(new SaveOrUpdateEvent(entityName, obj, id, this));
 			}
 		}
 
 		public void Update(object obj, object id)
 		{
+			AsyncContext.Run(() => UpdateAsync(obj, id));
+		}
+		public async Task UpdateAsync(object obj, object id)
+		{
 			using (new SessionIdLoggingContext(SessionId))
 			{
-				FireUpdate(new SaveOrUpdateEvent(null, obj, id, this));
+				await FireUpdate(new SaveOrUpdateEvent(null, obj, id, this));
 			}
 		}
 
@@ -745,17 +798,25 @@ namespace NHibernate.Impl
 
 		public void Lock(object obj, LockMode lockMode)
 		{
+			AsyncContext.Run(() => LockAsync(obj, lockMode));
+		}
+		public async Task LockAsync(object obj, LockMode lockMode)
+		{
 			using (new SessionIdLoggingContext(SessionId))
 			{
-				FireLock(new LockEvent(obj, lockMode, this));
+				await FireLock(new LockEvent(obj, lockMode, this));
 			}
 		}
 
 		public void Lock(string entityName, object obj, LockMode lockMode)
 		{
+			AsyncContext.Run(() => LockAsync(entityName, obj, lockMode));
+		}
+		public async Task LockAsync(string entityName, object obj, LockMode lockMode)
+		{
 			using (new SessionIdLoggingContext(SessionId))
 			{
-				FireLock(new LockEvent(entityName, obj, lockMode, this));
+				await FireLock(new LockEvent(entityName, obj, lockMode, this));
 			}
 		}
 
@@ -904,45 +965,65 @@ namespace NHibernate.Impl
 		/// <summary> Cascade merge an entity instance</summary>
 		public void Merge(string entityName, object obj, IDictionary copiedAlready)
 		{
+			AsyncContext.Run(() => MergeAsync(entityName, obj, copiedAlready));
+		}
+		public async Task MergeAsync(string entityName, object obj, IDictionary copiedAlready)
+		{
 			using (new SessionIdLoggingContext(SessionId))
 			{
-				FireMerge(copiedAlready, new MergeEvent(entityName, obj, this));
+				await FireMerge(copiedAlready, new MergeEvent(entityName, obj, this));
 			}
 		}
 
 		/// <summary> Cascade persist an entity instance</summary>
 		public void Persist(string entityName, object obj, IDictionary createdAlready)
 		{
+			AsyncContext.Run(() => Persist(entityName, obj, createdAlready));
+		}
+		public async Task PersistAsync(string entityName, object obj, IDictionary createdAlready)
+		{
 			using (new SessionIdLoggingContext(SessionId))
 			{
-				FirePersist(createdAlready, new PersistEvent(entityName, obj, this));
+				await FirePersist(createdAlready, new PersistEvent(entityName, obj, this));
 			}
 		}
 
 		/// <summary> Cascade persist an entity instance during the flush process</summary>
 		public void PersistOnFlush(string entityName, object obj, IDictionary copiedAlready)
 		{
+			AsyncContext.Run(() => PersistOnFlushAsync(entityName, obj, copiedAlready));
+		}
+		public async Task PersistOnFlushAsync(string entityName, object obj, IDictionary copiedAlready)
+		{
 			using (new SessionIdLoggingContext(SessionId))
 			{
-				FirePersistOnFlush(copiedAlready, new PersistEvent(entityName, obj, this));
+				await FirePersistOnFlush(copiedAlready, new PersistEvent(entityName, obj, this));
 			}
 		}
 
 		/// <summary> Cascade refresh an entity instance</summary>
 		public void Refresh(object obj, IDictionary refreshedAlready)
 		{
-			using (new SessionIdLoggingContext(SessionId))
-			{
-				FireRefresh(refreshedAlready, new RefreshEvent(obj, this));
-			}
+			AsyncContext.Run(() => RefreshAsync(obj, refreshedAlready));
 		}
-		
-		/// <summary> Cascade delete an entity instance</summary>
-		public void Delete(string entityName, object child, bool isCascadeDeleteEnabled, ISet<object> transientEntities)
+		public async Task RefreshAsync(object obj, IDictionary refreshedAlready)
 		{
 			using (new SessionIdLoggingContext(SessionId))
 			{
-				FireDelete(new DeleteEvent(entityName, child, isCascadeDeleteEnabled, this), transientEntities);
+				await FireRefresh(refreshedAlready, new RefreshEvent(obj, this));
+			}
+		}
+
+		/// <summary> Cascade delete an entity instance</summary>
+		public void Delete(string entityName, object child, bool isCascadeDeleteEnabled, ISet<object> transientEntities)
+		{
+			AsyncContext.Run(() => DeleteAsync(entityName, child, isCascadeDeleteEnabled, transientEntities));
+		}
+		public async Task DeleteAsync(string entityName, object child, bool isCascadeDeleteEnabled, ISet<object> transientEntities)
+		{
+			using (new SessionIdLoggingContext(SessionId))
+			{
+				await FireDelete(new DeleteEvent(entityName, child, isCascadeDeleteEnabled, this), transientEntities);
 			}
 		}
 
@@ -950,59 +1031,91 @@ namespace NHibernate.Impl
 
 		public object Merge(string entityName, object obj)
 		{
+			return AsyncContext.Run(() => MergeAsync(entityName, obj));
+		}
+		public async Task<object> MergeAsync(string entityName, object obj)
+		{
 			using (new SessionIdLoggingContext(SessionId))
 			{
-				return FireMerge(new MergeEvent(entityName, obj, this));
+				return await FireMerge(new MergeEvent(entityName, obj, this));
 			}
 		}
 
 		public T Merge<T>(T entity) where T : class
 		{
-			return (T)Merge((object)entity);
+			return AsyncContext.Run(() => MergeAsync(entity));
+		}
+		public async Task<T> MergeAsync<T>(T entity) where T : class
+		{
+			return (T)await MergeAsync((object)entity);
 		}
 
 		public T Merge<T>(string entityName, T entity) where T : class
 		{
-			return (T)Merge(entityName, (object)entity);
+			return AsyncContext.Run(() => MergeAsync(entityName, entity));
+		}
+		public async Task<T> MergeAsync<T>(string entityName, T entity) where T : class
+		{
+			return (T)await MergeAsync(entityName, (object)entity);
 		}
 
 		public object Merge(object obj)
 		{
+			return AsyncContext.Run(() => MergeAsync(obj));
+		}
+		public async Task<object> MergeAsync(object obj)
+		{
 			using (new SessionIdLoggingContext(SessionId))
 			{
-				return Merge(null, obj);
+				return await MergeAsync(null, obj);
 			}
 		}
 
 		public void Persist(string entityName, object obj)
 		{
+			AsyncContext.Run(() => PersistAsync(entityName, obj));
+		}
+		public async Task PersistAsync(string entityName, object obj)
+		{
 			using (new SessionIdLoggingContext(SessionId))
 			{
-				FirePersist(new PersistEvent(entityName, obj, this));
+				await FirePersist(new PersistEvent(entityName, obj, this));
 			}
 		}
 
 		public void Persist(object obj)
 		{
+			AsyncContext.Run(() => PersistAsync(obj));
+		}
+		public async Task PersistAsync(object obj)
+		{
 			using (new SessionIdLoggingContext(SessionId))
 			{
-				Persist(null, obj);
+				await PersistAsync(null, obj);
 			}
 		}
 
 		public void PersistOnFlush(string entityName, object obj)
 		{
+			AsyncContext.Run(() => PersistOnFlushAsync(entityName, obj));
+		}
+		public async Task PersistOnFlushAsync(string entityName, object obj)
+		{
 			using (new SessionIdLoggingContext(SessionId))
 			{
-				FirePersistOnFlush(new PersistEvent(entityName, obj, this));
+				await FirePersistOnFlush(new PersistEvent(entityName, obj, this));
 			}
 		}
 
 		public void PersistOnFlush(object obj)
 		{
+			AsyncContext.Run(() => PersistOnFlushAsync(obj));
+		}
+		public async Task PersistOnFlushAsync(object obj)
+		{
 			using (new SessionIdLoggingContext(SessionId))
 			{
-				Persist(null, obj);
+				await PersistAsync(null, obj);
 			}
 		}
 
@@ -2334,7 +2447,7 @@ namespace NHibernate.Impl
 			return persistenceContext.IsReadOnly(entityOrProxy);
 		}
 
-		private void FireDelete(DeleteEvent @event)
+		private async Task FireDelete(DeleteEvent @event)
 		{
 			using (new SessionIdLoggingContext(SessionId))
 			{
@@ -2342,12 +2455,12 @@ namespace NHibernate.Impl
 				IDeleteEventListener[] deleteEventListener = listeners.DeleteEventListeners;
 				for (int i = 0; i < deleteEventListener.Length; i++)
 				{
-					deleteEventListener[i].OnDelete(@event);
+					await deleteEventListener[i].OnDelete(@event);
 				}
 			}
 		}
 
-		private void FireDelete(DeleteEvent @event, ISet<object> transientEntities)
+		private async Task FireDelete(DeleteEvent @event, ISet<object> transientEntities)
 		{
 			using (new SessionIdLoggingContext(SessionId))
 			{
@@ -2355,12 +2468,12 @@ namespace NHibernate.Impl
 				IDeleteEventListener[] deleteEventListener = listeners.DeleteEventListeners;
 				for (int i = 0; i < deleteEventListener.Length; i++)
 				{
-					deleteEventListener[i].OnDelete(@event, transientEntities);
+					await deleteEventListener[i].OnDelete(@event, transientEntities);
 				}
 			}
 		}
 
-		private void FireEvict(EvictEvent evictEvent)
+		private async Task FireEvict(EvictEvent evictEvent)
 		{
 			using (new SessionIdLoggingContext(SessionId))
 			{
@@ -2368,12 +2481,12 @@ namespace NHibernate.Impl
 				IEvictEventListener[] evictEventListener = listeners.EvictEventListeners;
 				for (int i = 0; i < evictEventListener.Length; i++)
 				{
-					evictEventListener[i].OnEvict(evictEvent);
+					await evictEventListener[i].OnEvict(evictEvent);
 				}
 			}
 		}
 
-		private void FireLoad(LoadEvent @event, LoadType loadType)
+		private async Task FireLoad(LoadEvent @event, LoadType loadType)
 		{
 			using (new SessionIdLoggingContext(SessionId))
 			{
@@ -2381,12 +2494,12 @@ namespace NHibernate.Impl
 				ILoadEventListener[] loadEventListener = listeners.LoadEventListeners;
 				for (int i = 0; i < loadEventListener.Length; i++)
 				{
-					loadEventListener[i].OnLoad(@event, loadType);
+					await loadEventListener[i].OnLoad(@event, loadType);
 				}
 			}
 		}
 
-		private void FireLock(LockEvent lockEvent)
+		private async Task FireLock(LockEvent lockEvent)
 		{
 			using (new SessionIdLoggingContext(SessionId))
 			{
@@ -2394,12 +2507,12 @@ namespace NHibernate.Impl
 				ILockEventListener[] lockEventListener = listeners.LockEventListeners;
 				for (int i = 0; i < lockEventListener.Length; i++)
 				{
-					lockEventListener[i].OnLock(lockEvent);
+					await lockEventListener[i].OnLock(lockEvent);
 				}
 			}
 		}
 
-		private object FireMerge(MergeEvent @event)
+		private async Task<object> FireMerge(MergeEvent @event)
 		{
 			using (new SessionIdLoggingContext(SessionId))
 			{
@@ -2407,13 +2520,13 @@ namespace NHibernate.Impl
 				IMergeEventListener[] mergeEventListener = listeners.MergeEventListeners;
 				for (int i = 0; i < mergeEventListener.Length; i++)
 				{
-					mergeEventListener[i].OnMerge(@event);
+					await mergeEventListener[i].OnMerge(@event);
 				}
 				return @event.Result;
 			}
 		}
 
-		private void FireMerge(IDictionary copiedAlready, MergeEvent @event)
+		private async Task FireMerge(IDictionary copiedAlready, MergeEvent @event)
 		{
 			using (new SessionIdLoggingContext(SessionId))
 			{
@@ -2421,12 +2534,12 @@ namespace NHibernate.Impl
 				IMergeEventListener[] mergeEventListener = listeners.MergeEventListeners;
 				for (int i = 0; i < mergeEventListener.Length; i++)
 				{
-					mergeEventListener[i].OnMerge(@event, copiedAlready);
+					await mergeEventListener[i].OnMerge(@event, copiedAlready);
 				}
 			}
 		}
 
-		private void FirePersist(IDictionary copiedAlready, PersistEvent @event)
+		private async Task FirePersist(IDictionary copiedAlready, PersistEvent @event)
 		{
 			using (new SessionIdLoggingContext(SessionId))
 			{
@@ -2434,12 +2547,12 @@ namespace NHibernate.Impl
 				IPersistEventListener[] persistEventListener = listeners.PersistEventListeners;
 				for (int i = 0; i < persistEventListener.Length; i++)
 				{
-					persistEventListener[i].OnPersist(@event, copiedAlready);
+					await persistEventListener[i].OnPersist(@event, copiedAlready);
 				}
 			}
 		}
 
-		private void FirePersist(PersistEvent @event)
+		private async Task FirePersist(PersistEvent @event)
 		{
 			using (new SessionIdLoggingContext(SessionId))
 			{
@@ -2447,12 +2560,12 @@ namespace NHibernate.Impl
 				IPersistEventListener[] createEventListener = listeners.PersistEventListeners;
 				for (int i = 0; i < createEventListener.Length; i++)
 				{
-					createEventListener[i].OnPersist(@event);
+					await createEventListener[i].OnPersist(@event);
 				}
 			}
 		}
 
-		private void FirePersistOnFlush(IDictionary copiedAlready, PersistEvent @event)
+		private async Task FirePersistOnFlush(IDictionary copiedAlready, PersistEvent @event)
 		{
 			using (new SessionIdLoggingContext(SessionId))
 			{
@@ -2460,12 +2573,12 @@ namespace NHibernate.Impl
 				IPersistEventListener[] persistEventListener = listeners.PersistOnFlushEventListeners;
 				for (int i = 0; i < persistEventListener.Length; i++)
 				{
-					persistEventListener[i].OnPersist(@event, copiedAlready);
+					await persistEventListener[i].OnPersist(@event, copiedAlready);
 				}
 			}
 		}
 
-		private void FirePersistOnFlush(PersistEvent @event)
+		private async Task FirePersistOnFlush(PersistEvent @event)
 		{
 			using (new SessionIdLoggingContext(SessionId))
 			{
@@ -2473,12 +2586,12 @@ namespace NHibernate.Impl
 				IPersistEventListener[] createEventListener = listeners.PersistOnFlushEventListeners;
 				for (int i = 0; i < createEventListener.Length; i++)
 				{
-					createEventListener[i].OnPersist(@event);
+					await createEventListener[i].OnPersist(@event);
 				}
 			}
 		}
 
-		private void FireRefresh(RefreshEvent refreshEvent)
+		private async Task FireRefresh(RefreshEvent refreshEvent)
 		{
 			using (new SessionIdLoggingContext(SessionId))
 			{
@@ -2486,12 +2599,12 @@ namespace NHibernate.Impl
 				IRefreshEventListener[] refreshEventListener = listeners.RefreshEventListeners;
 				for (int i = 0; i < refreshEventListener.Length; i++)
 				{
-					refreshEventListener[i].OnRefresh(refreshEvent);
+					await refreshEventListener[i].OnRefresh(refreshEvent);
 				}
 			}
 		}
 
-		private void FireRefresh(IDictionary refreshedAlready, RefreshEvent refreshEvent)
+		private async Task FireRefresh(IDictionary refreshedAlready, RefreshEvent refreshEvent)
 		{
 			using (new SessionIdLoggingContext(SessionId))
 			{
@@ -2499,12 +2612,12 @@ namespace NHibernate.Impl
 				IRefreshEventListener[] refreshEventListener = listeners.RefreshEventListeners;
 				for (int i = 0; i < refreshEventListener.Length; i++)
 				{
-					refreshEventListener[i].OnRefresh(refreshEvent, refreshedAlready);
+					await refreshEventListener[i].OnRefresh(refreshEvent, refreshedAlready);
 				}
 			}
 		}
 
-		private void FireReplicate(ReplicateEvent @event)
+		private async Task FireReplicate(ReplicateEvent @event)
 		{
 			using (new SessionIdLoggingContext(SessionId))
 			{
@@ -2512,12 +2625,12 @@ namespace NHibernate.Impl
 				IReplicateEventListener[] replicateEventListener = listeners.ReplicateEventListeners;
 				for (int i = 0; i < replicateEventListener.Length; i++)
 				{
-					replicateEventListener[i].OnReplicate(@event);
+					await replicateEventListener[i].OnReplicate(@event);
 				}
 			}
 		}
 
-		private object FireSave(SaveOrUpdateEvent @event)
+		private async Task<object> FireSave(SaveOrUpdateEvent @event)
 		{
 			using (new SessionIdLoggingContext(SessionId))
 			{
@@ -2525,13 +2638,13 @@ namespace NHibernate.Impl
 				ISaveOrUpdateEventListener[] saveEventListener = listeners.SaveEventListeners;
 				for (int i = 0; i < saveEventListener.Length; i++)
 				{
-					saveEventListener[i].OnSaveOrUpdate(@event);
+					await saveEventListener[i].OnSaveOrUpdate(@event);
 				}
 				return @event.ResultId;
 			}
 		}
 
-		private void FireSaveOrUpdate(SaveOrUpdateEvent @event)
+		private async Task FireSaveOrUpdate(SaveOrUpdateEvent @event)
 		{
 			using (new SessionIdLoggingContext(SessionId))
 			{
@@ -2539,12 +2652,12 @@ namespace NHibernate.Impl
 				ISaveOrUpdateEventListener[] saveOrUpdateEventListener = listeners.SaveOrUpdateEventListeners;
 				for (int i = 0; i < saveOrUpdateEventListener.Length; i++)
 				{
-					saveOrUpdateEventListener[i].OnSaveOrUpdate(@event);
+					await saveOrUpdateEventListener[i].OnSaveOrUpdate(@event);
 				}
 			}
 		}
 
-		private void FireUpdate(SaveOrUpdateEvent @event)
+		private async Task FireUpdate(SaveOrUpdateEvent @event)
 		{
 			using (new SessionIdLoggingContext(SessionId))
 			{
@@ -2552,7 +2665,7 @@ namespace NHibernate.Impl
 				ISaveOrUpdateEventListener[] updateEventListener = listeners.UpdateEventListeners;
 				for (int i = 0; i < updateEventListener.Length; i++)
 				{
-					updateEventListener[i].OnSaveOrUpdate(@event);
+					await updateEventListener[i].OnSaveOrUpdate(@event);
 				}
 			}
 		}

@@ -1725,9 +1725,9 @@ namespace NHibernate.Persister.Entity
 			}
 		}
 
-		public virtual void Lock(object id, object version, object obj, LockMode lockMode, ISessionImplementor session)
+		public virtual Task Lock(object id, object version, object obj, LockMode lockMode, ISessionImplementor session)
 		{
-			GetLocker(lockMode).Lock(id, version, obj, session);
+			return GetLocker(lockMode).Lock(id, version, obj, session);
 		}
 
 		public virtual string GetRootTableAlias(string drivingAlias)
@@ -3470,7 +3470,7 @@ namespace NHibernate.Persister.Entity
 		/// <summary>
 		/// Load an instance using the appropriate loader (as determined by <see cref="GetAppropriateLoader" />
 		/// </summary>
-		public object Load(object id, object optionalObject, LockMode lockMode, ISessionImplementor session)
+		public Task<object> Load(object id, object optionalObject, LockMode lockMode, ISessionImplementor session)
 		{
 			if (log.IsDebugEnabled)
 			{

@@ -1,5 +1,5 @@
 using System;
-
+using System.Threading.Tasks;
 using NHibernate.Engine;
 using NHibernate.Impl;
 using NHibernate.Persister.Entity;
@@ -18,7 +18,7 @@ namespace NHibernate.Event.Default
 	{
 		private static readonly IInternalLogger log = LoggerProvider.LoggerFor(typeof(DefaultEvictEventListener));
 
-		public virtual void OnEvict(EvictEvent @event)
+		public virtual async Task OnEvict(EvictEvent @event)
 		{
 			IEventSource source = @event.Session;
 			object obj = @event.Entity;
@@ -41,7 +41,7 @@ namespace NHibernate.Event.Default
 					if (entity != null)
 					{
 						EntityEntry e = @event.Session.PersistenceContext.RemoveEntry(entity);
-						DoEvict(entity, key, e.Persister, @event.Session);
+						await DoEvict(entity, key, e.Persister, @event.Session);
 					}
 				}
 				li.UnsetSession();
@@ -52,12 +52,12 @@ namespace NHibernate.Event.Default
 				if (e != null)
 				{
 					persistenceContext.RemoveEntity(e.EntityKey);
-					DoEvict(obj, e.EntityKey, e.Persister, source);
+					await DoEvict(obj, e.EntityKey, e.Persister, source);
 				}
 			}
 		}
 
-		protected virtual void DoEvict(object obj, EntityKey key, IEntityPersister persister, IEventSource session)
+		protected virtual Task DoEvict(object obj, EntityKey key, IEntityPersister persister, IEventSource session)
 		{
 
 			if (log.IsDebugEnabled)
@@ -71,7 +71,7 @@ namespace NHibernate.Event.Default
 				new EvictVisitor(session).Process(obj, persister);
 			}
 
-			new Cascade(CascadingAction.Evict, CascadePoint.AfterEvict, session).CascadeOn(persister, obj);
+			return new Cascade(CascadingAction.Evict, CascadePoint.AfterEvict, session).CascadeOn(persister, obj);
 		}
 	}
 }
