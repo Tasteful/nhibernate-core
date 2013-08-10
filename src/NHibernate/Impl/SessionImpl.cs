@@ -1252,26 +1252,38 @@ namespace NHibernate.Impl
 
 		public void Load(object obj, object id)
 		{
+			AsyncContext.Run(() => LoadAsync(obj, id));
+		}
+		public async Task LoadAsync(object obj, object id)
+		{
 			using (new SessionIdLoggingContext(SessionId))
 			{
 				LoadEvent loadEvent = new LoadEvent(id, obj, this);
-				FireLoad(loadEvent, LoadEventListener.Reload);
+				await FireLoad(loadEvent, LoadEventListener.Reload);
 			}
 		}
 
 		public T Load<T>(object id)
 		{
+			return AsyncContext.Run(() => LoadAsync<T>(id));
+		}
+		public async Task<T> LoadAsync<T>(object id)
+		{
 			using (new SessionIdLoggingContext(SessionId))
 			{
-				return (T)Load(typeof(T), id);
+				return (T)await LoadAsync(typeof(T), id);
 			}
 		}
 
 		public T Load<T>(object id, LockMode lockMode)
 		{
+			return AsyncContext.Run(() => LoadAsync<T>(id, lockMode));
+		}
+		public async Task<T> LoadAsync<T>(object id, LockMode lockMode)
+		{
 			using (new SessionIdLoggingContext(SessionId))
 			{
-				return (T)Load(typeof(T), id, lockMode);
+				return (T)await LoadAsync(typeof(T), id, lockMode);
 			}
 		}
 
@@ -1291,13 +1303,21 @@ namespace NHibernate.Impl
 		/// </exception>
 		public object Load(System.Type entityClass, object id, LockMode lockMode)
 		{
+			return AsyncContext.Run(() => LoadAsync(entityClass, id, lockMode));
+		}
+		public async Task<object> LoadAsync(System.Type entityClass, object id, LockMode lockMode)
+		{
 			using (new SessionIdLoggingContext(SessionId))
 			{
-				return Load(entityClass.FullName, id, lockMode);
+				return await LoadAsync(entityClass.FullName, id, lockMode);
 			}
 		}
 
 		public object Load(string entityName, object id)
+		{
+			return AsyncContext.Run(() => LoadAsync(entityName, id));
+		}
+		public async Task<object> LoadAsync(string entityName, object id)
 		{
 			using (new SessionIdLoggingContext(SessionId))
 			{
@@ -1310,7 +1330,7 @@ namespace NHibernate.Impl
 				bool success = false;
 				try
 				{
-					FireLoad(@event, LoadEventListener.Load);
+					await FireLoad(@event, LoadEventListener.Load);
 					if (@event.Result == null)
 					{
 						Factory.EntityNotFoundDelegate.HandleEntityNotFound(entityName, id);
@@ -1327,43 +1347,63 @@ namespace NHibernate.Impl
 
 		public object Load(string entityName, object id, LockMode lockMode)
 		{
+			return AsyncContext.Run(() => LoadAsync(entityName, id, lockMode));
+		}
+		public async Task<object> LoadAsync(string entityName, object id, LockMode lockMode)
+		{
 			using (new SessionIdLoggingContext(SessionId))
 			{
 				var @event = new LoadEvent(id, entityName, lockMode, this);
-				FireLoad(@event, LoadEventListener.Load);
+				await FireLoad(@event, LoadEventListener.Load);
 				return @event.Result;
 			}
 		}
 
 		public object Load(System.Type entityClass, object id)
 		{
+			return AsyncContext.Run(() => LoadAsync(entityClass, id));
+		}
+		public async Task<object> LoadAsync(System.Type entityClass, object id)
+		{
 			using (new SessionIdLoggingContext(SessionId))
 			{
-				return Load(entityClass.FullName, id);
+				return await LoadAsync(entityClass.FullName, id);
 			}
 		}
 
 		public T Get<T>(object id)
 		{
+			return AsyncContext.Run(() => GetAsync<T>(id));
+		}
+		public async Task<T> GetAsync<T>(object id)
+		{
 			using (new SessionIdLoggingContext(SessionId))
 			{
-				return (T)Get(typeof(T), id);
+				return (T)await GetAsync(typeof(T), id);
 			}
 		}
 
 		public T Get<T>(object id, LockMode lockMode)
 		{
+			return AsyncContext.Run(() => GetAsync<T>(id, lockMode));
+		}
+		public async Task<T> GetAsync<T>(object id, LockMode lockMode)
+		{
 			using (new SessionIdLoggingContext(SessionId))
 			{
-				return (T)Get(typeof(T), id, lockMode);
+				return (T)await GetAsync(typeof(T), id, lockMode);
 			}
 		}
 
 		public object Get(System.Type entityClass, object id)
 		{
+			return AsyncContext.Run(() => GetAsync(entityClass, id));
+		}
+		public async Task<object> GetAsync(System.Type entityClass, object id)
+		{
 			using (new SessionIdLoggingContext(SessionId))
 			{
-				return Get(entityClass.FullName, id);
+				return await GetAsync(entityClass.FullName, id);
 			}
 		}
 
@@ -1380,10 +1420,14 @@ namespace NHibernate.Impl
 		/// <returns></returns>
 		public object Get(System.Type clazz, object id, LockMode lockMode)
 		{
+			return AsyncContext.Run(() => GetAsync(clazz, id, lockMode));
+		}
+		public async Task<object> GetAsync(System.Type clazz, object id, LockMode lockMode)
+		{
 			using (new SessionIdLoggingContext(SessionId))
 			{
 				LoadEvent loadEvent = new LoadEvent(id, clazz.FullName, lockMode, this);
-				FireLoad(loadEvent, LoadEventListener.Get);
+				await FireLoad(loadEvent, LoadEventListener.Get);
 				return loadEvent.Result;
 			}
 		}
@@ -1420,13 +1464,17 @@ namespace NHibernate.Impl
 
 		public object Get(string entityName, object id)
 		{
+			return AsyncContext.Run(() => GetAsync(entityName, id));
+		}
+		public async Task<object> GetAsync(string entityName, object id)
+		{
 			using (new SessionIdLoggingContext(SessionId))
 			{
 				LoadEvent loadEvent = new LoadEvent(id, entityName, false, this);
 				bool success = false;
 				try
 				{
-					FireLoad(loadEvent, LoadEventListener.Get);
+					await FireLoad(loadEvent, LoadEventListener.Get);
 					success = true;
 					return loadEvent.Result;
 				}
@@ -1442,7 +1490,7 @@ namespace NHibernate.Impl
 		/// This is only called when lazily initializing a proxy.
 		/// Do NOT return a proxy.
 		/// </summary>
-		public override object ImmediateLoad(string entityName, object id)
+		public override async Task<object> ImmediateLoadAsync(string entityName, object id)
 		{
 			using (new SessionIdLoggingContext(SessionId))
 			{
@@ -1453,7 +1501,7 @@ namespace NHibernate.Impl
 				}
 
 				LoadEvent loadEvent = new LoadEvent(id, entityName, true, this);
-				FireLoad(loadEvent, LoadEventListener.ImmediateLoad);
+				await FireLoad(loadEvent, LoadEventListener.ImmediateLoad);
 				return loadEvent.Result;
 			}
 		}
@@ -1463,7 +1511,7 @@ namespace NHibernate.Impl
 		/// Return the object with the specified id or throw exception if no row with that id exists. Defer the load,
 		/// return a new proxy or return an existing proxy if possible. Do not check if the object was deleted.
 		/// </summary>
-		public override object InternalLoad(string entityName, object id, bool eager, bool isNullable)
+		public override async Task<object> InternalLoadAsync(string entityName, object id, bool eager, bool isNullable)
 		{
 			using (new SessionIdLoggingContext(SessionId))
 			{
@@ -1472,7 +1520,7 @@ namespace NHibernate.Impl
 									? LoadEventListener.InternalLoadNullable
 									: (eager ? LoadEventListener.InternalLoadEager : LoadEventListener.InternalLoadLazy);
 				LoadEvent loadEvent = new LoadEvent(id, entityName, true, this);
-				FireLoad(loadEvent, type);
+				await FireLoad(loadEvent, type);
 				if (!isNullable)
 				{
 					UnresolvableObjectException.ThrowIfNull(loadEvent.Result, id, entityName);
@@ -1485,17 +1533,25 @@ namespace NHibernate.Impl
 
 		public void Refresh(object obj)
 		{
+			AsyncContext.Run(() => RefreshAsync(obj));
+		}
+		public async Task RefreshAsync(object obj)
+		{
 			using (new SessionIdLoggingContext(SessionId))
 			{
-				FireRefresh(new RefreshEvent(obj, this));
+				await FireRefresh(new RefreshEvent(obj, this));
 			}
 		}
 
 		public void Refresh(object obj, LockMode lockMode)
 		{
+			AsyncContext.Run(() => RefreshAsync(obj, lockMode));
+		}
+		public async Task RefreshAsync(object obj, LockMode lockMode)
+		{
 			using (new SessionIdLoggingContext(SessionId))
 			{
-				FireRefresh(new RefreshEvent(obj, lockMode, this));
+				await FireRefresh(new RefreshEvent(obj, lockMode, this));
 			}
 		}
 
@@ -2074,9 +2130,13 @@ namespace NHibernate.Impl
 		/// <param name="obj"></param>
 		public void Evict(object obj)
 		{
+			AsyncContext.Run(() => EvictAsync(obj));
+		}
+		public async Task EvictAsync(object obj)
+		{
 			using (new SessionIdLoggingContext(SessionId))
 			{
-				FireEvict(new EvictEvent(obj, this));
+				await FireEvict(new EvictEvent(obj, this));
 			}
 		}
 
@@ -2126,17 +2186,25 @@ namespace NHibernate.Impl
 
 		public void Replicate(object obj, ReplicationMode replicationMode)
 		{
+			AsyncContext.Run(() => ReplicateAsync(obj, replicationMode));
+		}
+		public async Task ReplicateAsync(object obj, ReplicationMode replicationMode)
+		{
 			using (new SessionIdLoggingContext(SessionId))
 			{
-				FireReplicate(new ReplicateEvent(obj, replicationMode, this));
+				await FireReplicate(new ReplicateEvent(obj, replicationMode, this));
 			}
 		}
 
 		public void Replicate(string entityName, object obj, ReplicationMode replicationMode)
 		{
+			AsyncContext.Run(() => ReplicateAsync(entityName, obj, replicationMode));
+		}
+		public async Task ReplicateAsync(string entityName, object obj, ReplicationMode replicationMode)
+		{
 			using (new SessionIdLoggingContext(SessionId))
 			{
-				FireReplicate(new ReplicateEvent(entityName, obj, replicationMode, this));
+				await FireReplicate(new ReplicateEvent(entityName, obj, replicationMode, this));
 			}
 		}
 

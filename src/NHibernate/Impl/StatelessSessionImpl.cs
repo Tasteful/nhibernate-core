@@ -65,7 +65,7 @@ namespace NHibernate.Impl
 			}
 		}
 
-		public override object InternalLoad(string entityName, object id, bool eager, bool isNullable)
+		public override Task<object> InternalLoadAsync(string entityName, object id, bool eager, bool isNullable)
 		{
 			using (new SessionIdLoggingContext(SessionId))
 			{
@@ -74,18 +74,18 @@ namespace NHibernate.Impl
 				object loaded = temporaryPersistenceContext.GetEntity(GenerateEntityKey(id, persister, EntityMode.Poco));
 				if (loaded != null)
 				{
-					return loaded;
+					return Task.FromResult(loaded);
 				}
 				if (!eager && persister.HasProxy)
 				{
-					return persister.CreateProxy(id, this);
+					return Task.FromResult(persister.CreateProxy(id, this));
 				}
 				//TODO: if not loaded, throw an exception
-				return Get(entityName, id);
+				return Task.FromResult(Get(entityName, id));
 			}
 		}
 
-		public override object ImmediateLoad(string entityName, object id)
+		public override Task<object> ImmediateLoadAsync(string entityName, object id)
 		{
 			throw new SessionException("proxies cannot be fetched by a stateless session");
 		}

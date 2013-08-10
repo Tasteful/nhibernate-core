@@ -72,8 +72,18 @@ namespace NHibernate.Impl
 		}
 
 		public abstract void InitializeCollection(IPersistentCollection collection, bool writing);
-		public abstract object InternalLoad(string entityName, object id, bool eager, bool isNullable);
-		public abstract object ImmediateLoad(string entityName, object id);
+
+		public object InternalLoad(string entityName, object id, bool eager, bool isNullable)
+		{
+			return AsyncContext.Run(() => InternalLoadAsync(entityName, id, eager, isNullable));
+		}
+		public abstract Task<object> InternalLoadAsync(string entityName, object id, bool eager, bool isNullable);
+
+		public object ImmediateLoad(string entityName, object id)
+		{
+			return AsyncContext.Run(() => ImmediateLoadAsync(entityName, id));
+		}
+		public abstract Task<object> ImmediateLoadAsync(string entityName, object id);
 		public abstract long Timestamp { get; }
 
 		public EntityKey GenerateEntityKey(object id, IEntityPersister persister)
