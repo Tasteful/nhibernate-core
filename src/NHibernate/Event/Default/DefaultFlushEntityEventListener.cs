@@ -1,5 +1,5 @@
 using System;
-
+using System.Threading.Tasks;
 using NHibernate.Action;
 using NHibernate.Classic;
 using NHibernate.Engine;
@@ -21,7 +21,7 @@ namespace NHibernate.Event.Default
 		/// <summary>
 		/// Flushes a single entity's state to the database, by scheduling an update action, if necessary
 		/// </summary>
-		public virtual void OnFlushEntity(FlushEntityEvent @event)
+		public virtual async Task OnFlushEntity(FlushEntityEvent @event)
 		{
 			object entity = @event.Entity;
 			EntityEntry entry = @event.EntityEntry;
@@ -33,14 +33,14 @@ namespace NHibernate.Event.Default
 
 			bool mightBeDirty = entry.RequiresDirtyCheck(entity);
 
-			object[] values = GetValues(entity, entry, entityMode, mightBeDirty, session);
+			object[] values = await GetValues(entity, entry, entityMode, mightBeDirty, session);
 
 			@event.PropertyValues = values;
 
 			//TODO: avoid this for non-new instances where mightBeDirty==false
 			bool substitute = WrapCollections(session, persister, types, values);
 
-			if (IsUpdateNecessary(@event, mightBeDirty))
+			if (await IsUpdateNecessary(@event, mightBeDirty))
 			{
 				substitute = ScheduleUpdate(@event) || substitute;
 			}
@@ -60,7 +60,7 @@ namespace NHibernate.Event.Default
 			}
 		}
 
-		private object[] GetValues(object entity, EntityEntry entry, EntityMode entityMode, bool mightBeDirty, ISessionImplementor session)
+		private async Task<object[]> GetValues(object entity, EntityEntry entry, EntityMode entityMode, bool mightBeDirty, ISessionImplementor session)
 		{
 			object[] loadedState = entry.LoadedState;
 			Status status = entry.Status;
@@ -83,7 +83,7 @@ namespace NHibernate.Event.Default
 				// grab its current state
 				values = persister.GetPropertyValues(entity, entityMode);
 
-				CheckNaturalId(persister, entry, values, loadedState, entityMode, session);
+				await CheckNaturalId(persister, entry, values, loadedState, entityMode, session);
 			}
 			return values;
 		}
@@ -119,7 +119,7 @@ namespace NHibernate.Event.Default
 			}
 		}
 
-		private void CheckNaturalId(IEntityPersister persister, EntityEntry entry, object[] current, object[] loaded, EntityMode entityMode, ISessionImplementor session)
+		private async Task CheckNaturalId(IEntityPersister persister, EntityEntry entry, object[] current, object[] loaded, EntityMode entityMode, ISessionImplementor session)
 		{
 			if (persister.HasNaturalIdentifier && entry.Status != Status.ReadOnly)
 			{
@@ -137,7 +137,7 @@ namespace NHibernate.Event.Default
 						{
 							if (snapshot == null)
 							{
-								snapshot = session.PersistenceContext.GetNaturalIdSnapshot(entry.Id, persister);
+								snapshot = await session.PersistenceContext.GetNaturalIdSnapshot(entry.Id, persister);
 							}
 							loadedVal = snapshot[i];
 						}
@@ -178,13 +178,13 @@ namespace NHibernate.Event.Default
 			}
 		}
 
-		private bool IsUpdateNecessary(FlushEntityEvent @event, bool mightBeDirty)
+		private async Task<bool> IsUpdateNecessary(FlushEntityEvent @event, bool mightBeDirty)
 		{
 			Status status = @event.EntityEntry.Status;
 			if (mightBeDirty || status == Status.Deleted)
 			{
 				// compare to cached state (ignoring collections unless versioned)
-				DirtyCheck(@event);
+				await DirtyCheck(@event);
 				if (IsUpdateNecessary(@event))
 				{
 					return true;
@@ -427,7 +427,7 @@ namespace NHibernate.Event.Default
 		}
 
 		/// <summary> Perform a dirty check, and attach the results to the event</summary>
-		protected virtual void DirtyCheck(FlushEntityEvent @event)
+		protected virtual async Task DirtyCheck(FlushEntityEvent @event)
 		{
 			object entity = @event.Entity;
 			object[] values = @event.PropertyValues;
@@ -478,7 +478,7 @@ namespace NHibernate.Event.Default
 				else
 				{
 					// dirty check against the database snapshot, if possible/necessary
-					object[] databaseSnapshot = GetDatabaseSnapshot(session, persister, id);
+					object[] databaseSnapshot = await GetDatabaseSnapshot(session, persister, id);
 					if (databaseSnapshot != null)
 					{
 						dirtyProperties = persister.FindModified(databaseSnapshot, values, entity, session);
@@ -500,11 +500,11 @@ namespace NHibernate.Event.Default
 		}
 
 
-		private object[] GetDatabaseSnapshot(ISessionImplementor session, IEntityPersister persister, object id)
+		private async Task<object[]> GetDatabaseSnapshot(ISessionImplementor session, IEntityPersister persister, object id)
 		{
 			if (persister.IsSelectBeforeUpdateRequired)
 			{
-				object[] snapshot = session.PersistenceContext.GetDatabaseSnapshot(id, persister);
+				object[] snapshot = await session.PersistenceContext.GetDatabaseSnapshot(id, persister);
 				if (snapshot == null)
 				{
 					//do we even really need this? the update will fail anyway....

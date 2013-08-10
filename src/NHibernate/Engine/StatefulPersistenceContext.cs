@@ -5,6 +5,7 @@ using System.Runtime.Serialization;
 using System.Security;
 using System.Security.Permissions;
 using System.Text;
+using System.Threading.Tasks;
 using NHibernate.Collection;
 using NHibernate.Engine.Loading;
 using NHibernate.Impl;
@@ -326,7 +327,7 @@ namespace NHibernate.Engine
 		/// Get the current state of the entity as known to the underlying
 		/// database, or null if there is no corresponding row
 		/// </summary>
-		public object[] GetDatabaseSnapshot(object id, IEntityPersister persister)
+		public async Task<object[]> GetDatabaseSnapshot(object id, IEntityPersister persister)
 		{
 			EntityKey key = session.GenerateEntityKey(id, persister);
 			object cached;
@@ -336,7 +337,7 @@ namespace NHibernate.Engine
 			}
 			else
 			{
-				object[] snapshot = persister.GetDatabaseSnapshot(id, session);
+				object[] snapshot = await persister.GetDatabaseSnapshot(id, session);
 				entitySnapshotsByKey[key] = snapshot ?? NoRow;
 				return snapshot;
 			}
@@ -372,7 +373,7 @@ namespace NHibernate.Engine
 		/// database, or null if the entity has no natural id or there is no
 		/// corresponding row.
 		/// </summary>
-		public object[] GetNaturalIdSnapshot(object id, IEntityPersister persister)
+		public async Task<object[]> GetNaturalIdSnapshot(object id, IEntityPersister persister)
 		{
 			if (!persister.HasNaturalIdentifier)
 			{
@@ -398,7 +399,7 @@ namespace NHibernate.Engine
 				// do this when all the properties are updateable since there is
 				// a certain likelihood that the information will already be
 				// snapshot-cached.
-				object[] entitySnapshot = GetDatabaseSnapshot(id, persister);
+				object[] entitySnapshot = await GetDatabaseSnapshot(id, persister);
 				if (entitySnapshot == NoRow)
 				{
 					return null;
@@ -412,7 +413,7 @@ namespace NHibernate.Engine
 			}
 			else
 			{
-				return persister.GetNaturalIdentifierSnapshot(id, session);
+				return await persister.GetNaturalIdentifierSnapshot(id, session);
 			}
 		}
 

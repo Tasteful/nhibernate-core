@@ -1,5 +1,5 @@
 using System;
-
+using System.Threading.Tasks;
 using NHibernate.Classic;
 using NHibernate.Engine;
 using NHibernate.Impl;
@@ -21,7 +21,7 @@ namespace NHibernate.Event.Default
 			get { return CascadingAction.SaveUpdate; }
 		}
 
-		public virtual void OnSaveOrUpdate(SaveOrUpdateEvent @event)
+		public virtual async Task OnSaveOrUpdate(SaveOrUpdateEvent @event)
 		{
 			ISessionImplementor source = @event.Session;
 			object obj = @event.Entity;
@@ -50,7 +50,7 @@ namespace NHibernate.Event.Default
 				@event.Entity = entity;
 				@event.Entry = source.PersistenceContext.GetEntry(entity);
 				//return the id in the event object
-				@event.ResultId = PerformSaveOrUpdate(@event);
+				@event.ResultId = await PerformSaveOrUpdate(@event);
 			}
 		}
 
@@ -59,9 +59,9 @@ namespace NHibernate.Event.Default
 			return source.PersistenceContext.ReassociateIfUninitializedProxy(obj);
 		}
 
-		protected virtual object PerformSaveOrUpdate(SaveOrUpdateEvent @event)
+		protected virtual async Task<object> PerformSaveOrUpdate(SaveOrUpdateEvent @event)
 		{
-			EntityState entityState = GetEntityState(@event.Entity, @event.EntityName, @event.Entry, @event.Session);
+			EntityState entityState = await GetEntityState(@event.Entity, @event.EntityName, @event.Entry, @event.Session);
 
 			switch (entityState)
 			{

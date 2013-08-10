@@ -2,6 +2,7 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Data;
+using System.Threading.Tasks;
 using NHibernate.AdoNet;
 using NHibernate.Cache;
 using NHibernate.Collection;
@@ -119,7 +120,7 @@ namespace NHibernate.Engine
 		/// </summary>
 		IList<T> List<T>(CriteriaImpl criteria);
 
-		void List(CriteriaImpl criteria, IList results);
+		Task List(CriteriaImpl criteria, IList results);
 
 		IList List(CriteriaImpl criteria);
 
@@ -155,11 +156,19 @@ namespace NHibernate.Engine
 		/// Execute a filter
 		/// </summary>
 		IList ListFilter(object collection, string filter, QueryParameters parameters);
+		/// <summary>
+		/// Execute a filter
+		/// </summary>
+		Task<IList> ListFilterAsync(object collection, string filter, QueryParameters parameters);
 
 		/// <summary>
 		/// Execute a filter (strongly-typed version).
 		/// </summary>
 		IList<T> ListFilter<T>(object collection, string filter, QueryParameters parameters);
+		/// <summary>
+		/// Execute a filter (strongly-typed version).
+		/// </summary>
+		Task<IList<T>> ListFilterAsync<T>(object collection, string filter, QueryParameters parameters);
 
 		/// <summary>
 		/// Collection from a filter
@@ -216,7 +225,7 @@ namespace NHibernate.Engine
 		IList<T> List<T>(NativeSQLQuerySpecification spec, QueryParameters queryParameters);
 
 		/// <summary> Execute an SQL Query</summary>
-		void ListCustomQuery(ICustomQuery customQuery, QueryParameters queryParameters, IList results);
+		Task ListCustomQuery(ICustomQuery customQuery, QueryParameters queryParameters, IList results);
 
 		IList<T> ListCustomQuery<T>(ICustomQuery customQuery, QueryParameters queryParameters);
 
@@ -318,14 +327,14 @@ namespace NHibernate.Engine
 		EntityMode EntityMode { get; }
 
 		/// <summary> Execute a native SQL update or delete query</summary>
-		int ExecuteNativeUpdate(NativeSQLQuerySpecification specification, QueryParameters queryParameters);
+		Task<int> ExecuteNativeUpdate(NativeSQLQuerySpecification specification, QueryParameters queryParameters);
 
 		/// <summary> Execute a HQL update or delete query</summary>
 		[Obsolete("Use overload with IQueryExpression")]
-		int ExecuteUpdate(string query, QueryParameters queryParameters);
+		Task<int> ExecuteUpdate(string query, QueryParameters queryParameters);
 
 		/// <summary> Execute a HQL update or delete query</summary>
-		int ExecuteUpdate(IQueryExpression query, QueryParameters queryParameters);
+		Task<int> ExecuteUpdate(IQueryExpression query, QueryParameters queryParameters);
 
 		FutureCriteriaBatch FutureCriteriaBatch { get; }
 

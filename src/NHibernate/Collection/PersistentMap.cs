@@ -3,6 +3,7 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Data;
 using System.Diagnostics;
+using System.Threading.Tasks;
 using NHibernate.DebugHelpers;
 using NHibernate.Engine;
 using NHibernate.Loader;
@@ -42,22 +43,22 @@ namespace NHibernate.Collection
 			IsDirectlyAccessible = true;
 		}
 
-		public override object GetSnapshot(ICollectionPersister persister)
+		public override async Task<object> GetSnapshot(ICollectionPersister persister)
 		{
 			EntityMode entityMode = Session.EntityMode;
 			Hashtable clonedMap = new Hashtable(map.Count);
 			foreach (DictionaryEntry e in map)
 			{
-				object copy = persister.ElementType.DeepCopy(e.Value, entityMode, persister.Factory);
+				object copy = await persister.ElementType.DeepCopy(e.Value, entityMode, persister.Factory);
 				clonedMap[e.Key] = copy;
 			}
-			return clonedMap;
+			return (object)clonedMap;
 		}
 
-		public override ICollection GetOrphans(object snapshot, string entityName)
+		public override async Task<ICollection> GetOrphans(object snapshot, string entityName)
 		{
 			IDictionary sn = (IDictionary) snapshot;
-			return GetOrphans(sn.Values, map.Values, entityName, Session);
+			return await GetOrphans(sn.Values, map.Values, entityName, Session);
 		}
 
 		public override bool EqualsSnapshot(ICollectionPersister persister)
@@ -227,7 +228,10 @@ namespace NHibernate.Collection
 
 		public bool Contains(object key)
 		{
-			bool? exists = ReadIndexExistence(key);
+			// TODO Async
+			Task<bool?> task = ReadIndexExistence(key);
+			task.Wait();
+			bool? exists = task.Result;
 			return !exists.HasValue ? map.Contains(key) : exists.Value;
 		}
 
@@ -385,7 +389,13 @@ namespace NHibernate.Collection
 
 		public int Count
 		{
-			get { return ReadSize() ? CachedSize : map.Count; }
+			get
+			{
+				// TODO Async
+				Task<bool> task = ReadSize();
+				task.Wait();
+				return task.Result ? CachedSize : map.Count;
+			}
 		}
 
 		public object SyncRoot

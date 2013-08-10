@@ -2,6 +2,7 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
+using System.Threading.Tasks;
 using Antlr.Runtime;
 using Antlr.Runtime.Tree;
 
@@ -82,7 +83,7 @@ namespace NHibernate.Hql.Ast.ANTLR
 			DoCompile(replacements, shallow, collectionRole);
 		}
 
-		public IList List(ISessionImplementor session, QueryParameters queryParameters)
+		public async Task<IList> List(ISessionImplementor session, QueryParameters queryParameters)
 		{
 			// Delegate to the QueryLoader...
 			ErrorIfDML();
@@ -107,7 +108,7 @@ namespace NHibernate.Hql.Ast.ANTLR
 				queryParametersToUse = queryParameters;
 			}
 
-			IList results = _queryLoader.List(session, queryParametersToUse);
+			IList results = await _queryLoader.List(session, queryParametersToUse);
 
 			if ( needsDistincting ) 
 			{
@@ -150,16 +151,16 @@ namespace NHibernate.Hql.Ast.ANTLR
 			return results;
 		}
 
-		public IEnumerable GetEnumerable(QueryParameters queryParameters, IEventSource session)
+		public Task<IEnumerable> GetEnumerable(QueryParameters queryParameters, IEventSource session)
 		{
 			ErrorIfDML();
 			return _queryLoader.GetEnumerable(queryParameters, session);
 		}
 
-		public int ExecuteUpdate(QueryParameters queryParameters, ISessionImplementor session)
+		public async Task<int> ExecuteUpdate(QueryParameters queryParameters, ISessionImplementor session)
 		{
 			ErrorIfSelect();
-			return _statementExecutor.Execute(queryParameters, session);
+			return await _statementExecutor.Execute(queryParameters, session);
 		}
 
 		private void ErrorIfSelect()

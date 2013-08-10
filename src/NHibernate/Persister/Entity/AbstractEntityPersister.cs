@@ -4,7 +4,7 @@ using System.Collections.Generic;
 using System.Data;
 using System.Data.Common;
 using System.Text;
-
+using System.Threading.Tasks;
 using NHibernate.AdoNet;
 using NHibernate.Cache;
 using NHibernate.Cache.Entry;
@@ -1190,7 +1190,7 @@ namespace NHibernate.Persister.Entity
 			return RenderSelect(tableNumbers.ToArray(), columnNumbers.ToArray(), formulaNumbers.ToArray());
 		}
 
-		public virtual object InitializeLazyProperty(string fieldName, object entity, ISessionImplementor session)
+		public virtual Task<object> InitializeLazyProperty(string fieldName, object entity, ISessionImplementor session)
 		{
 			object id = session.GetContextEntityIdentifier(entity);
 
@@ -1215,7 +1215,7 @@ namespace NHibernate.Persister.Entity
 					if (!cacheEntry.AreLazyPropertiesUnfetched)
 					{
 						//note early exit here:
-						return InitializeLazyPropertiesFromCache(fieldName, entity, session, entry, cacheEntry);
+						return Task.FromResult(InitializeLazyPropertiesFromCache(fieldName, entity, session, entry, cacheEntry));
 					}
 				}
 			}
@@ -1223,7 +1223,7 @@ namespace NHibernate.Persister.Entity
 			return InitializeLazyPropertiesFromDatastore(fieldName, entity, session, id, entry);
 		}
 
-		private object InitializeLazyPropertiesFromDatastore(string fieldName, object entity, ISessionImplementor session, object id, EntityEntry entry)
+		private async Task<object> InitializeLazyPropertiesFromDatastore(string fieldName, object entity, ISessionImplementor session, object id, EntityEntry entry)
 		{
 			if (!HasLazyProperties)
 				throw new AssertionFailure("no lazy properties");
@@ -1246,7 +1246,7 @@ namespace NHibernate.Persister.Entity
 						// handled differently in the Type#nullSafeGet code...
 						ps = session.Batcher.PrepareCommand(CommandType.Text, lazySelect, IdentifierType.SqlTypes(Factory));
 						IdentifierType.NullSafeSet(ps, id, 0, session);
-						rs = session.Batcher.ExecuteReader(ps);
+						rs = await session.Batcher.ExecuteReader(ps);
 						rs.Read();
 					}
 					object[] snapshot = entry.LoadedState;
@@ -1400,7 +1400,7 @@ namespace NHibernate.Persister.Entity
 			return select.ToSqlStringFragment();
 		}
 
-		public object[] GetDatabaseSnapshot(object id, ISessionImplementor session)
+		public async Task<object[]> GetDatabaseSnapshot(object id, ISessionImplementor session)
 		{
 			if (log.IsDebugEnabled)
 			{
@@ -1415,7 +1415,7 @@ namespace NHibernate.Persister.Entity
 				try
 				{
 					IdentifierType.NullSafeSet(st, id, 0, session);
-					rs = session.Batcher.ExecuteReader(st);
+					rs = await session.Batcher.ExecuteReader(st);
 
 					if (!rs.Read())
 					{
@@ -1585,7 +1585,7 @@ namespace NHibernate.Persister.Entity
 				.ToSqlString();
 		}
 
-		public object ForceVersionIncrement(object id, object currentVersion, ISessionImplementor session)
+		public async Task<object> ForceVersionIncrement(object id, object currentVersion, ISessionImplementor session)
 		{
 			if (!IsVersioned)
 				throw new AssertionFailure("cannot force version increment on non-versioned entity");
@@ -1617,7 +1617,7 @@ namespace NHibernate.Persister.Entity
 					VersionType.NullSafeSet(st, nextVersion, 0, session);
 					IdentifierType.NullSafeSet(st, id, 1, session);
 					VersionType.NullSafeSet(st, currentVersion, 1 + IdentifierColumnSpan, session);
-					Check(session.Batcher.ExecuteNonQuery(st), id, 0, expectation, st);
+					Check(await session.Batcher.ExecuteNonQuery(st), id, 0, expectation, st);
 				}
 				finally
 				{
@@ -1656,7 +1656,7 @@ namespace NHibernate.Persister.Entity
 		/// <summary>
 		/// Retrieve the version number
 		/// </summary>
-		public object GetCurrentVersion(object id, ISessionImplementor session)
+		public async Task<object> GetCurrentVersion(object id, ISessionImplementor session)
 		{
 			if (log.IsDebugEnabled)
 			{
@@ -1670,7 +1670,7 @@ namespace NHibernate.Persister.Entity
 				try
 				{
 					IdentifierType.NullSafeSet(st, id, 0, session);
-					rs = session.Batcher.ExecuteReader(st);
+					rs = await session.Batcher.ExecuteReader(st);
 					if (!rs.Read())
 					{
 						return null;
@@ -2434,7 +2434,7 @@ namespace NHibernate.Persister.Entity
 		/// Unmarshall the fields of a persistent instance from a result set,
 		/// without resolving associations or collections
 		/// </summary>
-		public object[] Hydrate(IDataReader rs, object id, object obj, ILoadable rootLoadable,
+		public async Task<object[]> Hydrate(IDataReader rs, object id, object obj, ILoadable rootLoadable,
 			string[][] suffixedPropertyColumns, bool allProperties, ISessionImplementor session)
 		{
 			if (log.IsDebugEnabled)
@@ -2459,7 +2459,7 @@ namespace NHibernate.Persister.Entity
 						//TODO: I am not so sure about the exception handling in this bit!
 						sequentialSelect = session.Batcher.PrepareCommand(CommandType.Text, sql, IdentifierType.SqlTypes(factory));
 						rootPersister.IdentifierType.NullSafeSet(sequentialSelect, id, 0, session);
-						sequentialResultSet = session.Batcher.ExecuteReader(sequentialSelect);
+						sequentialResultSet = await session.Batcher.ExecuteReader(sequentialSelect);
 						if (!sequentialResultSet.Read())
 						{
 							// TODO: Deal with the "optional" attribute in the <join> mapping;
@@ -2588,7 +2588,7 @@ namespace NHibernate.Persister.Entity
 		/// This for is used for all non-root tables as well as the root table
 		/// in cases where the identifier value is known before the insert occurs.
 		/// </remarks>
-		protected void Insert(object id, object[] fields, bool[] notNull, int j,
+		protected async Task Insert(object id, object[] fields, bool[] notNull, int j,
 			SqlCommandInfo sql, object obj, ISessionImplementor session)
 		{
 			if (IsInverseTable(j))
@@ -2642,7 +2642,7 @@ namespace NHibernate.Persister.Entity
 					}
 					else
 					{
-						expectation.VerifyOutcomeNonBatched(session.Batcher.ExecuteNonQuery(insertCmd), insertCmd);
+						expectation.VerifyOutcomeNonBatched(await session.Batcher.ExecuteNonQuery(insertCmd), insertCmd);
 					}
 				}
 				catch (Exception e)
@@ -2676,7 +2676,7 @@ namespace NHibernate.Persister.Entity
 		}
 
 		/// <summary> Perform an SQL UPDATE or SQL INSERT</summary>
-		protected internal virtual void UpdateOrInsert(object id, object[] fields, object[] oldFields, object rowId,
+		protected internal virtual async Task UpdateOrInsert(object id, object[] fields, object[] oldFields, object rowId,
 			bool[] includeProperty, int j, object oldVersion, object obj, SqlCommandInfo sql, ISessionImplementor session)
 		{
 			if (!IsInverseTable(j))
@@ -2697,7 +2697,7 @@ namespace NHibernate.Persister.Entity
 				{
 					//there is probably a row there, so try to update
 					//if no rows were updated, we will find out
-					isRowToUpdate = Update(id, fields, oldFields, rowId, includeProperty, j, oldVersion, obj, sql, session);
+					isRowToUpdate = await Update(id, fields, oldFields, rowId, includeProperty, j, oldVersion, obj, sql, session);
 				}
 
 				if (!isRowToUpdate && !IsAllNull(fields, j))
@@ -2705,12 +2705,12 @@ namespace NHibernate.Persister.Entity
 					// assume that the row was not there since it previously had only null
 					// values, so do an INSERT instead
 					//TODO: does not respect dynamic-insert
-					Insert(id, fields, PropertyInsertability, j, SqlInsertStrings[j], obj, session);
+					await Insert(id, fields, PropertyInsertability, j, SqlInsertStrings[j], obj, session);
 				}
 			}
 		}
 
-		protected bool Update(object id, object[] fields, object[] oldFields, object rowId, bool[] includeProperty, int j,
+		protected async Task<bool> Update(object id, object[] fields, object[] oldFields, object rowId, bool[] includeProperty, int j,
 			object oldVersion, object obj, SqlCommandInfo sql, ISessionImplementor session)
 		{
 			bool useVersion = j == 0 && IsVersioned;
@@ -2775,7 +2775,7 @@ namespace NHibernate.Persister.Entity
 					}
 					else
 					{
-						return Check(session.Batcher.ExecuteNonQuery(statement), id, j, expectation, statement);
+						return Check(await session.Batcher.ExecuteNonQuery(statement), id, j, expectation, statement);
 					}
 				}
 				catch (StaleStateException e)
@@ -2821,7 +2821,7 @@ namespace NHibernate.Persister.Entity
 		/// <summary>
 		/// Perform an SQL DELETE
 		/// </summary>
-		public void Delete(object id, object version, int j, object obj, SqlCommandInfo sql, ISessionImplementor session,
+		public async Task Delete(object id, object version, int j, object obj, SqlCommandInfo sql, ISessionImplementor session,
 											 object[] loadedState)
 		{
 			if (IsInverseTable(j))
@@ -2905,7 +2905,7 @@ namespace NHibernate.Persister.Entity
 					}
 					else
 					{
-						Check(session.Batcher.ExecuteNonQuery(statement), id, j, expectation, statement);
+						Check(await session.Batcher.ExecuteNonQuery(statement), id, j, expectation, statement);
 					}
 				}
 				catch (Exception e)
@@ -3977,7 +3977,7 @@ namespace NHibernate.Persister.Entity
 			ProcessGeneratedProperties(id, entity, state, session, sqlUpdateGeneratedValuesSelectString, PropertyUpdateGenerationInclusions);
 		}
 
-		private void ProcessGeneratedProperties(object id, object entity, object[] state,
+		private async Task ProcessGeneratedProperties(object id, object entity, object[] state,
 				ISessionImplementor session, SqlString selectionSQL, ValueInclusion[] includeds)
 		{
 			session.Batcher.ExecuteBatch(); //force immediate execution of the insert
@@ -3991,7 +3991,7 @@ namespace NHibernate.Persister.Entity
 				try
 				{
 					IdentifierType.NullSafeSet(cmd, id, 0, session);
-					rs = session.Batcher.ExecuteReader(cmd);
+					rs = await session.Batcher.ExecuteReader(cmd);
 					if (!rs.Read())
 					{
 						throw new HibernateException("Unable to locate row for retrieval of generated properties: "
@@ -4031,7 +4031,7 @@ namespace NHibernate.Persister.Entity
 			get { return hasSubselectLoadableCollections; }
 		}
 
-		public virtual object[] GetNaturalIdentifierSnapshot(object id, ISessionImplementor session)
+		public virtual async Task<object[]> GetNaturalIdentifierSnapshot(object id, ISessionImplementor session)
 		{
 			if (!HasNaturalIdentifier)
 			{
@@ -4080,7 +4080,7 @@ namespace NHibernate.Persister.Entity
 				try
 				{
 					IdentifierType.NullSafeSet(ps, id, 0, session);
-					rs = session.Batcher.ExecuteReader(ps);
+					rs = await session.Batcher.ExecuteReader(ps);
 					//if there is no resulting row, return null
 					if (!rs.Read())
 					{

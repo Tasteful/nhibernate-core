@@ -3,6 +3,7 @@ using System.Data;
 using System.IO;
 using System.Runtime.Serialization;
 using System.Runtime.Serialization.Formatters.Binary;
+using System.Threading.Tasks;
 using NHibernate.Engine;
 using NHibernate.SqlTypes;
 
@@ -114,9 +115,9 @@ namespace NHibernate.Type
 		/// </summary>
 		/// <param name="value"></param>
 		/// <returns></returns>
-		public override object DeepCopyNotNull(object value)
+		public override Task<object> DeepCopyNotNull(object value)
 		{
-			return FromBytes(ToBytes(value));
+			return Task.FromResult(FromBytes(ToBytes(value)));
 		}
 
 		private byte[] ToBytes(object obj)

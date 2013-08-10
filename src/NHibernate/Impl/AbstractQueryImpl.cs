@@ -1,6 +1,7 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Threading.Tasks;
 using NHibernate.Engine;
 using NHibernate.Engine.Query;
 using NHibernate.Hql;
@@ -927,7 +928,7 @@ namespace NHibernate.Impl
 
 		#region Execution methods
 
-		public abstract int ExecuteUpdate();
+		public abstract Task<int> ExecuteUpdate();
 		public abstract IEnumerable Enumerable();
 		public abstract IEnumerable<T> Enumerable<T>();
 		public abstract IList List();

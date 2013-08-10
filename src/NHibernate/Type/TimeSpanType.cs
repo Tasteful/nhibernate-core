@@ -1,6 +1,7 @@
 using System;
 using System.Collections;
 using System.Data;
+using System.Threading.Tasks;
 using NHibernate.Engine;
 using NHibernate.SqlTypes;
 using System.Collections.Generic;
@@ -73,15 +74,15 @@ namespace NHibernate.Type
 
 		#region IVersionType Members
 
-		public object Next(object current, ISessionImplementor session)
+		public async Task<object> Next(object current, ISessionImplementor session)
 		{
-			return Seed(session);
+			return await Seed(session);
 		}
 
 		/// <summary></summary>
-		public virtual object Seed(ISessionImplementor session)
+		public virtual Task<object> Seed(ISessionImplementor session)
 		{
-			return new TimeSpan(DateTime.Now.Ticks);
+			return Task.FromResult<object>(new TimeSpan(DateTime.Now.Ticks));
 		}
 
 		public object StringToObject(string xml)

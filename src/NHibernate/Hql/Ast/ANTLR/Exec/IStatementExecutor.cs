@@ -1,3 +1,4 @@
+using System.Threading.Tasks;
 using NHibernate.Engine;
 using NHibernate.SqlCommand;
 
@@ -18,6 +19,6 @@ namespace NHibernate.Hql.Ast.ANTLR.Exec
 		/// <param name="session">The session originating the request. </param>
 		/// <returns> The number of entities updated/deleted. </returns>
 		/// <exception cref="HibernateException"/>
-		int Execute(QueryParameters parameters, ISessionImplementor session);
+		Task<int> Execute(QueryParameters parameters, ISessionImplementor session);
 	}
 }

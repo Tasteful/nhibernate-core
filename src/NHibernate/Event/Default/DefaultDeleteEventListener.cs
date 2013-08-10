@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Threading.Tasks;
 using NHibernate.Action;
 using NHibernate.Classic;
 using NHibernate.Engine;
@@ -24,12 +25,12 @@ namespace NHibernate.Event.Default
 
 		/// <summary>Handle the given delete event. </summary>
 		/// <param name="event">The delete event to be handled. </param>
-		public virtual void OnDelete(DeleteEvent @event)
+		public virtual Task OnDelete(DeleteEvent @event)
 		{
-			OnDelete(@event, new IdentitySet());
+			return OnDelete(@event, new IdentitySet());
 		}
 
-		public virtual void OnDelete(DeleteEvent @event, ISet<object> transientEntities)
+		public virtual async Task OnDelete(DeleteEvent @event, ISet<object> transientEntities)
 		{
 			IEventSource source = @event.Session;
 			IPersistenceContext persistenceContext = source.PersistenceContext;
@@ -46,7 +47,7 @@ namespace NHibernate.Event.Default
 
 				persister = source.GetEntityPersister(@event.EntityName, entity);
 				
-				if (ForeignKeys.IsTransient(persister.EntityName, entity, null, source))
+				if (await ForeignKeys.IsTransient(persister.EntityName, entity, null, source))
 				{
 					DeleteTransientEntity(source, entity, @event.CascadeDeleteEnabled, persister, transientEntities);
 					// EARLY EXIT!!!
@@ -240,7 +241,7 @@ namespace NHibernate.Event.Default
 			return false;
 		}
 
-		protected virtual void CascadeBeforeDelete(IEventSource session, IEntityPersister persister, object entity, EntityEntry entityEntry, ISet<object> transientEntities)
+		protected virtual async Task CascadeBeforeDelete(IEventSource session, IEntityPersister persister, object entity, EntityEntry entityEntry, ISet<object> transientEntities)
 		{
 			ISessionImplementor si = session;
 			CacheMode cacheMode = si.CacheMode;
@@ -249,7 +250,7 @@ namespace NHibernate.Event.Default
 			try
 			{
 				// cascade-delete to collections BEFORE the collection owner is deleted
-				new Cascade(CascadingAction.Delete, CascadePoint.AfterInsertBeforeDelete, session).CascadeOn(persister, entity,
+				await new Cascade(CascadingAction.Delete, CascadePoint.AfterInsertBeforeDelete, session).CascadeOn(persister, entity,
 				                                                                                             transientEntities);
 			}
 			finally
@@ -259,7 +260,7 @@ namespace NHibernate.Event.Default
 			}
 		}
 
-		protected virtual void CascadeAfterDelete(IEventSource session, IEntityPersister persister, object entity, ISet<object> transientEntities)
+		protected virtual async Task CascadeAfterDelete(IEventSource session, IEntityPersister persister, object entity, ISet<object> transientEntities)
 		{
 			ISessionImplementor si = session;
 			CacheMode cacheMode = si.CacheMode;
@@ -268,7 +269,7 @@ namespace NHibernate.Event.Default
 			try
 			{
 				// cascade-delete to many-to-one AFTER the parent was deleted
-				new Cascade(CascadingAction.Delete, CascadePoint.BeforeInsertAfterDelete, session).CascadeOn(persister, entity,
+				await new Cascade(CascadingAction.Delete, CascadePoint.BeforeInsertAfterDelete, session).CascadeOn(persister, entity,
 				                                                                                             transientEntities);
 			}
 			finally

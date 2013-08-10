@@ -1,6 +1,6 @@
 using System;
 using System.Collections;
-
+using System.Threading.Tasks;
 using NHibernate.Cache;
 using NHibernate.Engine;
 using NHibernate.Impl;
@@ -19,12 +19,12 @@ namespace NHibernate.Event.Default
 	{
 		private static readonly IInternalLogger log = LoggerProvider.LoggerFor(typeof(DefaultRefreshEventListener));
 
-		public virtual void OnRefresh(RefreshEvent @event)
+		public virtual Task OnRefresh(RefreshEvent @event)
 		{
-			OnRefresh(@event, IdentityMap.Instantiate(10));
+			return OnRefresh(@event, IdentityMap.Instantiate(10));
 		}
 
-		public virtual void OnRefresh(RefreshEvent @event, IDictionary refreshedAlready)
+		public virtual async Task OnRefresh(RefreshEvent @event, IDictionary refreshedAlready)
 		{
 			IEventSource source = @event.Session;
 
@@ -80,7 +80,7 @@ namespace NHibernate.Event.Default
 
 			// cascade the refresh prior to refreshing this entity
 			refreshedAlready[obj] = obj;
-			new Cascade(CascadingAction.Refresh, CascadePoint.BeforeRefresh, source).CascadeOn(persister, obj, refreshedAlready);
+			await new Cascade(CascadingAction.Refresh, CascadePoint.BeforeRefresh, source).CascadeOn(persister, obj, refreshedAlready);
 
 			if (e != null)
 			{
@@ -118,7 +118,7 @@ namespace NHibernate.Event.Default
 
 			// NH Different behavior : we are ignoring transient entities without throw any kind of exception
 			// because a transient entity is "self refreshed"
-			if (!ForeignKeys.IsTransient(persister.EntityName, obj, result == null, @event.Session))
+			if (!await ForeignKeys.IsTransient(persister.EntityName, obj, result == null, @event.Session))
 				UnresolvableObjectException.ThrowIfNull(result, id, persister.EntityName);
 		}
 

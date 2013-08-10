@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Data;
 using System.Data.Common;
 using System.Linq;
+using System.Threading.Tasks;
 using Antlr.Runtime;
 using Antlr.Runtime.Tree;
 
@@ -48,7 +49,7 @@ namespace NHibernate.Hql.Ast.ANTLR.Exec
 			get { return new[] {sql}; }
 		}
 
-		public override int Execute(QueryParameters parameters, ISessionImplementor session)
+		public override async Task<int> Execute(QueryParameters parameters, ISessionImplementor session)
 		{
 			CoordinateSharedCacheCleanup(session);
 
@@ -77,7 +78,7 @@ namespace NHibernate.Hql.Ast.ANTLR.Exec
 							st.CommandTimeout = selection.Timeout;
 						}
 					}
-					return session.Batcher.ExecuteNonQuery(st);
+					return await session.Batcher.ExecuteNonQuery(st);
 				}
 				finally
 				{

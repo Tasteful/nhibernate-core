@@ -1,6 +1,7 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Threading.Tasks;
 using NHibernate.Classic;
 using NHibernate.Engine;
 using NHibernate.Intercept;
@@ -34,11 +35,11 @@ namespace NHibernate.Event.Default
 			return ((EventCache)anything).InvertMap();
 		}
 
-		public virtual void OnMerge(MergeEvent @event)
+		public virtual async Task OnMerge(MergeEvent @event)
 		{
 			EventCache copyCache = new EventCache();
 			
-			OnMerge(@event, copyCache);
+			await OnMerge(@event, copyCache);
 			
 			// TODO: iteratively get transient entities and retry merge until one of the following conditions:
 			//   1) transientCopyCache.size() == 0
@@ -80,7 +81,7 @@ namespace NHibernate.Event.Default
 			copyCache = null;
 		}
 		
-		public virtual void OnMerge(MergeEvent @event, IDictionary copiedAlready)
+		public virtual async Task OnMerge(MergeEvent @event, IDictionary copiedAlready)
 		{
 			EventCache copyCache = (EventCache)copiedAlready;
 			IEventSource source = @event.Session;
@@ -154,7 +155,7 @@ namespace NHibernate.Event.Default
 
 					if (entityState == EntityState.Undefined)
 					{
-						entityState = GetEntityState(entity, @event.EntityName, entry, source);
+						entityState = await GetEntityState(entity, @event.EntityName, entry, source);
 					}
 
 					switch (entityState)
@@ -496,12 +497,12 @@ namespace NHibernate.Event.Default
 		/// <param name="persister">The persister of the entity being copied. </param>
 		/// <param name="entity">The entity being copied. </param>
 		/// <param name="copyCache">A cache of already copied instance. </param>
-		protected virtual void CascadeOnMerge(IEventSource source, IEntityPersister persister, object entity, IDictionary copyCache)
+		protected virtual async Task CascadeOnMerge(IEventSource source, IEntityPersister persister, object entity, IDictionary copyCache)
 		{
 			source.PersistenceContext.IncrementCascadeLevel();
 			try
 			{
-				new Cascade(CascadeAction, CascadePoint.BeforeMerge, source).CascadeOn(persister, entity, copyCache);
+				await new Cascade(CascadeAction, CascadePoint.BeforeMerge, source).CascadeOn(persister, entity, copyCache);
 			}
 			finally
 			{
@@ -596,13 +597,15 @@ namespace NHibernate.Event.Default
 		}
 		
 		/// <summary> Cascade behavior is redefined by this subclass, disable superclass behavior</summary>
-		protected override void CascadeAfterSave(IEventSource source, IEntityPersister persister, object entity, object anything)
+		protected override Task CascadeAfterSave(IEventSource source, IEntityPersister persister, object entity, object anything)
 		{
+			return Task.FromResult(0);
 		}
 
 		/// <summary> Cascade behavior is redefined by this subclass, disable superclass behavior</summary>
-		protected override void CascadeBeforeSave(IEventSource source, IEntityPersister persister, object entity, object anything)
+		protected override Task CascadeBeforeSave(IEventSource source, IEntityPersister persister, object entity, object anything)
 		{
+			return Task.FromResult(0);
 		}
 	}
 }

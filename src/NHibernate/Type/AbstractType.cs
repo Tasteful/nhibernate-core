@@ -1,6 +1,7 @@
 using System;
 using System.Collections;
 using System.Data;
+using System.Threading.Tasks;
 using System.Xml;
 using NHibernate.Engine;
 using NHibernate.SqlTypes;
@@ -185,7 +186,7 @@ namespace NHibernate.Type
 		/// <include file='IType.cs.xmldoc' 
 		///		path='//members[@type="IType"]/member[@name="M:IType.DeepCopy"]/*'
 		/// /> 
-		public abstract object DeepCopy(object val, EntityMode entityMode, ISessionFactoryImplementor factory);
+		public abstract Task<object> DeepCopy(object val, EntityMode entityMode, ISessionFactoryImplementor factory);
 
 		/// <include file='IType.cs.xmldoc' 
 		///		path='//members[@type="IType"]/member[@name="M:IType.SqlTypes"]/*'
@@ -197,7 +198,7 @@ namespace NHibernate.Type
 		/// /> 
 		public abstract int GetColumnSpan(IMapping mapping);
 
-		public virtual object Replace(object original, object target, ISessionImplementor session, object owner, IDictionary copyCache,
+		public virtual async Task<object> Replace(object original, object target, ISessionImplementor session, object owner, IDictionary copyCache,
 							  ForeignKeyDirection foreignKeyDirection)
 		{
 			bool include;
@@ -210,7 +211,7 @@ namespace NHibernate.Type
 			{
 				include = ForeignKeyDirection.ForeignKeyFromParent.Equals(foreignKeyDirection);
 			}
-			return include ? Replace(original, target, session, owner, copyCache) : target;
+			return include ? await Replace(original, target, session, owner, copyCache) : target;
 		}
 
 		public virtual bool IsSame(object x, object y, EntityMode entityMode)
@@ -266,7 +267,7 @@ namespace NHibernate.Type
 			}
 		}
 
-		public abstract object Replace(object original, object current, ISessionImplementor session, object owner,
+		public abstract Task<object> Replace(object original, object current, ISessionImplementor session, object owner,
 									   IDictionary copiedAlready);
 
 		public abstract void SetToXMLNode(XmlNode node, object value, ISessionFactoryImplementor factory);

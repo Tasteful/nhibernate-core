@@ -1,6 +1,7 @@
 using System;
 using System.Collections;
 using System.Data;
+using System.Threading.Tasks;
 using System.Xml;
 using NHibernate.Collection;
 using NHibernate.Engine;
@@ -124,9 +125,9 @@ namespace NHibernate.Type
 			}
 		}
 
-		public override object DeepCopy(object value, EntityMode entityMode, ISessionFactoryImplementor factory)
+		public override Task<object> DeepCopy(object value, EntityMode entityMode, ISessionFactoryImplementor factory)
 		{
-			return value;
+			return Task.FromResult(value);
 		}
 
 		public override string Name
@@ -328,7 +329,7 @@ namespace NHibernate.Type
 			return Instantiate(-1);
 		}
 
-		public override object Replace(object original, object target, ISessionImplementor session, object owner,
+		public override Task<object> Replace(object original, object target, ISessionImplementor session, object owner,
 									   IDictionary copyCache)
 		{
 			if (original == null)
@@ -338,7 +339,7 @@ namespace NHibernate.Type
 
 			if (!NHibernateUtil.IsInitialized(original))
 			{
-				return target;
+				return Task.FromResult(target);
 			}
 
 			object result = target == null || target == original
@@ -358,10 +359,10 @@ namespace NHibernate.Type
 				result = target;
 			}
 
-			return result;
+			return Task.FromResult(result);
 		}
 
-		public virtual object ReplaceElements(object original, object target, object owner, IDictionary copyCache,
+		public virtual Task<object> ReplaceElements(object original, object target, object owner, IDictionary copyCache,
 											  ISessionImplementor session)
 		{
 			// TODO: does not work for EntityMode.DOM4J yet!
@@ -390,7 +391,7 @@ namespace NHibernate.Type
 					resultPc.ClearDirty();
 			}
 
-			return result;
+			return Task.FromResult(result);
 		}
 
 		public IType GetElementType(ISessionFactoryImplementor factory)

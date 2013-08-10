@@ -2,7 +2,7 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Data;
-
+using System.Threading.Tasks;
 using NHibernate.Engine;
 using NHibernate.Type;
 using NHibernate.Util;
@@ -148,12 +148,12 @@ namespace NHibernate.Id
 		/// <value>
 		/// <see cref="string.Empty">String.Empty</see>
 		/// </value>
-		public static readonly object ShortCircuitIndicator = new object();
+		public static readonly Task<object> ShortCircuitIndicator = Task.FromResult(new object());
 
 		/// <summary>
 		/// When this is return
 		/// </summary>
-		public static readonly object PostInsertIndicator = new object();
+		public static readonly Task<object> PostInsertIndicator = Task.FromResult(new object());
 
 		/// <summary>
 		/// Initializes the static fields in <see cref="IdentifierGeneratorFactory"/>.

@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Data;
+using System.Threading.Tasks;
 using System.Xml;
 using NHibernate.Engine;
 using NHibernate.SqlTypes;
@@ -72,9 +73,9 @@ namespace NHibernate.Type
 			get { return baseType.Name; } //TODO!
 		}
 
-		public override object DeepCopy(object value, EntityMode entityMode, ISessionFactoryImplementor factory)
+		public override Task<object> DeepCopy(object value, EntityMode entityMode, ISessionFactoryImplementor factory)
 		{
-			return value;
+			return Task.FromResult(value);
 		}
 
 		public override bool IsMutable
@@ -97,9 +98,9 @@ namespace NHibernate.Type
 			return xml; //xml is the entity name
 		}
 
-		public override object Replace(object original, object current, ISessionImplementor session, object owner, System.Collections.IDictionary copiedAlready)
+		public override Task<object> Replace(object original, object current, ISessionImplementor session, object owner, System.Collections.IDictionary copiedAlready)
 		{
-			return original;
+			return Task.FromResult(original);
 		}
 
 		public override void SetToXMLNode(XmlNode node, object value, ISessionFactoryImplementor factory)

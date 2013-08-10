@@ -1,3 +1,5 @@
+using System.Threading.Tasks;
+
 namespace NHibernate.Event
 {
 	/// <summary>
@@ -7,6 +9,6 @@ namespace NHibernate.Event
 	{
 		/// <summary> Handle the given update event. </summary>
 		/// <param name="event">The update event to be handled.</param>
-		void OnSaveOrUpdate(SaveOrUpdateEvent @event);
+		Task OnSaveOrUpdate(SaveOrUpdateEvent @event);
 	}
 }

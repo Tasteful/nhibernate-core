@@ -1,6 +1,6 @@
 using System;
 using System.Collections;
-
+using System.Threading.Tasks;
 using NHibernate.Engine;
 using NHibernate.Persister.Entity;
 using NHibernate.Proxy;
@@ -27,12 +27,12 @@ namespace NHibernate.Event.Default
 			get { return true; }
 		}
 
-		public virtual void OnPersist(PersistEvent @event)
+		public virtual Task OnPersist(PersistEvent @event)
 		{
-			OnPersist(@event, IdentityMap.Instantiate(10));
+			return OnPersist(@event, IdentityMap.Instantiate(10));
 		}
 
-		public virtual void OnPersist(PersistEvent @event, IDictionary createdAlready)
+		public virtual async Task OnPersist(PersistEvent @event, IDictionary createdAlready)
 		{
 			ISessionImplementor source = @event.Session;
 			object obj = @event.Entity;
@@ -59,7 +59,7 @@ namespace NHibernate.Event.Default
 				entity = obj;
 			}
 
-			EntityState entityState = GetEntityState(entity, @event.EntityName, source.PersistenceContext.GetEntry(entity), source);
+			EntityState entityState = await GetEntityState(entity, @event.EntityName, source.PersistenceContext.GetEntry(entity), source);
 
 			switch (entityState)
 			{

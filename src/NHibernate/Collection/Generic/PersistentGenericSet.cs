@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.Data;
 using System.Diagnostics;
 using System.Linq;
+using System.Threading.Tasks;
 using NHibernate.Collection.Generic.SetHelpers;
 using NHibernate.DebugHelpers;
 using NHibernate.Engine;
@@ -77,7 +78,7 @@ namespace NHibernate.Collection.Generic
 			get { return false; }
 		}
 
-		public override object GetSnapshot(ICollectionPersister persister)
+		public override async Task<object> GetSnapshot(ICollectionPersister persister)
 		{
 			var entityMode = Session.EntityMode;
 			var clonedSet = new SetSnapShot<T>(set.Count);
@@ -85,19 +86,19 @@ namespace NHibernate.Collection.Generic
 							 select persister.ElementType.DeepCopy(current, entityMode, persister.Factory);
 			foreach (var copied in enumerable)
 			{
-				clonedSet.Add((T)copied);
+				clonedSet.Add((T)await copied);
 			}
-			return clonedSet;
+			return (object)clonedSet;
 		}
 
-		public override ICollection GetOrphans(object snapshot, string entityName)
+		public override async Task<ICollection> GetOrphans(object snapshot, string entityName)
 		{
 			var sn = new SetSnapShot<T>((IEnumerable<T>)snapshot);
 
 			// TODO: Avoid duplicating shortcuts and array copy, by making base class GetOrphans() more flexible
 			if (set.Count == 0) return sn;
 			if (((ICollection)sn).Count == 0) return sn;
-			return GetOrphans(sn, set.ToArray(), entityName, Session);
+			return await GetOrphans(sn, set.ToArray(), entityName, Session);
 		}
 
 		public override bool EqualsSnapshot(ICollectionPersister persister)
@@ -289,14 +290,23 @@ namespace NHibernate.Collection.Generic
 
 		public bool Contains(T item)
 		{
-			bool? exists = ReadElementExistence(item);
+			Task<bool?> task = ReadElementExistence(item);
+			task.Wait();
+			bool? exists = task.Result;
 			return exists == null ? set.Contains(item) : exists.Value;
 		}
 
 
 		public bool Add(T o)
 		{
-			bool? exists = IsOperationQueueEnabled ? ReadElementExistence(o) : null;
+			// TODO Async
+			Task<bool?> task = null;
+			if (IsOperationQueueEnabled)
+			{
+				task = ReadElementExistence(o);
+				task.Wait();
+			}
+			bool? exists = IsOperationQueueEnabled ? task.Result : null;
 			if (!exists.HasValue)
 			{
 				Initialize(true);
@@ -416,7 +426,14 @@ namespace NHibernate.Collection.Generic
 
 		public bool Remove(T o)
 		{
-			bool? exists = PutQueueEnabled ? ReadElementExistence(o) : null;
+			// TODO Async
+			Task<bool?> task = null;
+			if (PutQueueEnabled)
+			{
+				task = ReadElementExistence(o);
+				task.Wait();
+			}
+			bool? exists = PutQueueEnabled ? task.Result : null;
 			if (!exists.HasValue)
 			{
 				Initialize(true);
@@ -466,7 +483,13 @@ namespace NHibernate.Collection.Generic
 
 		public int Count
 		{
-			get { return ReadSize() ? CachedSize : set.Count; }
+			get
+			{
+				// TODO Async
+				Task<bool> readSize = ReadSize();
+				readSize.Wait();
+				return readSize.Result ? CachedSize : set.Count;
+			}
 		}
 
 		public bool IsReadOnly

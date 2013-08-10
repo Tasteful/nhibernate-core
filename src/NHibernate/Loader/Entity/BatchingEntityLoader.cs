@@ -1,6 +1,7 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Threading.Tasks;
 using NHibernate.Engine;
 using NHibernate.Persister.Entity;
 using NHibernate.Type;
@@ -28,23 +29,24 @@ namespace NHibernate.Loader.Entity
 			idType = persister.IdentifierType;
 		}
 
-		private object GetObjectFromList(IList results, object id, ISessionImplementor session)
+		private Task<object> GetObjectFromList(IList results, object id, ISessionImplementor session)
 		{
 			// get the right object from the list ... would it be easier to just call getEntity() ??
 			foreach (object obj in results)
 			{
+				// TODO Async??
 				bool equal = idType.IsEqual(id, session.GetContextEntityIdentifier(obj), session.EntityMode, session.Factory);
 
 				if (equal)
 				{
-					return obj;
+					return Task.FromResult(obj);
 				}
 			}
 
 			return null;
 		}
 
-		public object Load(object id, object optionalObject, ISessionImplementor session)
+		public async Task<object> Load(object id, object optionalObject, ISessionImplementor session)
 		{
 			object[] batch =
 				session.PersistenceContext.BatchFetchQueue.GetEntityBatch(persister, id, batchSizes[0]);
@@ -58,7 +60,7 @@ namespace NHibernate.Loader.Entity
 					Array.Copy(batch, 0, smallBatch, 0, smallBatchSize);
 
 					IList results =
-						loaders[i].LoadEntityBatch(session, smallBatch, idType, optionalObject, persister.EntityName, id, persister);
+						await loaders[i].LoadEntityBatch(session, smallBatch, idType, optionalObject, persister.EntityName, id, persister);
 
 					return GetObjectFromList(results, id, session); //EARLY EXIT
 				}

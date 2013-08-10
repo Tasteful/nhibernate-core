@@ -3,6 +3,7 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Data;
 using System.Reflection;
+using System.Threading.Tasks;
 using System.Xml;
 using NHibernate.Engine;
 using NHibernate.SqlTypes;
@@ -340,11 +341,11 @@ namespace NHibernate.Type
 			get { return propertyNames; }
 		}
 
-		public override object DeepCopy(object component, EntityMode entityMode, ISessionFactoryImplementor factory)
+		public override Task<object> DeepCopy(object component, EntityMode entityMode, ISessionFactoryImplementor factory)
 		{
 			if (component == null)
 			{
-				return null;
+				return Task.FromResult<object>(null);
 			}
 
 			object[] values = GetPropertyValues(component, entityMode);
@@ -364,14 +365,14 @@ namespace NHibernate.Type
 				ct.SetParent(result, ct.GetParent(component), factory);
 			}
 
-			return result;
+			return Task.FromResult(result);
 		}
 
-		public override object Replace(object original, object target, ISessionImplementor session, object owner,
+		public override Task<object> Replace(object original, object target, ISessionImplementor session, object owner,
 									   IDictionary copiedAlready)
 		{
 			if (original == null)
-				return null;
+				return Task.FromResult<object>(null); ;
 
 			object result = target ?? Instantiate(owner, session);
 
@@ -379,13 +380,13 @@ namespace NHibernate.Type
 			object[] values = TypeHelper.Replace(GetPropertyValues(original, entityMode), GetPropertyValues(result, entityMode), propertyTypes, session, owner, copiedAlready);
 
 			SetPropertyValues(result, values, entityMode);
-			return result;
+			return Task.FromResult(result);
 		}
 
-		public override object Replace(object original, object target, ISessionImplementor session, object owner, IDictionary copyCache, ForeignKeyDirection foreignKeyDirection)
+		public override Task<object> Replace(object original, object target, ISessionImplementor session, object owner, IDictionary copyCache, ForeignKeyDirection foreignKeyDirection)
 		{
 			if (original == null)
-				return null;
+				return Task.FromResult<object>(null); ;
 
 			object result = target ?? Instantiate(owner, session);
 
@@ -393,7 +394,7 @@ namespace NHibernate.Type
 			object[] values = TypeHelper.Replace(GetPropertyValues(original, entityMode), GetPropertyValues(result, entityMode), propertyTypes, session, owner, copyCache, foreignKeyDirection);
 
 			SetPropertyValues(result, values, entityMode);
-			return result;
+			return Task.FromResult(result);
 		}
 
 		/// <summary> This method does not populate the component parent</summary>

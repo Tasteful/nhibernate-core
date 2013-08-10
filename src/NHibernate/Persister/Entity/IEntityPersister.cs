@@ -1,3 +1,4 @@
+using System.Threading.Tasks;
 using NHibernate.Cache;
 using NHibernate.Cache.Entry;
 using NHibernate.Engine;
@@ -327,7 +328,7 @@ namespace NHibernate.Persister.Entity
 		/// The session from which the request originated.
 		/// </param>
 		/// <returns> The natural-id snapshot. </returns>
-		object[] GetNaturalIdentifierSnapshot(object id, ISessionImplementor session);
+		Task<object[]> GetNaturalIdentifierSnapshot(object id, ISessionImplementor session);
 
 		/// <summary> 
 		/// Determine whether this entity defines any lazy properties (ala
@@ -398,7 +399,7 @@ namespace NHibernate.Persister.Entity
 		/// <param name="id"></param>
 		/// <param name="session"></param>
 		/// <returns><see langword="null" /> if select-before-update is not enabled or not supported</returns>
-		object[] GetDatabaseSnapshot(object id, ISessionImplementor session);
+		Task<object[]> GetDatabaseSnapshot(object id, ISessionImplementor session);
 
 		/// <summary>
 		/// Get the current version of the object, or return null if there is no row for
@@ -408,9 +409,9 @@ namespace NHibernate.Persister.Entity
 		/// <param name="id"></param>
 		/// <param name="session"></param>
 		/// <returns></returns>
-		object GetCurrentVersion(object id, ISessionImplementor session);
+		Task<object> GetCurrentVersion(object id, ISessionImplementor session);
 
-		object ForceVersionIncrement(object id, object currentVersion, ISessionImplementor session);
+		Task<object> ForceVersionIncrement(object id, object currentVersion, ISessionImplementor session);
 
 		/// <summary> Try to discover the entity mode from the entity instance</summary>
 		EntityMode? GuessEntityMode(object obj);

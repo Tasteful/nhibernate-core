@@ -3,7 +3,7 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Data;
 using System.Runtime.CompilerServices;
-
+using System.Threading.Tasks;
 using NHibernate.AdoNet.Util;
 using NHibernate.Dialect;
 using NHibernate.Engine;
@@ -151,7 +151,7 @@ namespace NHibernate.Id
 		/// <param name="obj">The entity for which the id is being generated.</param>
 		/// <returns>The new identifier as a <see cref="short"/>, <see cref="int"/>, or <see cref="long"/>.</returns>
 		[MethodImpl(MethodImplOptions.Synchronized)]
-		public virtual object Generate(ISessionImplementor session, object obj)
+		public virtual Task<object> Generate(ISessionImplementor session, object obj)
 		{
 			// This has to be done using a different connection to the containing
 			// transaction becase the new hi value must remain valid even if the
@@ -209,7 +209,7 @@ namespace NHibernate.Id
 
 		#endregion
 
-		public override object DoWorkInCurrentTransaction(ISessionImplementor session, IDbConnection conn,
+		public override Task<object> DoWorkInCurrentTransaction(ISessionImplementor session, IDbConnection conn,
 														  IDbTransaction transaction)
 		{
 			long result;
@@ -228,6 +228,7 @@ namespace NHibernate.Id
 				PersistentIdGeneratorParmsNames.SqlStatementLogger.LogCommand("Reading high value:", qps, FormatStyle.Basic);
 				try
 				{
+					// TODO: Async
 					rs = qps.ExecuteReader();
 					if (!rs.Read())
 					{
@@ -271,6 +272,7 @@ namespace NHibernate.Id
 
 					PersistentIdGeneratorParmsNames.SqlStatementLogger.LogCommand("Updating high value:", ups, FormatStyle.Basic);
 
+					// TODO: Async
 					rows = ups.ExecuteNonQuery();
 				}
 				catch (Exception e)
@@ -285,7 +287,7 @@ namespace NHibernate.Id
 			}
 			while (rows == 0);
 
-			return result;
+			return Task.FromResult<object>(result);
 		}
 	}
 }

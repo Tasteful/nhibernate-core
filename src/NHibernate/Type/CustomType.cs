@@ -2,6 +2,7 @@ using System;
 using System.Collections;
 using System.Data;
 using System.Reflection;
+using System.Threading.Tasks;
 using System.Xml;
 
 using NHibernate.Engine;
@@ -141,9 +142,9 @@ namespace NHibernate.Type
 			get { return name; }
 		}
 
-		public override object DeepCopy(object value, EntityMode entityMode, ISessionFactoryImplementor factory)
+		public override Task<object> DeepCopy(object value, EntityMode entityMode, ISessionFactoryImplementor factory)
 		{
-			return userType.DeepCopy(value);
+			return Task.FromResult(userType.DeepCopy(value));
 		}
 
 		/// <summary></summary>
@@ -192,14 +193,16 @@ namespace NHibernate.Type
 			return ((IEnhancedUserType)userType).ObjectToSQLString(value);
 		}
 
-		public object Next(object current, ISessionImplementor session)
+		public Task<object> Next(object current, ISessionImplementor session)
 		{
-			return ((IUserVersionType) userType).Next(current, session);
+			// TODO Async
+			return Task.FromResult(((IUserVersionType) userType).Next(current, session));
 		}
 
-		public object Seed(ISessionImplementor session)
+		public Task<object> Seed(ISessionImplementor session)
 		{
-			return ((IUserVersionType) userType).Seed(session);
+			// TODO Async
+			return Task.FromResult(((IUserVersionType) userType).Seed(session));
 		}
 
 		public IComparer Comparator
@@ -207,10 +210,10 @@ namespace NHibernate.Type
 			get { return (IComparer) userType; }
 		}
 
-		public override object Replace(object original, object current, ISessionImplementor session, object owner,
+		public override Task<object> Replace(object original, object current, ISessionImplementor session, object owner,
 									   IDictionary copiedAlready)
 		{
-			return userType.Replace(original, current, owner);
+			return Task.FromResult(userType.Replace(original, current, owner));
 		}
 
 		public override object Assemble(object cached, ISessionImplementor session, object owner)

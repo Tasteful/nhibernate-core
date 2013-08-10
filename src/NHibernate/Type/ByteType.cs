@@ -1,6 +1,7 @@
 using System;
 using System.Collections;
 using System.Data;
+using System.Threading.Tasks;
 using NHibernate.Engine;
 using NHibernate.SqlTypes;
 
@@ -65,14 +66,14 @@ namespace NHibernate.Type
 			return byte.Parse(xml);
 		}
 
-		public virtual object Next(object current, ISessionImplementor session)
+		public virtual Task<object> Next(object current, ISessionImplementor session)
 		{
-			return (byte)((byte)current + 1);
+			return Task.FromResult<object>((byte)((byte)current + 1));
 		}
 
-		public virtual object Seed(ISessionImplementor session)
+		public virtual Task<object> Seed(ISessionImplementor session)
 		{
-			return ZERO;
+			return Task.FromResult<object>(ZERO);
 		}
 
 		public IComparer Comparator

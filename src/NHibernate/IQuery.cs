@@ -1,5 +1,6 @@
 using System;
 using System.Collections;
+using System.Threading.Tasks;
 using NHibernate.Transform;
 using NHibernate.Type;
 using System.Collections.Generic;
@@ -160,7 +161,7 @@ namespace NHibernate
 		/// Execute the update or delete statement.
 		/// </summary>
 		/// <returns> The number of entities updated or deleted. </returns>
-		int ExecuteUpdate();
+		Task<int> ExecuteUpdate();
 
 		/// <summary>
 		/// Set the maximum number of rows to retrieve.

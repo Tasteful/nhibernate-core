@@ -1,5 +1,6 @@
 using System.Data;
 using System.Data.Common;
+using System.Threading.Tasks;
 using NHibernate.Engine;
 using NHibernate.Exceptions;
 using NHibernate.Impl;
@@ -26,7 +27,7 @@ namespace NHibernate.Id.Insert
 
 		public abstract IdentifierGeneratingInsert PrepareIdentifierGeneratingInsert();
 
-		public object PerformInsert(SqlCommandInfo insertSQL, ISessionImplementor session, IBinder binder)
+		public async Task<object> PerformInsert(SqlCommandInfo insertSQL, ISessionImplementor session, IBinder binder)
 		{
 			try
 			{
@@ -35,7 +36,7 @@ namespace NHibernate.Id.Insert
 				try
 				{
 					binder.BindValues(insert);
-					session.Batcher.ExecuteNonQuery(insert);
+					await session.Batcher.ExecuteNonQuery(insert);
 				}
 				finally
 				{
@@ -57,7 +58,7 @@ namespace NHibernate.Id.Insert
 				try
 				{
 					BindParameters(session, idSelect, binder.Entity);
-					IDataReader rs = session.Batcher.ExecuteReader(idSelect);
+					IDataReader rs = await session.Batcher.ExecuteReader(idSelect);
 					try
 					{
 						return GetResult(session, rs, binder.Entity);

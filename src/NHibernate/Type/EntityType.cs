@@ -2,6 +2,7 @@ using System;
 using System.Collections;
 using System.Data;
 using System.Text;
+using System.Threading.Tasks;
 using System.Xml;
 using NHibernate.Engine;
 using NHibernate.Exceptions;
@@ -241,9 +242,9 @@ namespace NHibernate.Type
 			get { return associatedEntityName; }
 		}
 
-		public override object DeepCopy(object value, EntityMode entityMode, ISessionFactoryImplementor factory)
+		public override Task<object> DeepCopy(object value, EntityMode entityMode, ISessionFactoryImplementor factory)
 		{
-			return value; //special case ... this is the leaf of the containment graph, even though not immutable
+			return Task.FromResult(value); //special case ... this is the leaf of the containment graph, even though not immutable
 		}
 
 		public override bool IsMutable
@@ -253,7 +254,7 @@ namespace NHibernate.Type
 
 		public abstract bool IsOneToOne { get; }
 
-		public override object Replace(object original, object target, ISessionImplementor session, object owner, IDictionary copyCache)
+		public override async Task<object> Replace(object original, object target, ISessionImplementor session, object owner, IDictionary copyCache)
 		{
 			if (original == null)
 			{
@@ -270,7 +271,7 @@ namespace NHibernate.Type
 				{
 					return target;
 				}
-				if (session.GetContextEntityIdentifier(original) == null && ForeignKeys.IsTransient(associatedEntityName, original, false, session))
+				if (session.GetContextEntityIdentifier(original) == null && await ForeignKeys.IsTransient(associatedEntityName, original, false, session))
 				{
 					object copy = session.Factory.GetEntityPersister(associatedEntityName).Instantiate(null, session.EntityMode);
 					//TODO: should this be Session.instantiate(Persister, ...)?

@@ -2,6 +2,7 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Data;
+using System.Threading.Tasks;
 using NHibernate.Engine;
 using NHibernate.Impl;
 using NHibernate.Loader;
@@ -264,7 +265,7 @@ namespace NHibernate.Collection
 		}
 
 		/// <summary> Called by the <tt>Count</tt> property</summary>
-		protected virtual bool ReadSize()
+		protected virtual async Task<bool> ReadSize()
 		{
 			if (!initialized)
 			{
@@ -283,7 +284,7 @@ namespace NHibernate.Collection
 						{
 							session.Flush();
 						}
-						cachedSize = persister.GetSize(entry.LoadedKey, session);
+						cachedSize = await persister.GetSize(entry.LoadedKey, session);
 						return true;
 					}
 				}
@@ -292,7 +293,7 @@ namespace NHibernate.Collection
 			return false;
 		}
 
-		protected virtual bool? ReadIndexExistence(object index)
+		protected virtual async Task<bool?> ReadIndexExistence(object index)
 		{
 			if (!initialized)
 			{
@@ -305,14 +306,14 @@ namespace NHibernate.Collection
 					{
 						session.Flush();
 					}
-					return persister.IndexExists(entry.LoadedKey, index, session);
+					return await persister.IndexExists(entry.LoadedKey, index, session);
 				}
 			}
 			Read();
 			return null;
 		}
 
-		protected virtual bool? ReadElementExistence(object element)
+		protected virtual async Task<bool?> ReadElementExistence(object element)
 		{
 			if (!initialized)
 			{
@@ -325,7 +326,7 @@ namespace NHibernate.Collection
 					{
 						session.Flush();
 					}
-					return persister.ElementExists(entry.LoadedKey, element, session);
+					return await persister.ElementExists(entry.LoadedKey, element, session);
 				}
 			}
 			Read();
@@ -645,7 +646,7 @@ namespace NHibernate.Collection
 			}
 		}
 
-		public ICollection GetQueuedOrphans(string entityName)
+		public Task<ICollection> GetQueuedOrphans(string entityName)
 		{
 			if (HasQueuedOperations)
 			{
@@ -666,7 +667,7 @@ namespace NHibernate.Collection
 				return GetOrphans(removals, additions, entityName, session);
 			}
 
-			return CollectionHelper.EmptyCollection;
+			return Task.FromResult(CollectionHelper.EmptyCollection);
 		}
 
 		/// <summary>
@@ -683,14 +684,14 @@ namespace NHibernate.Collection
 		/// <summary>
 		/// Get all "orphaned" elements
 		/// </summary>
-		public abstract ICollection GetOrphans(object snapshot, string entityName);
+		public abstract Task<ICollection> GetOrphans(object snapshot, string entityName);
 
 		/// <summary> 
 		/// Given a collection of entity instances that used to
 		/// belong to the collection, and a collection of instances
 		/// that currently belong, return a collection of orphans
 		/// </summary>
-		protected virtual ICollection GetOrphans(ICollection oldElements, ICollection currentElements, string entityName,
+		protected virtual async Task<ICollection> GetOrphans(ICollection oldElements, ICollection currentElements, string entityName,
 		                                        ISessionImplementor session)
 		{
 			// short-circuit(s)
@@ -714,7 +715,7 @@ namespace NHibernate.Collection
 			var currentIds = new HashSet<TypedValue>();
 			foreach (object current in currentElements)
 			{
-				if (current != null && ForeignKeys.IsNotTransient(entityName, current, null, session))
+				if (current != null && await ForeignKeys.IsNotTransient(entityName, current, null, session))
 				{
 					object currentId = ForeignKeys.GetEntityIdentifierIfNotUnsaved(entityName, current, session);
 					currentIds.Add(new TypedValue(idType, currentId, session.EntityMode));
@@ -734,9 +735,9 @@ namespace NHibernate.Collection
 			return res;
 		}
 
-		public void IdentityRemove(IList list, object obj, string entityName, ISessionImplementor session)
+		public async Task IdentityRemove(IList list, object obj, string entityName, ISessionImplementor session)
 		{
-			if (obj != null && ForeignKeys.IsNotTransient(entityName, obj, null, session))
+			if (obj != null && await ForeignKeys.IsNotTransient(entityName, obj, null, session))
 			{
 				IType idType = session.Factory.GetEntityPersister(entityName).IdentifierType;
 
@@ -748,7 +749,7 @@ namespace NHibernate.Collection
 					{
 						continue;
 					}
-					object idOfOld = ForeignKeys.GetEntityIdentifierIfNotUnsaved(entityName, current, session);
+					object idOfOld = await ForeignKeys.GetEntityIdentifierIfNotUnsaved(entityName, current, session);
 					if (idType.IsEqual(idOfCurrent, idOfOld, session.EntityMode, session.Factory))
 					{
 						toRemove.Add(current);
@@ -797,7 +798,7 @@ namespace NHibernate.Collection
 
 		public abstract IEnumerable Entries(ICollectionPersister persister);
 
-		public abstract object GetSnapshot(ICollectionPersister persister);
+		public abstract Task<object> GetSnapshot(ICollectionPersister persister);
 
 		public abstract bool EqualsSnapshot(ICollectionPersister persister);
 

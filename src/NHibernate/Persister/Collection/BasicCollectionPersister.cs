@@ -2,6 +2,7 @@ using System;
 using System.Collections;
 using System.Data;
 using System.Data.Common;
+using System.Threading.Tasks;
 using NHibernate.AdoNet;
 using NHibernate.Cache;
 using NHibernate.Cfg;
@@ -156,7 +157,7 @@ namespace NHibernate.Persister.Collection
 			return true;
 		}
 
-		protected override int DoUpdateRows(object id, IPersistentCollection collection, ISessionImplementor session)
+		protected override async Task<int> DoUpdateRows(object id, IPersistentCollection collection, ISessionImplementor session)
 		{
 			if (ArrayHelper.IsAllFalse(elementColumnIsSettable)) return 0;
 
@@ -218,7 +219,7 @@ namespace NHibernate.Persister.Collection
 							}
 							else
 							{
-								expectation.VerifyOutcomeNonBatched(session.Batcher.ExecuteNonQuery(st), st);
+								expectation.VerifyOutcomeNonBatched(await session.Batcher.ExecuteNonQuery(st), st);
 							}
 						}
 						catch (Exception e)

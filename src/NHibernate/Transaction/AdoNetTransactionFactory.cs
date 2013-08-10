@@ -2,7 +2,7 @@ using System;
 using System.Collections;
 using System.Data;
 using System.Data.Common;
-
+using System.Threading.Tasks;
 using NHibernate.Dialect;
 using NHibernate.Engine;
 using NHibernate.Engine.Transaction;
@@ -30,7 +30,7 @@ namespace NHibernate.Transaction
 			return false;
 		}
 
-		public void ExecuteWorkInIsolation(ISessionImplementor session, IIsolatedWork work, bool transacted)
+		public async Task ExecuteWorkInIsolation(ISessionImplementor session, IIsolatedWork work, bool transacted)
 		{
 			IDbConnection connection = null;
 			IDbTransaction trans = null;
@@ -55,7 +55,7 @@ namespace NHibernate.Transaction
 					//}
 				}
 
-				work.DoWork(connection, trans);
+				await work.DoWork(connection, trans);
 
 				if (transacted)
 				{

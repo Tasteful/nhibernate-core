@@ -5,7 +5,7 @@ using System.Runtime.Serialization;
 using System.Security;
 using System.Text;
 using System.Linq;
-
+using System.Threading.Tasks;
 using NHibernate.Cache;
 using NHibernate.Cfg;
 using NHibernate.Connection;
@@ -333,7 +333,9 @@ namespace NHibernate.Impl
 			name = settings.SessionFactoryName;
 			try
 			{
-				uuid = (string)UuidGenerator.Generate(null, null);
+				Task<object> generate = UuidGenerator.Generate(null, null);
+				generate.Wait();
+				uuid = (string)generate.Result;
 			}
 			catch (Exception)
 			{

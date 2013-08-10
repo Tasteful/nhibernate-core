@@ -1,6 +1,7 @@
 using System;
 using System.Collections;
 using System.Data;
+using System.Threading.Tasks;
 using NHibernate.Engine;
 using NHibernate.SqlTypes;
 
@@ -80,7 +81,7 @@ namespace NHibernate.Type
 
 		#region IVersionType Members
 
-		public object Next(object current, ISessionImplementor session)
+		public Task<object> Next(object current, ISessionImplementor session)
 		{
 			return Seed(session);
 		}
@@ -90,13 +91,13 @@ namespace NHibernate.Type
 			return value.AddTicks(-(value.Ticks % resolution));
 		}
 
-		public virtual object Seed(ISessionImplementor session)
+		public virtual Task<object> Seed(ISessionImplementor session)
 		{
 			if (session == null)
 			{
-				return DateTime.Now;
+				return Task.FromResult<object>(DateTime.Now);
 			}
-			return Round(DateTime.Now, session.Factory.Dialect.TimestampResolutionInTicks);
+			return Task.FromResult<object>(Round(DateTime.Now, session.Factory.Dialect.TimestampResolutionInTicks));
 		}
 
 		public IComparer Comparator

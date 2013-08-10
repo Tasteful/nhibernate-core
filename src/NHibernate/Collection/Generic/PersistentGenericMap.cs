@@ -2,6 +2,7 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.Threading.Tasks;
 using NHibernate.DebugHelpers;
 using NHibernate.Engine;
 using NHibernate.Persister.Collection;
@@ -30,16 +31,16 @@ namespace NHibernate.Collection.Generic
 			gmap = map;
 		}
 
-		public override object GetSnapshot(ICollectionPersister persister)
+		public override async Task<object> GetSnapshot(ICollectionPersister persister)
 		{
 			EntityMode entityMode = Session.EntityMode;
 			Dictionary<TKey, TValue> clonedMap = new Dictionary<TKey, TValue>(map.Count);
 			foreach (KeyValuePair<TKey, TValue> e in gmap)
 			{
-				object copy = persister.ElementType.DeepCopy(e.Value, entityMode, persister.Factory);
+				object copy = await persister.ElementType.DeepCopy(e.Value, entityMode, persister.Factory);
 				clonedMap[e.Key] = (TValue)copy;
 			}
-			return clonedMap;
+			return (object)clonedMap;
 		}
 
 		public override void BeforeInitialize(ICollectionPersister persister, int anticipatedSize)
@@ -110,7 +111,10 @@ namespace NHibernate.Collection.Generic
 
 		bool IDictionary<TKey, TValue>.ContainsKey(TKey key)
 		{
-			bool? exists = ReadIndexExistence(key);
+			// TODO Async
+			Task<bool?> task = ReadIndexExistence(key);
+			task.Wait();
+			bool? exists = task.Result;
 			return !exists.HasValue ? gmap.ContainsKey(key) : exists.Value;
 		}
 
@@ -242,7 +246,10 @@ namespace NHibernate.Collection.Generic
 
 		bool ICollection<KeyValuePair<TKey, TValue>>.Contains(KeyValuePair<TKey, TValue> item)
 		{
-			bool? exists = ReadIndexExistence(item.Key);
+			// TODO Async
+			Task<bool?> task = ReadIndexExistence(item.Key);
+			task.Wait();
+			bool? exists = task.Result;
 			if (!exists.HasValue)
 			{
 				return gmap.Contains(item);

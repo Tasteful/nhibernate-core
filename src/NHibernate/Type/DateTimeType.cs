@@ -1,6 +1,7 @@
 using System;
 using System.Collections;
 using System.Data;
+using System.Threading.Tasks;
 using NHibernate.Engine;
 using NHibernate.SqlTypes;
 using System.Collections.Generic;
@@ -68,14 +69,14 @@ namespace NHibernate.Type
 
 		#region IVersionType Members
 
-		public virtual object Next(object current, ISessionImplementor session)
+		public virtual async Task<object> Next(object current, ISessionImplementor session)
 		{
-			return Seed(session);
+			return await Seed(session);
 		}
 
-		public virtual object Seed(ISessionImplementor session)
+		public virtual Task<object> Seed(ISessionImplementor session)
 		{
-			return TimestampType.Round(DateTime.Now, TimeSpan.TicksPerSecond);
+			return Task.FromResult<object>(TimestampType.Round(DateTime.Now, TimeSpan.TicksPerSecond));
 		}
 
 		public override bool IsEqual(object x, object y)

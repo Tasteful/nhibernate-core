@@ -1,4 +1,5 @@
 ﻿using System.Collections;
+using System.Threading.Tasks;
 
 namespace NHibernate.Impl
 {
@@ -19,7 +20,7 @@ namespace NHibernate.Impl
 			multiApproach.Add(resultType, query);
     	}
 
-    	protected override IList GetResultsFrom(IMultiQuery multiApproach)
+    	protected override Task<IList> GetResultsFrom(IMultiQuery multiApproach)
     	{
 			return multiApproach.List();
     	}

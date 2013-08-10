@@ -3,6 +3,7 @@ using System.Collections;
 using System.Data;
 using System.Linq;
 using System.Reflection;
+using System.Threading.Tasks;
 using System.Xml;
 
 using NHibernate.Engine;
@@ -128,9 +129,9 @@ namespace NHibernate.Type
 			return userType.Assemble(cached, session, owner);
 		}
 
-		public override object DeepCopy(object value, EntityMode entityMode, ISessionFactoryImplementor factory)
+		public override Task<object> DeepCopy(object value, EntityMode entityMode, ISessionFactoryImplementor factory)
 		{
-			return userType.DeepCopy(value);
+			return Task.FromResult(userType.DeepCopy(value));
 		}
 
 		public override object Disassemble(object value, ISessionImplementor session, object owner)
@@ -231,9 +232,9 @@ namespace NHibernate.Type
 			get { return null; }
 		}
 
-		public override object Replace(object original, object current, ISessionImplementor session, object owner, IDictionary copiedAlready)
+		public override Task<object> Replace(object original, object current, ISessionImplementor session, object owner, IDictionary copiedAlready)
 		{
-			return userType.Replace(original, current, session, owner);
+			return Task.FromResult(userType.Replace(original, current, session, owner));
 		}
 
 		public override object FromXMLNode(XmlNode xml, IMapping factory)

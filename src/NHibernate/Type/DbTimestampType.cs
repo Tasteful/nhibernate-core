@@ -1,7 +1,7 @@
 using System;
 using System.Data;
 using System.Data.Common;
-
+using System.Threading.Tasks;
 using NHibernate.Engine;
 using NHibernate.Exceptions;
 using NHibernate.Impl;
@@ -29,32 +29,32 @@ namespace NHibernate.Type
 			get { return "DbTimestamp"; }
 		}
 
-		public override object Seed(ISessionImplementor session)
+		public override async Task<object> Seed(ISessionImplementor session)
 		{
 			if (session == null)
 			{
 				log.Debug("incoming session was null; using current vm time");
-				return base.Seed(session);
+				return await base.Seed(session);
 			}
 			else if (!session.Factory.Dialect.SupportsCurrentTimestampSelection)
 			{
 				log.Debug("falling back to vm-based timestamp, as dialect does not support current timestamp selection");
-				return base.Seed(session);
+				return await base.Seed(session);
 			}
 			else
 			{
-				return GetCurrentTimestamp(session);
+				return await GetCurrentTimestamp(session);
 			}
 		}
 
-		private object GetCurrentTimestamp(ISessionImplementor session)
+		private async Task<object> GetCurrentTimestamp(ISessionImplementor session)
 		{
 			Dialect.Dialect dialect = session.Factory.Dialect;
 			string timestampSelectString = dialect.CurrentTimestampSelectString;
-			return UsePreparedStatement(timestampSelectString, session);
+			return await UsePreparedStatement(timestampSelectString, session);
 		}
 
-		protected virtual object UsePreparedStatement(string timestampSelectString, ISessionImplementor session)
+		protected virtual async Task<object> UsePreparedStatement(string timestampSelectString, ISessionImplementor session)
 		{
 			var tsSelect = new SqlString(timestampSelectString);
 			IDbCommand ps = null;
@@ -63,7 +63,7 @@ namespace NHibernate.Type
 			try
 			{
 				ps = session.Batcher.PrepareCommand(CommandType.Text, tsSelect, EmptyParams);
-				rs = session.Batcher.ExecuteReader(ps);
+				rs = await session.Batcher.ExecuteReader(ps);
 				rs.Read();
 				DateTime ts = rs.GetDateTime(0);
 				if (log.IsDebugEnabled)

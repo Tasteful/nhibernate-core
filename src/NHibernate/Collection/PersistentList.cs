@@ -3,6 +3,7 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Data;
 using System.Diagnostics;
+using System.Threading.Tasks;
 using NHibernate.DebugHelpers;
 using NHibernate.Engine;
 using NHibernate.Loader;
@@ -51,20 +52,20 @@ namespace NHibernate.Collection
 			IsDirectlyAccessible = true;
 		}
 
-		public override object GetSnapshot(ICollectionPersister persister)
+		public override async Task<object> GetSnapshot(ICollectionPersister persister)
 		{
 			EntityMode entityMode = Session.EntityMode;
 
 			List<object> clonedList = new List<object>(list.Count);
 			foreach (object current in list)
 			{
-				object deepCopy = persister.ElementType.DeepCopy(current, entityMode, persister.Factory);
+				object deepCopy = await persister.ElementType.DeepCopy(current, entityMode, persister.Factory);
 				clonedList.Add(deepCopy);
 			}
 			return clonedList;
 		}
 
-		public override ICollection GetOrphans(object snapshot, string entityName)
+		public override Task<ICollection> GetOrphans(object snapshot, string entityName)
 		{
 			IList sn = (IList) snapshot;
 			return GetOrphans(sn, list, entityName, Session);
@@ -261,7 +262,10 @@ namespace NHibernate.Collection
 
 		public bool Contains(object value)
 		{
-			bool? exists = ReadElementExistence(value);
+			// TODO Async
+			Task<bool?> task = ReadElementExistence(value);
+			task.Wait();
+			bool? exists = task.Result;
 			return !exists.HasValue ? list.Contains(value) : exists.Value;
 		}
 
@@ -307,7 +311,14 @@ namespace NHibernate.Collection
 
 		public void Remove(object value)
 		{
-			bool? exists = PutQueueEnabled ? ReadElementExistence(value) : null;
+			// TODO Async
+			Task<bool?> task = null;
+			if (PutQueueEnabled)
+			{
+				task = ReadElementExistence(value);
+				task.Wait();
+			}
+			bool? exists = PutQueueEnabled ? task.Result : null;
 			if (!exists.HasValue)
 			{
 				Initialize(true);
@@ -422,7 +433,12 @@ namespace NHibernate.Collection
 
 		public int Count
 		{
-			get { return ReadSize() ? CachedSize : list.Count; }
+			get
+			{
+				Task<bool> readSize = ReadSize();
+				readSize.Wait();
+				return readSize.Result ? CachedSize : list.Count;
+			}
 		}
 
 		public object SyncRoot

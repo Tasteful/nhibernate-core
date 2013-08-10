@@ -1,5 +1,6 @@
 using System;
 using System.Data;
+using System.Threading.Tasks;
 using System.Xml;
 using NHibernate.SqlTypes;
 
@@ -62,12 +63,12 @@ namespace NHibernate.Type
 			return null;
 		}
 
-		public override object DeepCopyNotNull(object value)
+		public override Task<object> DeepCopyNotNull(object value)
 		{
 			var original = (XmlDocument) value;
 			var copy = new XmlDocument();
 			copy.LoadXml(original.OuterXml);
-			return copy;
+			return Task.FromResult<object>(copy);
 		}
 
 		public override bool IsEqual(object x, object y)

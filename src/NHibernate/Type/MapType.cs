@@ -1,5 +1,6 @@
 using System;
 using System.Collections;
+using System.Threading.Tasks;
 using NHibernate.Collection;
 using NHibernate.Engine;
 using NHibernate.Persister.Collection;
@@ -74,7 +75,7 @@ namespace NHibernate.Type
 			((IDictionary) collection).Clear();
 		}
 
-		public override object ReplaceElements(object original, object target, object owner, IDictionary copyCache, ISessionImplementor session)
+		public override async Task<object> ReplaceElements(object original, object target, object owner, IDictionary copyCache, ISessionImplementor session)
 		{
 			ICollectionPersister cp = session.Factory.GetCollectionPersister(Role);
 
@@ -84,8 +85,8 @@ namespace NHibernate.Type
 			IEnumerable iter = (IDictionary)original;
 			foreach (DictionaryEntry me in iter)
 			{
-				object key = cp.IndexType.Replace(me.Key, null, session, owner, copyCache);
-				object value = cp.ElementType.Replace(me.Value, null, session, owner, copyCache);
+				object key = await cp.IndexType.Replace(me.Key, null, session, owner, copyCache);
+				object value = await cp.ElementType.Replace(me.Value, null, session, owner, copyCache);
 				result[key] = value;
 			}
 

@@ -2,6 +2,7 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Data;
 using System.Linq;
+using System.Threading.Tasks;
 using NHibernate.Engine;
 using NHibernate.Param;
 using NHibernate.Persister.Collection;
@@ -69,9 +70,9 @@ namespace NHibernate.Loader.Entity
 			get { return true; }
 		}
 
-		public virtual object LoadElement(ISessionImplementor session, object key, object index)
+		public virtual async Task<object> LoadElement(ISessionImplementor session, object key, object index)
 		{
-			IList list = LoadEntity(session, key, index, keyType, indexType, persister);
+			IList list = await LoadEntity(session, key, index, keyType, indexType, persister);
 
 			if (list.Count == 1)
 			{

@@ -1,5 +1,6 @@
 using System.Collections;
 using System.Collections.Generic;
+using System.Threading.Tasks;
 using NHibernate.Engine;
 using NHibernate.Type;
 
@@ -37,7 +38,7 @@ namespace NHibernate.Id
 		/// <see cref="IdentifierGeneratorFactory.ShortCircuitIndicator"/> if the <c>session</c>
 		/// already contains <c>obj</c>.
 		/// </returns>
-		public object Generate(ISessionImplementor sessionImplementor, object obj)
+		public async Task<object> Generate(ISessionImplementor sessionImplementor, object obj)
 		{
 			ISession session = (ISession) sessionImplementor;
 
@@ -77,7 +78,7 @@ namespace NHibernate.Id
 			if (session.Contains(obj))
 			{
 				//abort the save (the object is already saved by a circular cascade)
-				return IdentifierGeneratorFactory.ShortCircuitIndicator;
+				return await IdentifierGeneratorFactory.ShortCircuitIndicator;
 			}
 
 			return id;

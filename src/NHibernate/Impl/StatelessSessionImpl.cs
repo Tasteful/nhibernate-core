@@ -3,6 +3,7 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Data;
 using System.Linq.Expressions;
+using System.Threading.Tasks;
 using NHibernate.AdoNet;
 using NHibernate.Cache;
 using NHibernate.Collection;
@@ -139,7 +140,7 @@ namespace NHibernate.Impl
 			}
 		}
 
-		public override void List(CriteriaImpl criteria, IList results)
+		public override async Task List(CriteriaImpl criteria, IList results)
 		{
 			using (new SessionIdLoggingContext(SessionId))
 			{
@@ -159,7 +160,7 @@ namespace NHibernate.Impl
 				{
 					for (int i = size - 1; i >= 0; i--)
 					{
-						ArrayHelper.AddAll(results, loaders[i].List(this));
+						ArrayHelper.AddAll(results, await loaders[i].List(this));
 					}
 					success = true;
 				}
@@ -180,32 +181,32 @@ namespace NHibernate.Impl
 			}
 		}
 		
-		public override IEnumerable Enumerable(IQueryExpression queryExpression, QueryParameters queryParameters)
+		public override Task<IEnumerable> EnumerableAsync(IQueryExpression queryExpression, QueryParameters queryParameters)
 		{
 			throw new NotImplementedException();
 		}
 
-		public override IEnumerable<T> Enumerable<T>(IQueryExpression queryExpression, QueryParameters queryParameters)
+		public override Task<IEnumerable<T>> EnumerableAsync<T>(IQueryExpression queryExpression, QueryParameters queryParameters)
 		{
 			throw new NotImplementedException();
 		}
 
-		public override IList ListFilter(object collection, string filter, QueryParameters parameters)
+		public override Task<IList> ListFilterAsync(object collection, string filter, QueryParameters parameters)
 		{
 			throw new NotSupportedException();
 		}
 
-		public override IList<T> ListFilter<T>(object collection, string filter, QueryParameters parameters)
+		public override Task<IList<T>> ListFilterAsync<T>(object collection, string filter, QueryParameters parameters)
 		{
 			throw new NotSupportedException();
 		}
 
-		public override IEnumerable EnumerableFilter(object collection, string filter, QueryParameters parameters)
+		public override Task<IEnumerable> EnumerableFilterAsync(object collection, string filter, QueryParameters parameters)
 		{
 			throw new NotSupportedException();
 		}
 
-		public override IEnumerable<T> EnumerableFilter<T>(object collection, string filter, QueryParameters parameters)
+		public override Task<IEnumerable<T>> EnumerableFilterAsync<T>(object collection, string filter, QueryParameters parameters)
 		{
 			throw new NotSupportedException();
 		}
@@ -241,7 +242,7 @@ namespace NHibernate.Impl
 			}
 		}
 
-		public override void ListCustomQuery(ICustomQuery customQuery, QueryParameters queryParameters, IList results)
+		public override async Task ListCustomQuery(ICustomQuery customQuery, QueryParameters queryParameters, IList results)
 		{
 			using (new SessionIdLoggingContext(SessionId))
 			{
@@ -252,7 +253,7 @@ namespace NHibernate.Impl
 				var success = false;
 				try
 				{
-					ArrayHelper.AddAll(results, loader.List(this, queryParameters));
+					ArrayHelper.AddAll(results, await loader.List(this, queryParameters));
 					success = true;
 				}
 				finally
@@ -892,7 +893,7 @@ namespace NHibernate.Impl
 
 		#endregion
 
-		public override int ExecuteNativeUpdate(NativeSQLQuerySpecification nativeSQLQuerySpecification, QueryParameters queryParameters)
+		public override async Task<int> ExecuteNativeUpdate(NativeSQLQuerySpecification nativeSQLQuerySpecification, QueryParameters queryParameters)
 		{
 			using (new SessionIdLoggingContext(SessionId))
 			{
@@ -904,7 +905,7 @@ namespace NHibernate.Impl
 				int result;
 				try
 				{
-					result = plan.PerformExecuteUpdate(queryParameters, this);
+					result = await plan.PerformExecuteUpdate(queryParameters, this);
 					success = true;
 				}
 				finally
@@ -916,7 +917,7 @@ namespace NHibernate.Impl
 			}
 		}
 
-		public override int ExecuteUpdate(IQueryExpression queryExpression, QueryParameters queryParameters)
+		public override async Task<int> ExecuteUpdate(IQueryExpression queryExpression, QueryParameters queryParameters)
 		{
 			using (new SessionIdLoggingContext(SessionId))
 			{
@@ -927,7 +928,7 @@ namespace NHibernate.Impl
 				int result;
 				try
 				{
-					result = plan.PerformExecuteUpdate(queryParameters, this);
+					result = await plan.PerformExecuteUpdate(queryParameters, this);
 					success = true;
 				}
 				finally

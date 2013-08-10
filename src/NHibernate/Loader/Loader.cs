@@ -5,6 +5,7 @@ using System.Data;
 using System.Diagnostics;
 using System.Linq;
 using System.Runtime.CompilerServices;
+using System.Threading.Tasks;
 using NHibernate.AdoNet;
 using NHibernate.Cache;
 using NHibernate.Collection;
@@ -226,7 +227,7 @@ namespace NHibernate.Loader
 		/// persister from each row of the <c>DataReader</c>. If an object is supplied, will attempt to
 		/// initialize that object. If a collection is supplied, attempt to initialize that collection.
 		/// </summary>
-		private IList DoQueryAndInitializeNonLazyCollections(ISessionImplementor session, QueryParameters queryParameters, bool returnProxies)
+		private async Task<IList> DoQueryAndInitializeNonLazyCollections(ISessionImplementor session, QueryParameters queryParameters, bool returnProxies)
 		{
 			IPersistenceContext persistenceContext = session.PersistenceContext;
 			bool defaultReadOnlyOrig = persistenceContext.DefaultReadOnly;
@@ -242,7 +243,7 @@ namespace NHibernate.Loader
 			{
 				try
 				{
-					result = DoQuery(session, queryParameters, returnProxies);
+					result = await DoQuery(session, queryParameters, returnProxies);
 				}
 				finally
 				{
@@ -401,7 +402,7 @@ namespace NHibernate.Loader
 			}
 		}
 
-		private IList DoQuery(ISessionImplementor session, QueryParameters queryParameters, bool returnProxies)
+		private async Task<IList> DoQuery(ISessionImplementor session, QueryParameters queryParameters, bool returnProxies)
 		{
 			using (new SessionIdLoggingContext(session.SessionId))
 			{
@@ -414,7 +415,7 @@ namespace NHibernate.Loader
 
 				IDbCommand st = PrepareQueryCommand(queryParameters, false, session);
 
-				IDataReader rs = GetResultSet(st, queryParameters.HasAutoDiscoverScalarTypes, queryParameters.Callable, selection,
+				IDataReader rs = await GetResultSet(st, queryParameters.HasAutoDiscoverScalarTypes, queryParameters.Callable, selection,
 											  session);
 
 				// would be great to move all this below here into another method that could also be used
@@ -915,7 +916,7 @@ namespace NHibernate.Loader
 		/// <summary>
 		/// The entity instance is not in the session cache
 		/// </summary>
-		private object InstanceNotYetLoaded(IDataReader dr, int i, ILoadable persister, EntityKey key, LockMode lockMode,
+		private async Task<object> InstanceNotYetLoaded(IDataReader dr, int i, ILoadable persister, EntityKey key, LockMode lockMode,
 											string rowIdAlias, EntityKey optionalObjectKey, object optionalObject,
 											IList hydratedObjects, ISessionImplementor session)
 		{
@@ -939,7 +940,7 @@ namespace NHibernate.Loader
 			// (but don't yet initialize the object itself)
 			// note that we acquired LockMode.READ even if it was not requested
 			LockMode acquiredLockMode = lockMode == LockMode.None ? LockMode.Read : lockMode;
-			LoadFromResultSet(dr, i, obj, instanceClass, key, rowIdAlias, acquiredLockMode, persister, session);
+			await LoadFromResultSet(dr, i, obj, instanceClass, key, rowIdAlias, acquiredLockMode, persister, session);
 
 			// materialize associations (and initialize the object) later
 			hydratedObjects.Add(obj);
@@ -958,7 +959,7 @@ namespace NHibernate.Loader
 		/// an array of "hydrated" values (do not resolve associations yet),
 		/// and pass the hydrated state to the session.
 		/// </summary>
-		private void LoadFromResultSet(IDataReader rs, int i, object obj, string instanceClass, EntityKey key,
+		private async Task LoadFromResultSet(IDataReader rs, int i, object obj, string instanceClass, EntityKey key,
 									   string rowIdAlias, LockMode lockMode, ILoadable rootPersister,
 									   ISessionImplementor session)
 		{
@@ -984,7 +985,7 @@ namespace NHibernate.Loader
 								? EntityAliases[i].SuffixedPropertyAliases
 								: EntityAliases[i].GetSuffixedPropertyAliases(persister);
 
-			object[] values = persister.Hydrate(rs, id, obj, rootPersister, cols, eagerPropertyFetch, session);
+			object[] values = await persister.Hydrate(rs, id, obj, rootPersister, cols, eagerPropertyFetch, session);
 
 			object rowId = persister.HasRowId ? rs[rowIdAlias] : null;
 
@@ -1190,14 +1191,14 @@ namespace NHibernate.Loader
 		/// <param name="session">The <see cref="ISession" /> to load in.</param>
 		/// <param name="callable"></param>
 		/// <returns>An IDataReader advanced to the first record in RowSelection.</returns>
-		protected IDataReader GetResultSet(IDbCommand st, bool autoDiscoverTypes, bool callable, RowSelection selection, ISessionImplementor session)
+		protected async Task<IDataReader> GetResultSet(IDbCommand st, bool autoDiscoverTypes, bool callable, RowSelection selection, ISessionImplementor session)
 		{
 			IDataReader rs = null;
 			try
 			{
 				Log.Info(st.CommandText);
 				// TODO NH: Callable
-				rs = session.Batcher.ExecuteReader(st);
+				rs = await session.Batcher.ExecuteReader(st);
 
 				//NH: this is checked outside the WrapResultSet because we
 				// want to avoid the syncronization overhead in the vast majority
@@ -1261,7 +1262,7 @@ namespace NHibernate.Loader
 		/// <summary>
 		/// Called by subclasses that load entities
 		/// </summary>
-		protected IList LoadEntity(ISessionImplementor session, object id, IType identifierType, object optionalObject,
+		protected async Task<IList> LoadEntity(ISessionImplementor session, object id, IType identifierType, object optionalObject,
 								   string optionalEntityName, object optionalIdentifier, IEntityPersister persister)
 		{
 			if (Log.IsDebugEnabled)
@@ -1276,7 +1277,7 @@ namespace NHibernate.Loader
 				QueryParameters qp =
 					new QueryParameters(new IType[] { identifierType }, new object[] { id }, optionalObject, optionalEntityName,
 										optionalIdentifier);
-				result = DoQueryAndInitializeNonLazyCollections(session, qp, false);
+				result = await DoQueryAndInitializeNonLazyCollections(session, qp, false);
 			}
 			catch (HibernateException)
 			{
@@ -1297,7 +1298,7 @@ namespace NHibernate.Loader
 			return result;
 		}
 
-		protected IList LoadEntity(ISessionImplementor session, object key, object index, IType keyType, IType indexType,
+		protected async Task<IList> LoadEntity(ISessionImplementor session, object key, object index, IType keyType, IType indexType,
 								   IEntityPersister persister)
 		{
 			Log.Debug("loading collection element by index");
@@ -1306,7 +1307,7 @@ namespace NHibernate.Loader
 			try
 			{
 				result =
-					DoQueryAndInitializeNonLazyCollections(session,
+					await DoQueryAndInitializeNonLazyCollections(session,
 														   new QueryParameters(new IType[] { keyType, indexType },
 																			   new object[] { key, index }), false);
 			}
@@ -1324,7 +1325,7 @@ namespace NHibernate.Loader
 		/// <summary>
 		/// Called by subclasses that batch load entities
 		/// </summary>
-		protected internal IList LoadEntityBatch(ISessionImplementor session, object[] ids, IType idType,
+		protected internal async Task<IList> LoadEntityBatch(ISessionImplementor session, object[] ids, IType idType,
 												 object optionalObject, string optionalEntityName, object optionalId,
 												 IEntityPersister persister)
 		{
@@ -1339,7 +1340,7 @@ namespace NHibernate.Loader
 			try
 			{
 				result =
-					DoQueryAndInitializeNonLazyCollections(session,
+					await DoQueryAndInitializeNonLazyCollections(session,
 														   new QueryParameters(types, ids, optionalObject, optionalEntityName,
 																			   optionalId), false);
 			}
@@ -1362,7 +1363,7 @@ namespace NHibernate.Loader
 		/// <summary>
 		/// Called by subclasses that load collections
 		/// </summary>
-		public void LoadCollection(ISessionImplementor session, object id, IType type)
+		public async Task LoadCollection(ISessionImplementor session, object id, IType type)
 		{
 			if (Log.IsDebugEnabled)
 			{
@@ -1372,7 +1373,7 @@ namespace NHibernate.Loader
 			object[] ids = new object[] { id };
 			try
 			{
-				DoQueryAndInitializeNonLazyCollections(session, new QueryParameters(new IType[] { type }, ids, ids), true);
+				await DoQueryAndInitializeNonLazyCollections(session, new QueryParameters(new IType[] { type }, ids, ids), true);
 			}
 			catch (HibernateException)
 			{
@@ -1392,7 +1393,7 @@ namespace NHibernate.Loader
 		/// <summary>
 		/// Called by wrappers that batch initialize collections
 		/// </summary>
-		public void LoadCollectionBatch(ISessionImplementor session, object[] ids, IType type)
+		public async Task LoadCollectionBatch(ISessionImplementor session, object[] ids, IType type)
 		{
 			if (Log.IsDebugEnabled)
 			{
@@ -1403,7 +1404,7 @@ namespace NHibernate.Loader
 			ArrayHelper.Fill(idTypes, type);
 			try
 			{
-				DoQueryAndInitializeNonLazyCollections(session, new QueryParameters(idTypes, ids, ids), true);
+				await DoQueryAndInitializeNonLazyCollections(session, new QueryParameters(idTypes, ids, ids), true);
 			}
 			catch (HibernateException)
 			{
@@ -1423,13 +1424,13 @@ namespace NHibernate.Loader
 		/// <summary>
 		/// Called by subclasses that batch initialize collections
 		/// </summary>
-		protected void LoadCollectionSubselect(ISessionImplementor session, object[] ids, object[] parameterValues,
+		protected async Task LoadCollectionSubselect(ISessionImplementor session, object[] ids, object[] parameterValues,
 											   IType[] parameterTypes, IDictionary<string, TypedValue> namedParameters,
 											   IType type)
 		{
 			try
 			{
-				DoQueryAndInitializeNonLazyCollections(session,
+				await DoQueryAndInitializeNonLazyCollections(session,
 													   new QueryParameters(parameterTypes, parameterValues, namedParameters, ids),
 													   true);
 			}
@@ -1456,7 +1457,7 @@ namespace NHibernate.Loader
 		/// <param name="querySpaces"></param>
 		/// <param name="resultTypes"></param>
 		/// <returns></returns>
-		protected IList List(ISessionImplementor session, QueryParameters queryParameters, ISet<string> querySpaces, IType[] resultTypes)
+		protected Task<IList> List(ISessionImplementor session, QueryParameters queryParameters, ISet<string> querySpaces, IType[] resultTypes)
 		{
 			bool cacheable = _factory.Settings.IsQueryCacheEnabled && queryParameters.Cacheable;
 
@@ -1467,12 +1468,12 @@ namespace NHibernate.Loader
 			return ListIgnoreQueryCache(session, queryParameters);
 		}
 
-		private IList ListIgnoreQueryCache(ISessionImplementor session, QueryParameters queryParameters)
+		private async Task<IList> ListIgnoreQueryCache(ISessionImplementor session, QueryParameters queryParameters)
 		{
-			return GetResultList(DoList(session, queryParameters), queryParameters.ResultTransformer);
+			return GetResultList(await DoList(session, queryParameters), queryParameters.ResultTransformer);
 		}
 
-		private IList ListUsingQueryCache(ISessionImplementor session, QueryParameters queryParameters, ISet<string> querySpaces, IType[] resultTypes)
+		private async Task<IList> ListUsingQueryCache(ISessionImplementor session, QueryParameters queryParameters, ISet<string> querySpaces, IType[] resultTypes)
 		{
 			IQueryCache queryCache = _factory.GetQueryCache(queryParameters.CacheRegion);
 
@@ -1483,7 +1484,7 @@ namespace NHibernate.Loader
 
 			if (result == null)
 			{
-				result = DoList(session, queryParameters);
+				result = await DoList(session, queryParameters);
 				PutResultInQueryCache(session, queryParameters, resultTypes, queryCache, key, result);
 			}
 
@@ -1549,7 +1550,7 @@ namespace NHibernate.Loader
 		/// <param name="session"></param>
 		/// <param name="queryParameters"></param>
 		/// <returns></returns>
-		protected IList DoList(ISessionImplementor session, QueryParameters queryParameters)
+		protected async Task<IList> DoList(ISessionImplementor session, QueryParameters queryParameters)
 		{
 			bool statsEnabled = Factory.Statistics.IsStatisticsEnabled;
 			var stopWatch = new Stopwatch();
@@ -1561,7 +1562,7 @@ namespace NHibernate.Loader
 			IList result;
 			try
 			{
-				result = DoQueryAndInitializeNonLazyCollections(session, queryParameters, true);
+				result = await DoQueryAndInitializeNonLazyCollections(session, queryParameters, true);
 			}
 			catch (HibernateException)
 			{

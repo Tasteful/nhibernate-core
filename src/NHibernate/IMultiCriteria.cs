@@ -1,4 +1,5 @@
 using System.Collections;
+using System.Threading.Tasks;
 using NHibernate.Criterion;
 using NHibernate.Transform;
 
@@ -12,7 +13,7 @@ namespace NHibernate
 		/// <summary>
 		/// Get all the results
 		/// </summary>
-		IList List();
+		Task<IList> List();
 
 		/// <summary>
 		/// Adds the specified criteria to the query. The result will be contained in a <see cref="System.Collections.Generic.List{T}"/>
@@ -152,6 +153,6 @@ namespace NHibernate
 		/// </summary>
 		/// <param name="key">The key</param>
 		/// <returns></returns>
-		object GetResult(string key);
+		Task<object> GetResult(string key);
 	}
 }

@@ -1,6 +1,6 @@
 using System;
 using System.Data;
-
+using System.Threading.Tasks;
 using NHibernate.Engine;
 using NHibernate.SqlCommand;
 using NHibernate.SqlTypes;
@@ -96,7 +96,7 @@ namespace NHibernate.Id.Enhanced
 
 		#region Overrides of TransactionHelper
 
-		public override object DoWorkInCurrentTransaction(ISessionImplementor session, IDbConnection conn, IDbTransaction transaction)
+		public override Task<object> DoWorkInCurrentTransaction(ISessionImplementor session, IDbConnection conn, IDbTransaction transaction)
 		{
 			long result;
 			int updatedRows;
@@ -114,6 +114,7 @@ namespace NHibernate.Id.Enhanced
 						selectCmd.Transaction = transaction;
 						PersistentIdGeneratorParmsNames.SqlStatementLogger.LogCommand(selectCmd, FormatStyle.Basic);
 
+						// TODO: Async
 						selectedValue = selectCmd.ExecuteScalar();
 					}
 
@@ -143,6 +144,7 @@ namespace NHibernate.Id.Enhanced
 						int increment = _applyIncrementSizeToSourceValues ? _incrementSize : 1;
 						((IDataParameter)updateCmd.Parameters[0]).Value = result + increment;
 						((IDataParameter)updateCmd.Parameters[1]).Value = result;
+						// TODO: Async
 						updatedRows = updateCmd.ExecuteNonQuery();
 					}
 				}
@@ -156,7 +158,7 @@ namespace NHibernate.Id.Enhanced
 
 			_accessCounter++;
 
-			return result;
+			return Task.FromResult<object>(result);
 		}
 
 		#endregion
@@ -176,9 +178,9 @@ namespace NHibernate.Id.Enhanced
 
 			#region IAccessCallback Members
 
-			public virtual long GetNextValue()
+			public virtual async Task<long> GetNextValue()
 			{
-				return Convert.ToInt64(_owner.DoWorkInNewTransaction(_session));
+				return Convert.ToInt64(await _owner.DoWorkInNewTransaction(_session));
 			}
 
 			#endregion

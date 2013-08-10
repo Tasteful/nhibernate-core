@@ -33,11 +33,11 @@ namespace NHibernate.AdoNet
 		/// Thrown when there is an expected number of rows to be affected and the
 		/// actual number of rows is different.
 		/// </exception>
-		public override void AddToBatch(IExpectation expectation)
+		public override async void AddToBatch(IExpectation expectation)
 		{
 			IDbCommand cmd = CurrentCommand;
 			Driver.AdjustCommand(cmd);
-			int rowCount = ExecuteNonQuery(cmd);
+			int rowCount = await ExecuteNonQuery(cmd);
 			expectation.VerifyOutcomeNonBatched(rowCount, cmd);
 		}
 

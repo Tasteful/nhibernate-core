@@ -2,6 +2,7 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Data;
+using System.Threading.Tasks;
 using NHibernate.Collection;
 using NHibernate.Engine;
 using NHibernate.Persister.Collection;
@@ -124,7 +125,7 @@ namespace NHibernate.Type
 			return true;
 		}
 
-		public override object ReplaceElements(object original, object target, object owner, IDictionary copyCache, ISessionImplementor session)
+		public override async Task<object> ReplaceElements(object original, object target, object owner, IDictionary copyCache, ISessionImplementor session)
 		{
 			Array org = (Array) original;
 			Array result = (Array)target;
@@ -139,7 +140,7 @@ namespace NHibernate.Type
 			IType elemType = GetElementType(session.Factory);
 			for (int i = 0; i < length; i++)
 			{
-				result.SetValue(elemType.Replace(org.GetValue(i), null, session, owner, copyCache), i);
+				result.SetValue(await elemType.Replace(org.GetValue(i), null, session, owner, copyCache), i);
 			}
 
 			return result;

@@ -3,7 +3,7 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Data;
 using System.Diagnostics;
-
+using System.Threading.Tasks;
 using NHibernate.DebugHelpers;
 using NHibernate.Engine;
 using NHibernate.Loader;
@@ -67,7 +67,7 @@ namespace NHibernate.Collection
 			return array;
 		}
 
-		public override object GetSnapshot(ICollectionPersister persister)
+		public override async Task<object> GetSnapshot(ICollectionPersister persister)
 		{
 			EntityMode entityMode = Session.EntityMode;
 
@@ -78,7 +78,7 @@ namespace NHibernate.Collection
 				object elt = array.GetValue(i);
 				try
 				{
-					result.SetValue(persister.ElementType.DeepCopy(elt, entityMode, persister.Factory), i);
+					result.SetValue(await persister.ElementType.DeepCopy(elt, entityMode, persister.Factory), i);
 				}
 				catch (Exception e)
 				{
@@ -94,14 +94,14 @@ namespace NHibernate.Collection
 			return ((Array) snapshot).Length == 0;
 		}
 
-		public override ICollection GetOrphans(object snapshot, string entityName)
+		public override async Task<ICollection> GetOrphans(object snapshot, string entityName)
 		{
 			object[] sn = (object[]) snapshot;
 			object[] arr = (object[]) array;
 			List<object> result = new List<object>(sn);
 			for (int i = 0; i < sn.Length; i++)
 			{
-				IdentityRemove(result, arr[i], entityName, Session);
+				await IdentityRemove(result, arr[i], entityName, Session);
 			}
 			return result;
 		}

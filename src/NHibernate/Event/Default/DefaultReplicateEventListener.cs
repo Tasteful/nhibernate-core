@@ -1,5 +1,5 @@
 using System;
-
+using System.Threading.Tasks;
 using NHibernate.Engine;
 using NHibernate.Impl;
 using NHibernate.Persister.Entity;
@@ -15,7 +15,7 @@ namespace NHibernate.Event.Default
 	{
 		private static readonly IInternalLogger log = LoggerProvider.LoggerFor(typeof(DefaultReplicateEventListener));
 
-		public virtual void OnReplicate(ReplicateEvent @event)
+		public virtual async Task OnReplicate(ReplicateEvent @event)
 		{
 			IEventSource source = @event.Session;
 			if (source.PersistenceContext.ReassociateIfUninitializedProxy(@event.Entity))
@@ -76,7 +76,7 @@ namespace NHibernate.Event.Default
 				if (canReplicate)
 				{
 					//will result in a SQL UPDATE:
-					PerformReplication(entity, id, realOldVersion, persister, replicationMode, source);
+					await PerformReplication(entity, id, realOldVersion, persister, replicationMode, source);
 				}
 				else
 				{
@@ -101,7 +101,7 @@ namespace NHibernate.Event.Default
 			}
 		}
 
-		private void PerformReplication(object entity, object id, object version, IEntityPersister persister, ReplicationMode replicationMode, IEventSource source)
+		private async Task PerformReplication(object entity, object id, object version, IEntityPersister persister, ReplicationMode replicationMode, IEventSource source)
 		{
 			if (log.IsDebugEnabled)
 			{
@@ -122,15 +122,15 @@ namespace NHibernate.Event.Default
 				true, 
 				false);
 
-			CascadeAfterReplicate(entity, persister, replicationMode, source);
+			await CascadeAfterReplicate(entity, persister, replicationMode, source);
 		}
 
-		private void CascadeAfterReplicate(object entity, IEntityPersister persister, ReplicationMode replicationMode, IEventSource source)
+		private async Task CascadeAfterReplicate(object entity, IEntityPersister persister, ReplicationMode replicationMode, IEventSource source)
 		{
 			source.PersistenceContext.IncrementCascadeLevel();
 			try
 			{
-				new Cascade(CascadingAction.Replicate, CascadePoint.AfterUpdate, source).CascadeOn(persister, entity, replicationMode);
+				await new Cascade(CascadingAction.Replicate, CascadePoint.AfterUpdate, source).CascadeOn(persister, entity, replicationMode);
 			}
 			finally
 			{

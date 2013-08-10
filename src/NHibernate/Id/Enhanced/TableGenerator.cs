@@ -2,6 +2,7 @@
 using System.Data;
 using System.Collections.Generic;
 using System.Runtime.CompilerServices;
+using System.Threading.Tasks;
 using NHibernate.Engine;
 using NHibernate.Mapping;
 using NHibernate.Type;
@@ -402,7 +403,7 @@ namespace NHibernate.Id.Enhanced
 
 
 		[MethodImpl(MethodImplOptions.Synchronized)]
-		public virtual object Generate(ISessionImplementor session, object obj)
+		public virtual Task<object> Generate(ISessionImplementor session, object obj)
 		{
 			return Optimizer.Generate(new TableAccessCallback(session, this));
 		}
@@ -421,16 +422,16 @@ namespace NHibernate.Id.Enhanced
 
 			#region IAccessCallback Members
 
-			public long GetNextValue()
+			public async Task<long> GetNextValue()
 			{
-				return Convert.ToInt64(owner.DoWorkInNewTransaction(session));
+				return Convert.ToInt64(await owner.DoWorkInNewTransaction(session));
 			}
 
 			#endregion
 		}
 
 
-		public override object DoWorkInCurrentTransaction(ISessionImplementor session, System.Data.IDbConnection conn, System.Data.IDbTransaction transaction)
+		public override Task<object> DoWorkInCurrentTransaction(ISessionImplementor session, System.Data.IDbConnection conn, System.Data.IDbTransaction transaction)
 		{
 			long result;
 			int updatedRows;
@@ -449,7 +450,7 @@ namespace NHibernate.Id.Enhanced
 						string s = selectCmd.CommandText;
 						((IDataParameter)selectCmd.Parameters[0]).Value = SegmentValue;
 						PersistentIdGeneratorParmsNames.SqlStatementLogger.LogCommand(selectCmd, FormatStyle.Basic);
-
+						// TODO: Async
 						selectedValue = selectCmd.ExecuteScalar();
 					}
 
@@ -467,6 +468,7 @@ namespace NHibernate.Id.Enhanced
 							((IDataParameter)insertCmd.Parameters[1]).Value = result;
 
 							PersistentIdGeneratorParmsNames.SqlStatementLogger.LogCommand(insertCmd, FormatStyle.Basic);
+							// TODO: Async
 							insertCmd.ExecuteNonQuery();
 						}
 					}
@@ -495,6 +497,7 @@ namespace NHibernate.Id.Enhanced
 						((IDataParameter)updateCmd.Parameters[1]).Value = result;
 						((IDataParameter)updateCmd.Parameters[2]).Value = SegmentValue;
 						PersistentIdGeneratorParmsNames.SqlStatementLogger.LogCommand(updateCmd, FormatStyle.Basic);
+						// TODO: Async
 						updatedRows = updateCmd.ExecuteNonQuery();
 					}
 				}
@@ -508,7 +511,7 @@ namespace NHibernate.Id.Enhanced
 
 			TableAccessCount++;
 
-			return result;
+			return Task.FromResult<object>(result);
 		}
 
 

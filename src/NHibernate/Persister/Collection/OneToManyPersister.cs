@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.Data;
 using System.Data.Common;
 using System.Text;
+using System.Threading.Tasks;
 using NHibernate.AdoNet;
 using NHibernate.Cache;
 using NHibernate.Cfg;
@@ -150,7 +151,7 @@ namespace NHibernate.Persister.Collection
 			return true;
 		}
 
-		protected override int DoUpdateRows(object id, IPersistentCollection collection, ISessionImplementor session)
+		protected override async Task<int> DoUpdateRows(object id, IPersistentCollection collection, ISessionImplementor session)
 		{
 			// we finish all the "removes" first to take care of possible unique 
 			// constraints and so that we can take better advantage of batching
@@ -201,7 +202,7 @@ namespace NHibernate.Persister.Collection
 								}
 								else
 								{
-									expectation.VerifyOutcomeNonBatched(session.Batcher.ExecuteNonQuery(st), st);
+									expectation.VerifyOutcomeNonBatched(await session.Batcher.ExecuteNonQuery(st), st);
 								}
 								count++;
 							}
@@ -267,7 +268,7 @@ namespace NHibernate.Persister.Collection
 								}
 								else
 								{
-									expectation.VerifyOutcomeNonBatched(session.Batcher.ExecuteNonQuery(st), st);
+									expectation.VerifyOutcomeNonBatched(await session.Batcher.ExecuteNonQuery(st), st);
 								}
 								count++;
 							}
@@ -375,9 +376,9 @@ namespace NHibernate.Persister.Collection
 				session.EnabledFilters);
 		}
 
-		public override object GetElementByIndex(object key, object index, ISessionImplementor session, object owner)
+		public override async Task<object> GetElementByIndex(object key, object index, ISessionImplementor session, object owner)
 		{
-			return new CollectionElementLoader(this, Factory, session.EnabledFilters).LoadElement(session, key, IncrementIndexByBase(index)) ?? NotFoundObject;
+			return await new CollectionElementLoader(this, Factory, session.EnabledFilters).LoadElement(session, key, IncrementIndexByBase(index)) ?? NotFoundObject;
 		}
 
 		#region NH Specific

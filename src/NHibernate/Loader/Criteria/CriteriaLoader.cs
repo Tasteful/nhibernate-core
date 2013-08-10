@@ -2,6 +2,7 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Data;
+using System.Threading.Tasks;
 using NHibernate.Engine;
 using NHibernate.Impl;
 using NHibernate.Param;
@@ -70,7 +71,7 @@ namespace NHibernate.Loader.Criteria
 			get { return resultTypes; }
 		}
 
-		public IList List(ISessionImplementor session)
+		public Task<IList> List(ISessionImplementor session)
 		{
 			return List(session, translator.GetQueryParameters(), querySpaces, resultTypes);
 		}

@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.Data;
 using System.Diagnostics;
 using System.Linq;
+using System.Threading.Tasks;
 using NHibernate.DebugHelpers;
 using NHibernate.Engine;
 using NHibernate.Id;
@@ -270,7 +271,7 @@ namespace NHibernate.Collection
 			return element;
 		}
 
-		public override object GetSnapshot(ICollectionPersister persister)
+		public override async Task<object> GetSnapshot(ICollectionPersister persister)
 		{
 			EntityMode entityMode = Session.EntityMode;
 
@@ -280,13 +281,13 @@ namespace NHibernate.Collection
 			{
 				object id;
 				identifiers.TryGetValue(i++, out id);
-				var valueCopy = persister.ElementType.DeepCopy(value, entityMode, persister.Factory);
+				var valueCopy = await persister.ElementType.DeepCopy(value, entityMode, persister.Factory);
 				map.Add(new SnapshotElement { Id = id, Value = valueCopy });
 			}
 			return map;
 		}
 
-		public override ICollection GetOrphans(object snapshot, string entityName)
+		public override Task<ICollection> GetOrphans(object snapshot, string entityName)
 		{
 			var sn = (ISet<SnapshotElement>)GetSnapshot();
 			return GetOrphans(sn.Select(x=> x.Value).ToArray(), values, entityName, Session);
@@ -451,7 +452,13 @@ namespace NHibernate.Collection
 
 		public int Count
 		{
-			get { return ReadSize() ? CachedSize : values.Count; }
+			get
+			{
+				// TODO Async
+				Task<bool> readSize = ReadSize();
+				readSize.Wait();
+				return readSize.Result ? CachedSize : values.Count;
+			}
 		}
 
 		public void CopyTo(Array array, int index)

@@ -1,5 +1,6 @@
 using System;
 using System.Collections;
+using System.Threading.Tasks;
 using System.Transactions;
 using NHibernate.Engine;
 using NHibernate.Engine.Transaction;
@@ -72,13 +73,13 @@ namespace NHibernate.Transaction
 				   distributedTransactionContext.IsInActiveTransaction;
 		}
 
-		public void ExecuteWorkInIsolation(ISessionImplementor session, IIsolatedWork work, bool transacted)
+		public async Task ExecuteWorkInIsolation(ISessionImplementor session, IIsolatedWork work, bool transacted)
 		{
 			using (var tx = new TransactionScope(TransactionScopeOption.Suppress))
 			{
 				// instead of duplicating the logic, we suppress the DTC transaction and create
 				// our own transaction instead
-				adoNetTransactionFactory.ExecuteWorkInIsolation(session, work, transacted);
+				await adoNetTransactionFactory.ExecuteWorkInIsolation(session, work, transacted);
 				tx.Complete();
 			}
 		}

@@ -1,5 +1,6 @@
 using System;
 using System.Data;
+using System.Threading.Tasks;
 using NHibernate.AdoNet;
 using NHibernate.SqlCommand;
 using NHibernate.SqlTypes;
@@ -118,7 +119,7 @@ namespace NHibernate.Engine
 		/// The Batcher is responsible for ensuring that all of the Drivers rules for how many open
 		/// <see cref="IDataReader"/>s it can have are followed.
 		/// </remarks>
-		IDataReader ExecuteReader(IDbCommand cmd);
+		Task<IDataReader> ExecuteReader(IDbCommand cmd);
 
 		/// <summary>
 		/// Executes the <see cref="IDbCommand"/>. 
@@ -129,7 +130,7 @@ namespace NHibernate.Engine
 		/// The Batcher is responsible for ensuring that all of the Drivers rules for how many open
 		/// <see cref="IDataReader"/>s it can have are followed.
 		/// </remarks>
-		int ExecuteNonQuery(IDbCommand cmd);
+		Task<int> ExecuteNonQuery(IDbCommand cmd);
 
 		/// <summary>
 		/// Must be called when an exception occurs.

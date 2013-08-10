@@ -1,5 +1,6 @@
 using System.Collections;
 using System.Collections.Generic;
+using System.Threading.Tasks;
 using NHibernate.Engine;
 using NHibernate.Engine.Query;
 using NHibernate.Event;
@@ -35,9 +36,9 @@ namespace NHibernate.Hql
 		/// <param name="queryParameters">The query bind parameters.</param>
 		/// <returns>The query list results.</returns>
 		/// <exception cref="NHibernate.HibernateException"></exception>
-		IList List(ISessionImplementor session, QueryParameters queryParameters);
+		Task<IList> List(ISessionImplementor session, QueryParameters queryParameters);
 
-		IEnumerable GetEnumerable(QueryParameters queryParameters, IEventSource session);
+		Task<IEnumerable> GetEnumerable(QueryParameters queryParameters, IEventSource session);
 
 		// Not ported:
 		//IScrollableResults scroll(QueryParameters queryParameters, ISessionImplementor session);
@@ -49,7 +50,7 @@ namespace NHibernate.Hql
 		/// <param name="session">The session owning this query.</param>
 		/// <returns>The number of entities updated or deleted.</returns>
 		/// <exception cref="NHibernate.HibernateException"></exception>
-		int ExecuteUpdate(QueryParameters queryParameters, ISessionImplementor session);
+		Task<int> ExecuteUpdate(QueryParameters queryParameters, ISessionImplementor session);
 
 		/// <summary>
 		/// The set of query spaces (table names) that the query referrs to.

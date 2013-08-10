@@ -1,6 +1,6 @@
 using System;
 using System.Collections;
-
+using System.Threading.Tasks;
 using NHibernate.Collection;
 using NHibernate.Impl;
 using NHibernate.Persister.Collection;
@@ -360,7 +360,7 @@ namespace NHibernate.Engine
 			loadedPersister = factory.GetCollectionPersister(role);
 		}
 
-		public ICollection GetOrphans(string entityName, IPersistentCollection collection)
+		public Task<ICollection> GetOrphans(string entityName, IPersistentCollection collection)
 		{
 			if (snapshot == null)
 			{

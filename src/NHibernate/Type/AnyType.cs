@@ -2,6 +2,7 @@ using System;
 using System.Collections;
 using System.Data;
 using System.Reflection;
+using System.Threading.Tasks;
 using System.Xml;
 using NHibernate.Engine;
 using NHibernate.Persister.Entity;
@@ -63,9 +64,9 @@ namespace NHibernate.Type
 		{
 		}
 
-		public override object DeepCopy(object value, EntityMode entityMode, ISessionFactoryImplementor factory)
+		public override Task<object> DeepCopy(object value, EntityMode entityMode, ISessionFactoryImplementor factory)
 		{
-			return value;
+			return Task.FromResult(value);
 		}
 
 		public override int GetColumnSpan(IMapping session)
@@ -196,7 +197,7 @@ namespace NHibernate.Type
 				ForeignKeys.GetEntityIdentifierIfNotUnsaved(session.BestGuessEntityName(value), value, session));
 		}
 
-		public override object Replace(object original, object current, ISessionImplementor session, object owner,
+		public override Task<object> Replace(object original, object current, ISessionImplementor session, object owner,
 									   IDictionary copiedAlready)
 		{
 			if (original == null)
@@ -207,7 +208,7 @@ namespace NHibernate.Type
 			{
 				string entityName = session.BestGuessEntityName(original);
 				object id = ForeignKeys.GetEntityIdentifierIfNotUnsaved(entityName, original, session);
-				return session.InternalLoad(entityName, id, false, false);
+				return Task.FromResult(session.InternalLoad(entityName, id, false, false));
 			}
 		}
 

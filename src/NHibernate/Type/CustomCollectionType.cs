@@ -1,5 +1,6 @@
 using System;
 using System.Collections;
+using System.Threading.Tasks;
 using NHibernate.Collection;
 using NHibernate.Engine;
 using NHibernate.Persister.Collection;
@@ -80,7 +81,7 @@ namespace NHibernate.Type
 			return userType.IndexOf(collection, entity);
 		}
 
-		public override object ReplaceElements(object original, object target, object owner, IDictionary copyCache,
+		public override Task<object> ReplaceElements(object original, object target, object owner, IDictionary copyCache,
 		                                       ISessionImplementor session)
 		{
 			ICollectionPersister cp = session.Factory.GetCollectionPersister(Role);

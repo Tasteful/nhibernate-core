@@ -3,6 +3,7 @@ using System.Linq;
 using System.Collections;
 using System.Collections.Generic;
 using System.Data;
+using System.Threading.Tasks;
 using NHibernate.Engine;
 using NHibernate.Hql;
 using NHibernate.Param;
@@ -270,7 +271,7 @@ namespace NHibernate.Loader.Custom
 			get { return collectionPersisters; }
 		}
 
-		public IList List(ISessionImplementor session, QueryParameters queryParameters)
+		public Task<IList> List(ISessionImplementor session, QueryParameters queryParameters)
 		{
 			return List(session, queryParameters, querySpaces, resultTypes);
 		}

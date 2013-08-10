@@ -1,7 +1,7 @@
 using System;
 using System.Collections;
 using System.Data;
-
+using System.Threading.Tasks;
 using NHibernate.Engine;
 using NHibernate.Exceptions;
 using NHibernate.SqlCommand;
@@ -109,7 +109,7 @@ namespace NHibernate.Id
 		/// <param name="session">The <see cref="ISessionImplementor"/> this id is being generated in.</param>
 		/// <param name="obj">The entity for which the id is being generated.</param>
 		/// <returns>The new identifier as a <see cref="Int16"/>, <see cref="Int32"/>, or <see cref="Int64"/>.</returns>
-		public virtual object Generate(ISessionImplementor session, object obj)
+		public virtual async Task<object> Generate(ISessionImplementor session, object obj)
 		{
 			try
 			{
@@ -117,7 +117,7 @@ namespace NHibernate.Id
 				IDataReader reader = null;
 				try
 				{
-					reader = session.Batcher.ExecuteReader(cmd);
+					reader = await session.Batcher.ExecuteReader(cmd);
 					try
 					{
 						reader.Read();

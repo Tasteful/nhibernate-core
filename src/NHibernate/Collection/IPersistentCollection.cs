@@ -1,5 +1,6 @@
 using System.Collections;
 using System.Data;
+using System.Threading.Tasks;
 using NHibernate.Engine;
 using NHibernate.Loader;
 using NHibernate.Persister.Collection;
@@ -249,7 +250,7 @@ namespace NHibernate.Collection
 		/// <summary>
 		/// Return a new snapshot of the current state of the collection
 		/// </summary>
-		object GetSnapshot(ICollectionPersister persister);
+		Task<object> GetSnapshot(ICollectionPersister persister);
 
 		/// <summary>
 		/// To be called internally by the session, forcing
@@ -300,7 +301,7 @@ namespace NHibernate.Collection
 		IEnumerable QueuedAdditionIterator { get; }
 
 		/// <summary> Get the "queued" orphans</summary>
-		ICollection GetQueuedOrphans(string entityName);
+		Task<ICollection> GetQueuedOrphans(string entityName);
 
 		/// <summary>
 		/// Clear the dirty flag, after flushing changes
@@ -334,6 +335,6 @@ namespace NHibernate.Collection
 		/// An <see cref="ICollection"/> that contains all of the elements
 		/// that have been orphaned.
 		/// </returns>
-		ICollection GetOrphans(object snapshot, string entityName);
+		Task<ICollection> GetOrphans(object snapshot, string entityName);
 	}
 }

@@ -1,6 +1,7 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Threading.Tasks;
 using NHibernate.Collection;
 using NHibernate.Collection.Generic;
 using NHibernate.Engine;
@@ -64,7 +65,7 @@ namespace NHibernate.Type
 			((IDictionary<TKey, TValue>) collection).Add((KeyValuePair<TKey, TValue>) element);
 		}
 
-		public override object ReplaceElements(object original, object target, object owner, IDictionary copyCache, ISessionImplementor session)
+		public override async Task<object> ReplaceElements(object original, object target, object owner, IDictionary copyCache, ISessionImplementor session)
 		{
 			ICollectionPersister cp = session.Factory.GetCollectionPersister(Role);
 
@@ -74,8 +75,8 @@ namespace NHibernate.Type
 			IEnumerable<KeyValuePair<TKey, TValue>> iter = (IDictionary<TKey, TValue>)original; 
 			foreach (KeyValuePair<TKey, TValue> me in iter)
 			{
-				TKey key = (TKey)cp.IndexType.Replace(me.Key, null, session, owner, copyCache);
-				TValue value = (TValue)cp.ElementType.Replace(me.Value, null, session, owner, copyCache);
+				TKey key = (TKey)await cp.IndexType.Replace(me.Key, null, session, owner, copyCache);
+				TValue value = (TValue)await cp.ElementType.Replace(me.Value, null, session, owner, copyCache);
 				result[key] = value;
 			}
 

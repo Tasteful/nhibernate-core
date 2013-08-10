@@ -3,6 +3,7 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Data;
 using System.Linq;
+using System.Threading.Tasks;
 using System.Xml;
 using NHibernate.Engine;
 using NHibernate.SqlCommand;
@@ -228,7 +229,7 @@ namespace NHibernate.Param
 				throw new InvalidOperationException();
 			}
 
-			public object DeepCopy(object val, EntityMode entityMode, ISessionFactoryImplementor factory)
+			public Task<object> DeepCopy(object val, EntityMode entityMode, ISessionFactoryImplementor factory)
 			{
 				throw new InvalidOperationException();
 			}
@@ -248,12 +249,12 @@ namespace NHibernate.Param
 				throw new InvalidOperationException();
 			}
 
-			public object Replace(object original, object target, ISessionImplementor session, object owner, IDictionary copiedAlready)
+			public Task<object> Replace(object original, object target, ISessionImplementor session, object owner, IDictionary copiedAlready)
 			{
 				throw new InvalidOperationException();
 			}
 
-			public object Replace(object original, object target, ISessionImplementor session, object owner, IDictionary copyCache, ForeignKeyDirection foreignKeyDirection)
+			public Task<object> Replace(object original, object target, ISessionImplementor session, object owner, IDictionary copyCache, ForeignKeyDirection foreignKeyDirection)
 			{
 				throw new InvalidOperationException();
 			}

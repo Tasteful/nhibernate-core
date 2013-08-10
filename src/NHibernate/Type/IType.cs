@@ -1,5 +1,6 @@
 using System.Collections;
 using System.Data;
+using System.Threading.Tasks;
 using System.Xml;
 using NHibernate.Engine;
 using NHibernate.SqlTypes;
@@ -103,7 +104,7 @@ namespace NHibernate.Type
 		/// <include file='IType.cs.xmldoc' 
 		///		path='//members[@type="IType"]/member[@name="M:IType.DeepCopy"]/*'
 		/// /> 
-		object DeepCopy(object val, EntityMode entityMode, ISessionFactoryImplementor factory);
+		Task<object> DeepCopy(object val, EntityMode entityMode, ISessionFactoryImplementor factory);
 
 		/// <include file='IType.cs.xmldoc' 
 		///		path='//members[@type="IType"]/member[@name="M:IType.Hydrate"]/*'
@@ -124,7 +125,7 @@ namespace NHibernate.Type
 		/// <include file='IType.cs.xmldoc' 
 		///		path='//members[@type="IType"]/member[@name="M:IType.Copy"]/*'
 		/// /> 
-		object Replace(object original, object target, ISessionImplementor session, object owner, IDictionary copiedAlready);
+		Task<object> Replace(object original, object target, ISessionImplementor session, object owner, IDictionary copiedAlready);
 
 		/// <summary> 
 		/// During merge, replace the existing (target) value in the entity we are merging to
@@ -140,7 +141,7 @@ namespace NHibernate.Type
 		/// <param name="copyCache"></param>
 		/// <param name="foreignKeyDirection"></param>
 		/// <returns> the value to be merged </returns>
-		object Replace(object original, object target, ISessionImplementor session, object owner, IDictionary copyCache, ForeignKeyDirection foreignKeyDirection);
+		Task<object> Replace(object original, object target, ISessionImplementor session, object owner, IDictionary copyCache, ForeignKeyDirection foreignKeyDirection);
 
 		/// <summary> 
 		/// Compare two instances of the class mapped by this type for persistence

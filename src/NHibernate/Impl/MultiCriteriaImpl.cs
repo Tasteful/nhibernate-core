@@ -2,6 +2,7 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.Threading.Tasks;
 using NHibernate.Cache;
 using NHibernate.Criterion;
 using NHibernate.Driver;
@@ -58,7 +59,7 @@ namespace NHibernate.Impl
 			}
 		}
 
-		public IList List()
+		public async Task<IList> List()
 		{
 			using (new SessionIdLoggingContext(session.SessionId))
 			{
@@ -78,18 +79,18 @@ namespace NHibernate.Impl
 
 				if (cacheable)
 				{
-					criteriaResults = ListUsingQueryCache();
+					criteriaResults = await ListUsingQueryCache();
 				}
 				else
 				{
-					criteriaResults = ListIgnoreQueryCache();
+					criteriaResults = await ListIgnoreQueryCache();
 				}
 
 				return criteriaResults;
 			}
 		}
 
-		private IList ListUsingQueryCache()
+		private async Task<IList> ListUsingQueryCache()
 		{
 			IQueryCache queryCache = session.Factory.GetQueryCache(cacheRegion);
 
@@ -123,7 +124,7 @@ namespace NHibernate.Impl
 			if (result == null)
 			{
 				log.Debug("Cache miss for multi criteria query");
-				IList list = DoList();
+				IList list = await DoList();
 				queryCache.Put(key, new ICacheAssembler[] { assembler }, new object[] { list }, combinedParameters.NaturalKeyLookup, session);
 				result = list;
 			}
@@ -131,9 +132,9 @@ namespace NHibernate.Impl
 			return GetResultList(result);
 		}
 
-		private IList ListIgnoreQueryCache()
+		private async Task<IList> ListIgnoreQueryCache()
 		{
-			return GetResultList(DoList());
+			return GetResultList(await DoList());
 		}
 
 		protected virtual IList GetResultList(IList results)
@@ -170,10 +171,10 @@ namespace NHibernate.Impl
 			return resultCollections;
 		}
 
-		private IList DoList()
+		private async Task<IList> DoList()
 		{
 			List<IList> results = new List<IList>();
-			GetResultsFromDatabase(results);
+			await GetResultsFromDatabase(results);
 			return results;
 		}
 
@@ -190,7 +191,7 @@ namespace NHibernate.Impl
 			}
 		}
 
-		private void GetResultsFromDatabase(IList results)
+		private async Task GetResultsFromDatabase(IList results)
 		{
 			bool statsEnabled = session.Factory.Statistics.IsStatisticsEnabled;
 			var stopWatch = new Stopwatch();
@@ -202,7 +203,7 @@ namespace NHibernate.Impl
 
 			try
 			{
-				using (var reader = resultSetsCommand.GetReader(null))
+				using (var reader = await resultSetsCommand.GetReader(null))
 				{
 					var hydratedObjects = new List<object>[loaders.Count];
 					List<EntityKey[]>[] subselectResultKeys = new List<EntityKey[]>[loaders.Count];
@@ -409,9 +410,9 @@ namespace NHibernate.Impl
 			return this;
 		}
 
-		public object GetResult(string key)
+		public async Task<object> GetResult(string key)
 		{
-			if (criteriaResults == null) List();
+			if (criteriaResults == null) await List();
 
 			int criteriaResultPosition;
 			if (!criteriaResultPositions.TryGetValue(key, out criteriaResultPosition))

@@ -2,7 +2,7 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Text;
-
+using System.Threading.Tasks;
 using NHibernate.Action;
 using NHibernate.Collection;
 using NHibernate.Engine;
@@ -182,7 +182,7 @@ namespace NHibernate.Event.Default
 		//process cascade save/update at the start of a flush to discover
 		//any newly referenced entity that must be passed to saveOrUpdate(),
 		//and also apply orphan delete
-		protected virtual void PrepareEntityFlushes(IEventSource session)
+		protected virtual async Task PrepareEntityFlushes(IEventSource session)
 		{
 			log.Debug("processing flush-time cascades");
 
@@ -194,17 +194,17 @@ namespace NHibernate.Event.Default
 				Status status = entry.Status;
 				if (status == Status.Loaded || status == Status.Saving || status == Status.ReadOnly)
 				{
-					CascadeOnFlush(session, entry.Persister, me.Key, Anything);
+					await CascadeOnFlush(session, entry.Persister, me.Key, Anything);
 				}
 			}
 		}
 
-		protected virtual void CascadeOnFlush(IEventSource session, IEntityPersister persister, object key, object anything)
+		protected virtual async Task CascadeOnFlush(IEventSource session, IEntityPersister persister, object key, object anything)
 		{
 			session.PersistenceContext.IncrementCascadeLevel();
 			try
 			{
-				new Cascade(CascadingAction, CascadePoint.BeforeFlush, session).CascadeOn(persister, key, anything);
+				await new Cascade(CascadingAction, CascadePoint.BeforeFlush, session).CascadeOn(persister, key, anything);
 			}
 			finally
 			{

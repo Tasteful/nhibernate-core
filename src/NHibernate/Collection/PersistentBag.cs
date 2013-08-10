@@ -3,6 +3,7 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Data;
 using System.Diagnostics;
+using System.Threading.Tasks;
 using NHibernate.DebugHelpers;
 using NHibernate.Engine;
 using NHibernate.Loader;
@@ -132,18 +133,18 @@ namespace NHibernate.Collection
 			return result;
 		}
 
-		public override object GetSnapshot(ICollectionPersister persister)
+		public override async Task<object> GetSnapshot(ICollectionPersister persister)
 		{
 			EntityMode entityMode = Session.EntityMode;
 			List<object> clonedList = new List<object>(bag.Count);
 			foreach (object current in bag)
 			{
-				clonedList.Add(persister.ElementType.DeepCopy(current, entityMode, persister.Factory));
+				clonedList.Add(await persister.ElementType.DeepCopy(current, entityMode, persister.Factory));
 			}
 			return clonedList;
 		}
 
-		public override ICollection GetOrphans(object snapshot, string entityName)
+		public override Task<ICollection> GetOrphans(object snapshot, string entityName)
 		{
 			IList sn = (IList) snapshot;
 			return GetOrphans(sn, bag, entityName, Session);
@@ -344,7 +345,10 @@ namespace NHibernate.Collection
 
 		public bool Contains(object value)
 		{
-			bool? exists = ReadElementExistence(value);
+			// TODO Async
+			Task<bool?> task = ReadElementExistence(value);
+			task.Wait();
+			bool? exists = task.Result;
 			return !exists.HasValue ? bag.Contains(value) : exists.Value;
 		}
 
@@ -405,7 +409,13 @@ namespace NHibernate.Collection
 
 		public int Count
 		{
-			get { return ReadSize() ? CachedSize : bag.Count; }
+			get
+			{
+				// TODO Async
+				Task<bool> task = ReadSize();
+				task.Wait();
+				return task.Result ? CachedSize : bag.Count;
+			}
 		}
 
 		public void CopyTo(Array array, int index)

@@ -1,6 +1,7 @@
 using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
+using System.Threading.Tasks;
 using NHibernate.Engine;
 using NHibernate.Engine.Query;
 
@@ -26,14 +27,14 @@ namespace NHibernate.Impl
 			return this;
 		}
 
-		public override int ExecuteUpdate()
+		public override async Task<int> ExecuteUpdate()
 		{
 			VerifyParameters();
 			var namedParams = NamedParams;
 			Before();
 			try
 			{
-				return Session.ExecuteUpdate(ExpandParameters(namedParams), GetQueryParameters(namedParams));
+				return await Session.ExecuteUpdate(ExpandParameters(namedParams), GetQueryParameters(namedParams));
 			}
 			finally
 			{

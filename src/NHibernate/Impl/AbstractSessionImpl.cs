@@ -2,6 +2,8 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Data;
+using System.ServiceModel.Channels;
+using System.Threading.Tasks;
 using NHibernate.AdoNet;
 using NHibernate.Cache;
 using NHibernate.Collection;
@@ -16,6 +18,7 @@ using NHibernate.Loader.Custom.Sql;
 using NHibernate.Persister.Entity;
 using NHibernate.Transaction;
 using NHibernate.Type;
+using Nito.AsyncEx;
 
 namespace NHibernate.Impl
 {
@@ -147,7 +150,7 @@ namespace NHibernate.Impl
 			}
 		}
 
-		public abstract void List(CriteriaImpl criteria, IList results);
+		public abstract Task List(CriteriaImpl criteria, IList results);
 		
 		public virtual IList List(CriteriaImpl criteria)
 		{
@@ -159,10 +162,29 @@ namespace NHibernate.Impl
 			}
 		}
 
-		public abstract IList ListFilter(object collection, string filter, QueryParameters parameters);
-		public abstract IList<T> ListFilter<T>(object collection, string filter, QueryParameters parameters);
-		public abstract IEnumerable EnumerableFilter(object collection, string filter, QueryParameters parameters);
-		public abstract IEnumerable<T> EnumerableFilter<T>(object collection, string filter, QueryParameters parameters);
+		public IList ListFilter(object collection, string filter, QueryParameters parameters)
+		{
+			return AsyncContext.Run(() => ListFilterAsync(collection, filter, parameters));
+		}
+		public abstract Task<IList> ListFilterAsync(object collection, string filter, QueryParameters parameters);
+
+		public IList<T> ListFilter<T>(object collection, string filter, QueryParameters parameters)
+		{
+			return AsyncContext.Run(() => ListFilterAsync<T>(collection, filter, parameters));
+		}
+		public abstract Task<IList<T>> ListFilterAsync<T>(object collection, string filter, QueryParameters parameters);
+
+		public IEnumerable EnumerableFilter(object collection, string filter, QueryParameters parameters)
+		{
+			return AsyncContext.Run(() => EnumerableFilterAsync(collection, filter, parameters));
+		}
+		public abstract Task<IEnumerable> EnumerableFilterAsync(object collection, string filter, QueryParameters parameters);
+
+		public IEnumerable<T> EnumerableFilter<T>(object collection, string filter, QueryParameters parameters)
+		{
+			return AsyncContext.Run(() => EnumerableFilterAsync<T>(collection, filter, parameters));
+		}
+		public abstract Task<IEnumerable<T>> EnumerableFilterAsync<T>(object collection, string filter, QueryParameters parameters);
 		public abstract IEntityPersister GetEntityPersister(string entityName, object obj);
 		public abstract void AfterTransactionBegin(ITransaction tx);
 		public abstract void BeforeTransactionCompletion(ITransaction tx);
@@ -203,7 +225,7 @@ namespace NHibernate.Impl
 			}
 		}
 
-		public abstract void ListCustomQuery(ICustomQuery customQuery, QueryParameters queryParameters, IList results);
+		public abstract Task ListCustomQuery(ICustomQuery customQuery, QueryParameters queryParameters, IList results);
 
 		public virtual IList<T> ListCustomQuery<T>(ICustomQuery customQuery, QueryParameters queryParameters)
 		{
@@ -259,7 +281,7 @@ namespace NHibernate.Impl
 		public abstract string BestGuessEntityName(object entity);
 		public abstract string GuessEntityName(object entity);
 		public abstract IDbConnection Connection { get; }
-		public abstract int ExecuteNativeUpdate(NativeSQLQuerySpecification specification, QueryParameters queryParameters);
+		public abstract Task<int> ExecuteNativeUpdate(NativeSQLQuerySpecification specification, QueryParameters queryParameters);
 		public abstract FutureCriteriaBatch FutureCriteriaBatch { get; internal set; }
 		public abstract FutureQueryBatch FutureQueryBatch { get; internal set; }
 
@@ -458,7 +480,11 @@ namespace NHibernate.Impl
 			}
 		}
 
-		public abstract IEnumerable Enumerable(IQueryExpression queryExpression, QueryParameters queryParameters);
+		public IEnumerable Enumerable(IQueryExpression queryExpression, QueryParameters queryParameters)
+		{
+			return AsyncContext.Run(() => EnumerableAsync(queryExpression, queryParameters));
+		}
+		public abstract Task<IEnumerable> EnumerableAsync(IQueryExpression queryExpression, QueryParameters queryParameters);
 
 		[Obsolete("Use overload with IQueryExpression")]
 		public virtual IEnumerable Enumerable(string query, QueryParameters queryParameters)
@@ -472,14 +498,18 @@ namespace NHibernate.Impl
 			return Enumerable<T>(query.ToQueryExpression(), queryParameters);
 		}
 
-		public abstract IEnumerable<T> Enumerable<T>(IQueryExpression queryExpression, QueryParameters queryParameters);
+		public IEnumerable<T> Enumerable<T>(IQueryExpression queryExpression, QueryParameters queryParameters)
+		{
+			return AsyncContext.Run(() => EnumerableAsync<T>(queryExpression, queryParameters));
+		}
+		public abstract Task<IEnumerable<T>> EnumerableAsync<T>(IQueryExpression queryExpression, QueryParameters queryParameters);
 
 		[Obsolete("Use overload with IQueryExpression")]
-		public virtual int ExecuteUpdate(string query, QueryParameters queryParameters)
+		public virtual Task<int> ExecuteUpdate(string query, QueryParameters queryParameters)
 		{
 			return ExecuteUpdate(query.ToQueryExpression(), queryParameters);
 		}
 
-		public abstract int ExecuteUpdate(IQueryExpression queryExpression, QueryParameters queryParameters);
+		public abstract Task<int> ExecuteUpdate(IQueryExpression queryExpression, QueryParameters queryParameters);
 	}
 }

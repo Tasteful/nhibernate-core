@@ -1,4 +1,5 @@
 using System.Data;
+using System.Threading.Tasks;
 
 namespace NHibernate.Engine.Transaction
 {
@@ -14,6 +15,6 @@ namespace NHibernate.Engine.Transaction
 		/// </summary>
 		/// <param name="connection">The ADP connection to use.</param>
 		/// <param name="transaction">The active transaction of the connection.</param>
-		void DoWork(IDbConnection connection, IDbTransaction transaction);
+		Task DoWork(IDbConnection connection, IDbTransaction transaction);
 	}
 }

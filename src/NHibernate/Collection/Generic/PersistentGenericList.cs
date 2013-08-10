@@ -2,6 +2,7 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.Threading.Tasks;
 using NHibernate.DebugHelpers;
 using NHibernate.Engine;
 using NHibernate.Persister.Collection;
@@ -137,7 +138,10 @@ namespace NHibernate.Collection.Generic
 
 		bool ICollection<T>.Contains(T item)
 		{
-			bool? exists = ReadElementExistence(item);
+			// TODO Async
+			Task<bool?> task = ReadElementExistence(item);
+			task.Wait();
+			bool? exists = task.Result;
 			return !exists.HasValue ? glist.Contains(item) : exists.Value;
 		}
 
@@ -151,7 +155,14 @@ namespace NHibernate.Collection.Generic
 
 		bool ICollection<T>.Remove(T item)
 		{
-			bool? exists = PutQueueEnabled ? ReadElementExistence(item) : null;
+			// TODO Async
+			Task<bool?> task = null;
+			if (PutQueueEnabled)
+			{
+				task = ReadElementExistence(item);
+				task.Wait();
+			}
+			bool? exists = PutQueueEnabled ? task.Result : null;
 			if (!exists.HasValue)
 			{
 				Initialize(true);

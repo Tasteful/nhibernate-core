@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Data;
 using System.Runtime.CompilerServices;
 using System.Text;
-
+using System.Threading.Tasks;
 using NHibernate.Engine;
 using NHibernate.Exceptions;
 using NHibernate.Type;
@@ -82,13 +82,13 @@ namespace NHibernate.Id
 		/// <param name="obj"></param>
 		/// <returns></returns>
 		[MethodImpl(MethodImplOptions.Synchronized)]
-		public object Generate(ISessionImplementor session, object obj)
+		public Task<object> Generate(ISessionImplementor session, object obj)
 		{
 			if (sql != null)
 			{
 				GetNext(session);
 			}
-			return IdentifierGeneratorFactory.CreateNumber(next++, returnClass);
+			return Task.FromResult(IdentifierGeneratorFactory.CreateNumber(next++, returnClass));
 		}
 
 		private void GetNext(ISessionImplementor session)

@@ -1,6 +1,6 @@
 using System;
 using System.Collections;
-
+using System.Threading.Tasks;
 using NHibernate.Action;
 using NHibernate.Classic;
 using NHibernate.Engine;
@@ -351,13 +351,13 @@ namespace NHibernate.Event.Default
 		/// <param name="persister">The entity's persister instance. </param>
 		/// <param name="entity">The entity to be saved. </param>
 		/// <param name="anything">Generally cascade-specific data </param>
-		protected virtual void CascadeBeforeSave(IEventSource source, IEntityPersister persister, object entity, object anything)
+		protected virtual async Task CascadeBeforeSave(IEventSource source, IEntityPersister persister, object entity, object anything)
 		{
 			// cascade-save to many-to-one BEFORE the parent is saved
 			source.PersistenceContext.IncrementCascadeLevel();
 			try
 			{
-				new Cascade(CascadeAction, CascadePoint.BeforeInsertAfterDelete, source).CascadeOn(persister, entity, anything);
+				await new Cascade(CascadeAction, CascadePoint.BeforeInsertAfterDelete, source).CascadeOn(persister, entity, anything);
 			}
 			finally
 			{
@@ -370,13 +370,13 @@ namespace NHibernate.Event.Default
 		/// <param name="persister">The entity's persister instance. </param>
 		/// <param name="entity">The entity being saved. </param>
 		/// <param name="anything">Generally cascade-specific data </param>
-		protected virtual void CascadeAfterSave(IEventSource source, IEntityPersister persister, object entity, object anything)
+		protected virtual async Task CascadeAfterSave(IEventSource source, IEntityPersister persister, object entity, object anything)
 		{
 			// cascade-save to collections AFTER the collection owner was saved
 			source.PersistenceContext.IncrementCascadeLevel();
 			try
 			{
-				new Cascade(CascadeAction, CascadePoint.AfterInsertBeforeDelete, source).CascadeOn(persister, entity, anything);
+				await new Cascade(CascadeAction, CascadePoint.AfterInsertBeforeDelete, source).CascadeOn(persister, entity, anything);
 			}
 			finally
 			{
@@ -392,7 +392,7 @@ namespace NHibernate.Event.Default
 		/// <param name="entry">The entity's entry in the persistence context </param>
 		/// <param name="source">The originating session. </param>
 		/// <returns> The state. </returns>
-		protected virtual EntityState GetEntityState(object entity, string entityName, EntityEntry entry, ISessionImplementor source)
+		protected virtual async Task<EntityState> GetEntityState(object entity, string entityName, EntityEntry entry, ISessionImplementor source)
 		{
 			if (entry != null)
 			{
@@ -422,7 +422,7 @@ namespace NHibernate.Event.Default
 				//the object is transient or detached
 				//the entity is not associated with the session, so
 				//try interceptor and unsaved-value
-				if (ForeignKeys.IsTransient(entityName, entity, AssumedUnsaved, source))
+				if (await ForeignKeys.IsTransient(entityName, entity, AssumedUnsaved, source))
 				{
 					if (log.IsDebugEnabled)
 					{

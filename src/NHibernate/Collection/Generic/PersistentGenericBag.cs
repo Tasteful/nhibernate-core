@@ -2,6 +2,7 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.Threading.Tasks;
 using NHibernate.DebugHelpers;
 using NHibernate.Engine;
 using NHibernate.Persister.Collection;
@@ -110,7 +111,9 @@ namespace NHibernate.Collection.Generic
 
 		bool ICollection<T>.Contains(T item)
 		{
-			bool? exists = ReadElementExistence(item);
+			Task<bool?> task = ReadElementExistence(item);
+			task.Wait();
+			bool? exists = task.Result;
 			return !exists.HasValue ? gbag.Contains(item) : exists.Value;
 		}
 
