@@ -183,7 +183,7 @@ namespace NHibernate.AdoNet
 			_batchCommandParameterTypes = null;
 		}
 
-		public Task<int> ExecuteNonQuery(IDbCommand cmd)
+		public async Task<int> ExecuteNonQuery(IDbCommand cmd)
 		{
 			CheckReaders();
 			LogCommand(cmd);
@@ -193,7 +193,7 @@ namespace NHibernate.AdoNet
 				duration = Stopwatch.StartNew();
 			try
 			{
-				return Task.FromResult(cmd.ExecuteNonQuery());
+				return await Driver.ExecuteNonQueryAsync(cmd);
 			}
 			catch (Exception e)
 			{
@@ -208,7 +208,7 @@ namespace NHibernate.AdoNet
 			}
 		}
 
-		public virtual Task<IDataReader> ExecuteReader(IDbCommand cmd)
+		public virtual async Task<IDataReader> ExecuteReader(IDbCommand cmd)
 		{
 			CheckReaders();
 			LogCommand(cmd);
@@ -219,7 +219,7 @@ namespace NHibernate.AdoNet
 			IDataReader reader = null;
 			try
 			{
-				reader = cmd.ExecuteReader();
+				reader = await Driver.ExecuteReaderAsync(cmd);
 			}
 			catch (Exception e)
 			{
@@ -243,7 +243,7 @@ namespace NHibernate.AdoNet
 
 			_readersToClose.Add(reader);
 			LogOpenReader();
-			return Task.FromResult(reader);
+			return reader;
 		}
 
 		/// <summary>

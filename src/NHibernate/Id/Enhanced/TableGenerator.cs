@@ -435,7 +435,7 @@ namespace NHibernate.Id.Enhanced
 		}
 
 
-		public override Task<object> DoWorkInCurrentTransaction(ISessionImplementor session, System.Data.IDbConnection conn, System.Data.IDbTransaction transaction)
+		public override async Task<object> DoWorkInCurrentTransaction(ISessionImplementor session, System.Data.IDbConnection conn, System.Data.IDbTransaction transaction)
 		{
 			long result;
 			int updatedRows;
@@ -454,8 +454,7 @@ namespace NHibernate.Id.Enhanced
 						string s = selectCmd.CommandText;
 						((IDataParameter)selectCmd.Parameters[0]).Value = SegmentValue;
 						PersistentIdGeneratorParmsNames.SqlStatementLogger.LogCommand(selectCmd, FormatStyle.Basic);
-						// TODO: Async
-						selectedValue = selectCmd.ExecuteScalar();
+						selectedValue = await session.Factory.ConnectionProvider.Driver.ExecuteScalarAsync(selectCmd);
 					}
 
 					if (selectedValue == null)
@@ -472,8 +471,7 @@ namespace NHibernate.Id.Enhanced
 							((IDataParameter)insertCmd.Parameters[1]).Value = result;
 
 							PersistentIdGeneratorParmsNames.SqlStatementLogger.LogCommand(insertCmd, FormatStyle.Basic);
-							// TODO: Async
-							insertCmd.ExecuteNonQuery();
+							await session.Factory.ConnectionProvider.Driver.ExecuteNonQueryAsync(insertCmd);
 						}
 					}
 					else
@@ -501,8 +499,7 @@ namespace NHibernate.Id.Enhanced
 						((IDataParameter)updateCmd.Parameters[1]).Value = result;
 						((IDataParameter)updateCmd.Parameters[2]).Value = SegmentValue;
 						PersistentIdGeneratorParmsNames.SqlStatementLogger.LogCommand(updateCmd, FormatStyle.Basic);
-						// TODO: Async
-						updatedRows = updateCmd.ExecuteNonQuery();
+						updatedRows = await session.Factory.ConnectionProvider.Driver.ExecuteNonQueryAsync(updateCmd);
 					}
 				}
 				catch (Exception ex)
@@ -515,7 +512,7 @@ namespace NHibernate.Id.Enhanced
 
 			TableAccessCount++;
 
-			return Task.FromResult<object>(result);
+			return result;
 		}
 
 

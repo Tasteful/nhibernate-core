@@ -225,7 +225,7 @@ namespace NHibernate.Hql.Ast.ANTLR.Exec
 				this.session = session;
 			}
 
-			public Task DoWork(IDbConnection connection, IDbTransaction transaction)
+			public async Task DoWork(IDbConnection connection, IDbTransaction transaction)
 			{
 				IDbCommand stmnt = null;
 				try
@@ -233,7 +233,7 @@ namespace NHibernate.Hql.Ast.ANTLR.Exec
 					stmnt = session.ConnectionManager.CreateCommand();
 					stmnt.CommandText = persister.TemporaryIdTableDDL;
 					// TODO: Async
-					stmnt.ExecuteNonQuery();
+					await session.Factory.ConnectionProvider.Driver.ExecuteNonQueryAsync(stmnt);
 					session.Factory.Settings.SqlStatementLogger.LogCommand(stmnt, FormatStyle.Ddl);
 				}
 				catch (Exception t)
@@ -254,7 +254,6 @@ namespace NHibernate.Hql.Ast.ANTLR.Exec
 						}
 					}
 				}
-				return Task.FromResult(0);
 			}
 		}
 
@@ -271,15 +270,14 @@ namespace NHibernate.Hql.Ast.ANTLR.Exec
 			private readonly IInternalLogger log;
 			private readonly ISessionImplementor session;
 
-			public Task DoWork(IDbConnection connection, IDbTransaction transaction)
+			public async Task DoWork(IDbConnection connection, IDbTransaction transaction)
 			{
 				IDbCommand stmnt = null;
 				try
 				{
 					stmnt = session.ConnectionManager.CreateCommand();
 					stmnt.CommandText = "drop table " + persister.TemporaryIdTableName;
-					// TODO: Async
-					stmnt.ExecuteNonQuery();
+					await session.Factory.ConnectionProvider.Driver.ExecuteNonQueryAsync(stmnt);
 					session.Factory.Settings.SqlStatementLogger.LogCommand(stmnt, FormatStyle.Ddl);
 				}
 				catch (Exception t)
@@ -300,7 +298,6 @@ namespace NHibernate.Hql.Ast.ANTLR.Exec
 						}
 					}
 				}
-				return Task.FromResult(0);
 			}
 		}
 	}

@@ -96,7 +96,7 @@ namespace NHibernate.Id.Enhanced
 
 		#region Overrides of TransactionHelper
 
-		public override Task<object> DoWorkInCurrentTransaction(ISessionImplementor session, IDbConnection conn, IDbTransaction transaction)
+		public override async Task<object> DoWorkInCurrentTransaction(ISessionImplementor session, IDbConnection conn, IDbTransaction transaction)
 		{
 			long result;
 			int updatedRows;
@@ -114,8 +114,7 @@ namespace NHibernate.Id.Enhanced
 						selectCmd.Transaction = transaction;
 						PersistentIdGeneratorParmsNames.SqlStatementLogger.LogCommand(selectCmd, FormatStyle.Basic);
 
-						// TODO: Async
-						selectedValue = selectCmd.ExecuteScalar();
+						selectedValue = await session.Factory.ConnectionProvider.Driver.ExecuteScalarAsync(selectCmd);
 					}
 
 					if (selectedValue ==null)
@@ -144,8 +143,7 @@ namespace NHibernate.Id.Enhanced
 						int increment = _applyIncrementSizeToSourceValues ? _incrementSize : 1;
 						((IDataParameter)updateCmd.Parameters[0]).Value = result + increment;
 						((IDataParameter)updateCmd.Parameters[1]).Value = result;
-						// TODO: Async
-						updatedRows = updateCmd.ExecuteNonQuery();
+						updatedRows = await session.Factory.ConnectionProvider.Driver.ExecuteNonQueryAsync(updateCmd);
 					}
 				}
 				catch (Exception sqle)
@@ -158,7 +156,7 @@ namespace NHibernate.Id.Enhanced
 
 			_accessCounter++;
 
-			return Task.FromResult<object>(result);
+			return result;
 		}
 
 		#endregion

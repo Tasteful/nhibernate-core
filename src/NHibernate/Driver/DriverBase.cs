@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Data;
 using System.Linq;
+using System.Threading.Tasks;
 using NHibernate.Engine;
 using NHibernate.SqlCommand;
 using NHibernate.SqlTypes;
@@ -309,6 +310,21 @@ namespace NHibernate.Driver
 			IDbDataParameter param = GenerateParameter(command, "ReturnValue", SqlTypeFactory.Int32);
 			param.Direction = ParameterDirection.Output;
 			return param;
+		}
+
+		public virtual Task<IDataReader> ExecuteReaderAsync(IDbCommand command)
+		{
+			return Task.FromResult(command.ExecuteReader());
+		}
+
+		public virtual Task<int> ExecuteNonQueryAsync(IDbCommand command)
+		{
+			return Task.FromResult(command.ExecuteNonQuery());
+		}
+
+		public virtual Task<object> ExecuteScalarAsync(IDbCommand command)
+		{
+			return Task.FromResult(command.ExecuteScalar());
 		}
 	}
 }

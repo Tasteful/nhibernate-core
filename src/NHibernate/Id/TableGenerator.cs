@@ -209,7 +209,7 @@ namespace NHibernate.Id
 
 		#endregion
 
-		public override Task<object> DoWorkInCurrentTransaction(ISessionImplementor session, IDbConnection conn,
+		public override async Task<object> DoWorkInCurrentTransaction(ISessionImplementor session, IDbConnection conn,
 														  IDbTransaction transaction)
 		{
 			long result;
@@ -228,8 +228,7 @@ namespace NHibernate.Id
 				PersistentIdGeneratorParmsNames.SqlStatementLogger.LogCommand("Reading high value:", qps, FormatStyle.Basic);
 				try
 				{
-					// TODO: Async
-					rs = qps.ExecuteReader();
+					rs = await session.Factory.ConnectionProvider.Driver.ExecuteReaderAsync(qps);
 					if (!rs.Read())
 					{
 						string err;
@@ -272,8 +271,7 @@ namespace NHibernate.Id
 
 					PersistentIdGeneratorParmsNames.SqlStatementLogger.LogCommand("Updating high value:", ups, FormatStyle.Basic);
 
-					// TODO: Async
-					rows = ups.ExecuteNonQuery();
+					rows = await session.Factory.ConnectionProvider.Driver.ExecuteNonQueryAsync(ups);
 				}
 				catch (Exception e)
 				{
@@ -287,7 +285,7 @@ namespace NHibernate.Id
 			}
 			while (rows == 0);
 
-			return Task.FromResult<object>(result);
+			return result;
 		}
 	}
 }

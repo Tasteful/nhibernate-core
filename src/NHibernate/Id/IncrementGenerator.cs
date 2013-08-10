@@ -81,17 +81,18 @@ namespace NHibernate.Id
 		/// <param name="session"></param>
 		/// <param name="obj"></param>
 		/// <returns></returns>
-		[MethodImpl(MethodImplOptions.Synchronized)]
-		public Task<object> Generate(ISessionImplementor session, object obj)
+		// TODO: Async
+		//[MethodImpl(MethodImplOptions.Synchronized)]
+		public async Task<object> Generate(ISessionImplementor session, object obj)
 		{
 			if (sql != null)
 			{
-				GetNext(session);
+				await GetNext(session);
 			}
-			return Task.FromResult(IdentifierGeneratorFactory.CreateNumber(next++, returnClass));
+			return IdentifierGeneratorFactory.CreateNumber(next++, returnClass);
 		}
 
-		private void GetNext(ISessionImplementor session)
+		private async Task GetNext(ISessionImplementor session)
 		{
 			log.Debug("fetching initial value: " + sql);
 
@@ -103,7 +104,7 @@ namespace NHibernate.Id
 				qps.CommandType = CommandType.Text;
 				try
 				{
-					IDataReader rs = qps.ExecuteReader();
+					IDataReader rs = await session.Factory.ConnectionProvider.Driver.ExecuteReaderAsync(qps);
 					try
 					{
 						if (rs.Read())
