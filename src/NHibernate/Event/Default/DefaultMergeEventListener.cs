@@ -234,7 +234,7 @@ namespace NHibernate.Event.Default
 			try
 			{
 				// try saving; check for non-nullable properties that are null or transient entities before saving
-				this.SaveTransientEntity(copy, entityName, requestedId, source, copyCache);
+				await this.SaveTransientEntity(copy, entityName, requestedId, source, copyCache);
 			}
 			catch (PropertyValueException ex)
 			{
@@ -276,18 +276,18 @@ namespace NHibernate.Event.Default
 			return copy;
 		}
 	
-		private void SaveTransientEntity(object entity, string entityName, object requestedId, IEventSource source, IDictionary copyCache)
+		private Task SaveTransientEntity(object entity, string entityName, object requestedId, IEventSource source, IDictionary copyCache)
 		{
 			// this bit is only *really* absolutely necessary for handling
 			// requestedId, but is also good if we merge multiple object
 			// graphs, since it helps ensure uniqueness
 			if (requestedId == null)
 			{
-				SaveWithGeneratedId(entity, entityName, copyCache, source, false);
+				return SaveWithGeneratedId(entity, entityName, copyCache, source, false);
 			}
 			else
 			{
-				SaveWithRequestedId(entity, requestedId, entityName, copyCache, source);
+				return SaveWithRequestedId(entity, requestedId, entityName, copyCache, source);
 			}
 		}
 

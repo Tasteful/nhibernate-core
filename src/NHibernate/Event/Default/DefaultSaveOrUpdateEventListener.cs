@@ -127,7 +127,7 @@ namespace NHibernate.Event.Default
 		/// </summary>
 		/// <param name="event">The save event to be handled. </param>
 		/// <returns> The entity's identifier after saving. </returns>
-		protected virtual object EntityIsTransient(SaveOrUpdateEvent @event)
+		protected virtual async Task<object> EntityIsTransient(SaveOrUpdateEvent @event)
 		{
 			log.Debug("saving transient instance");
 
@@ -145,7 +145,7 @@ namespace NHibernate.Event.Default
 				}
 			}
 
-			object id = SaveWithGeneratedOrRequestedId(@event);
+			object id = await SaveWithGeneratedOrRequestedId(@event);
 
 			source.PersistenceContext.ReassociateProxy(@event.Entity, id);
 
@@ -157,7 +157,7 @@ namespace NHibernate.Event.Default
 		/// </summary>
 		/// <param name="event">The initiating event. </param>
 		/// <returns> The entity's identifier value after saving.</returns>
-		protected virtual object SaveWithGeneratedOrRequestedId(SaveOrUpdateEvent @event)
+		protected virtual Task<object> SaveWithGeneratedOrRequestedId(SaveOrUpdateEvent @event)
 		{
 			if (@event.RequestedId == null)
 			{

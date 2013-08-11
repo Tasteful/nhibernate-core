@@ -19,7 +19,7 @@ namespace NHibernate.Event.Default
 			}
 			else
 			{
-				return Task.FromResult(EntityIsTransient(@event));
+				return EntityIsTransient(@event);
 			}
 		}
 

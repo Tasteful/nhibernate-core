@@ -32,7 +32,7 @@ namespace NHibernate.Event.Default
 			}
 		}
 
-		protected override object SaveWithGeneratedOrRequestedId(SaveOrUpdateEvent @event)
+		protected override Task<object> SaveWithGeneratedOrRequestedId(SaveOrUpdateEvent @event)
 		{
 			return SaveWithGeneratedId(@event.Entity, @event.EntityName, null, @event.Session, true);
 		}

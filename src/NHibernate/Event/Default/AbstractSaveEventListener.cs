@@ -80,7 +80,7 @@ namespace NHibernate.Event.Default
 		/// <param name="anything">Generally cascade-specific information. </param>
 		/// <param name="source">The session which is the source of this save event. </param>
 		/// <returns> The id used to save the entity. </returns>
-		protected virtual object SaveWithRequestedId(object entity, object requestedId, string entityName, object anything, IEventSource source)
+		protected virtual Task<object> SaveWithRequestedId(object entity, object requestedId, string entityName, object anything, IEventSource source)
 		{
 			return PerformSave(entity, requestedId, source.GetEntityPersister(entityName, entity), false, anything, source, true);
 		}
@@ -102,7 +102,7 @@ namespace NHibernate.Event.Default
 		/// The id used to save the entity; may be null depending on the
 		/// type of id generator used and the requiresImmediateIdAccess value
 		/// </returns>
-		protected virtual object SaveWithGeneratedId(object entity, string entityName, object anything, IEventSource source, bool requiresImmediateIdAccess)
+		protected virtual async Task<object> SaveWithGeneratedId(object entity, string entityName, object anything, IEventSource source, bool requiresImmediateIdAccess)
 		{
 			IEntityPersister persister = source.GetEntityPersister(entityName, entity);
 			object generatedId = persister.IdentifierGenerator.Generate(source, entity);
@@ -116,7 +116,7 @@ namespace NHibernate.Event.Default
 			}
 			else if (generatedId == IdentifierGeneratorFactory.PostInsertIndicator)
 			{
-				return PerformSave(entity, null, persister, true, anything, source, requiresImmediateIdAccess);
+				return await PerformSave(entity, null, persister, true, anything, source, requiresImmediateIdAccess);
 			}
 			else
 			{
@@ -126,7 +126,7 @@ namespace NHibernate.Event.Default
 						persister.IdentifierType.ToLoggableString(generatedId, source.Factory),
 						persister.IdentifierGenerator.GetType().FullName));
 				}
-				return PerformSave(entity, generatedId, persister, false, anything, source, true);
+				return await PerformSave(entity, generatedId, persister, false, anything, source, true);
 			}
 		}
 
@@ -150,7 +150,7 @@ namespace NHibernate.Event.Default
 		/// The id used to save the entity; may be null depending on the
 		/// type of id generator used and the requiresImmediateIdAccess value
 		/// </returns>
-		protected virtual object PerformSave(object entity, object id, IEntityPersister persister, bool useIdentityColumn, object anything, IEventSource source, bool requiresImmediateIdAccess)
+		protected virtual async Task<object> PerformSave(object entity, object id, IEntityPersister persister, bool useIdentityColumn, object anything, IEventSource source, bool requiresImmediateIdAccess)
 		{
 			if (log.IsDebugEnabled)
 			{
@@ -184,7 +184,7 @@ namespace NHibernate.Event.Default
 			{
 				return id; //EARLY EXIT
 			}
-			return PerformSaveOrReplicate(entity, key, persister, useIdentityColumn, anything, source, requiresImmediateIdAccess);
+			return await PerformSaveOrReplicate(entity, key, persister, useIdentityColumn, anything, source, requiresImmediateIdAccess);
 		}
 
 		/// <summary> 
