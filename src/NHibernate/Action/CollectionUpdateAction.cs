@@ -1,5 +1,6 @@
 using System;
 using System.Diagnostics;
+using System.Threading.Tasks;
 using NHibernate.Cache;
 using NHibernate.Cache.Entry;
 using NHibernate.Collection;
@@ -22,7 +23,7 @@ namespace NHibernate.Action
 			this.emptySnapshot = emptySnapshot;
 		}
 
-		public override void Execute()
+		public override async Task Execute()
 		{
 			object id = Key;
 			ISessionImplementor session = Session;
@@ -51,7 +52,7 @@ namespace NHibernate.Action
 			{
 				if (!emptySnapshot)
 				{
-					persister.Remove(id, session);
+					await persister.Remove(id, session);
 				}
 			}
 			else if (collection.NeedsRecreate(persister))
@@ -63,18 +64,18 @@ namespace NHibernate.Action
 				}
 				if (!emptySnapshot)
 				{
-					persister.Remove(id, session);
+					await persister.Remove(id, session);
 				}
-				persister.Recreate(collection, id, session);
+				await persister.Recreate(collection, id, session);
 			}
 			else
 			{
-				persister.DeleteRows(collection, id, session);
-				persister.UpdateRows(collection, id, session);
-				persister.InsertRows(collection, id, session);
+				await persister.DeleteRows(collection, id, session);
+				await persister.UpdateRows(collection, id, session);
+				await persister.InsertRows(collection, id, session);
 			}
 
-			Session.PersistenceContext.GetCollectionEntry(collection).AfterAction(collection);
+			await Session.PersistenceContext.GetCollectionEntry(collection).AfterAction(collection);
 
 			Evict();
 

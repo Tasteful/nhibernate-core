@@ -1,5 +1,6 @@
 using System;
 using System.Diagnostics;
+using System.Threading.Tasks;
 using NHibernate.Collection;
 using NHibernate.Engine;
 using NHibernate.Event;
@@ -55,7 +56,7 @@ namespace NHibernate.Action
 			this.affectedOwner = affectedOwner;
 		}
 
-		public override void Execute()
+		public override async Task Execute()
 		{
 			bool statsEnabled = Session.Factory.Statistics.IsStatisticsEnabled;
 			Stopwatch stopwatch = null;
@@ -68,13 +69,13 @@ namespace NHibernate.Action
 
 			if (!emptySnapshot)
 			{
-				Persister.Remove(Key, Session);
+				await Persister.Remove(Key, Session);
 			}
 
 			IPersistentCollection collection = Collection;
 			if (collection != null)
 			{
-				Session.PersistenceContext.GetCollectionEntry(collection).AfterAction(collection);
+				await Session.PersistenceContext.GetCollectionEntry(collection).AfterAction(collection);
 			}
 
 			Evict();

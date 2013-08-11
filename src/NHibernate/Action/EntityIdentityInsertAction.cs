@@ -1,5 +1,6 @@
 using System;
 using System.Diagnostics;
+using System.Threading.Tasks;
 using NHibernate.Engine;
 using NHibernate.Event;
 using NHibernate.Persister.Entity;
@@ -53,7 +54,7 @@ namespace NHibernate.Action
 			}
 		}
 
-		public override void Execute()
+		public override async Task Execute()
 		{
 			IEntityPersister persister = Persister;
 			object instance = Instance;
@@ -72,10 +73,10 @@ namespace NHibernate.Action
 
 			if (!veto)
 			{
-				generatedId = persister.Insert(state, instance, Session);
+				generatedId = await persister.Insert(state, instance, Session);
 				if (persister.HasInsertGeneratedProperties)
 				{
-					persister.ProcessInsertGeneratedProperties(generatedId, instance, state, Session);
+					await persister.ProcessInsertGeneratedProperties(generatedId, instance, state, Session);
 				}
 				//need to do that here rather than in the save event listener to let
 				//the post insert events to have a id-filled entity when IDENTITY is used (EJB3)

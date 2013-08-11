@@ -1,5 +1,6 @@
 using System;
 using System.Diagnostics;
+using System.Threading.Tasks;
 using NHibernate.Cache;
 using NHibernate.Cache.Access;
 using NHibernate.Engine;
@@ -29,7 +30,7 @@ namespace NHibernate.Action
 			get { return Session.Listeners.PostCommitDeleteEventListeners.Length > 0; }
 		}
 
-		public override void Execute()
+		public override async Task Execute()
 		{
 			object id = Id;
 			IEntityPersister persister = Persister;
@@ -67,7 +68,7 @@ namespace NHibernate.Action
 
 			if (!isCascadeDeleteEnabled && !veto)
 			{
-				persister.Delete(id, tmpVersion, instance, session);
+				await persister.Delete(id, tmpVersion, instance, session);
 			}
 
 			//postDelete:

@@ -1,5 +1,6 @@
 using System;
 using System.Diagnostics;
+using System.Threading.Tasks;
 using NHibernate.Cache;
 using NHibernate.Cache.Access;
 using NHibernate.Cache.Entry;
@@ -41,7 +42,7 @@ namespace NHibernate.Action
 			get { return Session.Listeners.PostCommitUpdateEventListeners.Length > 0; }
 		}
 
-		public override void Execute()
+		public override async Task Execute()
 		{
 			ISessionImplementor session = Session;
 			object id = Id;
@@ -76,7 +77,7 @@ namespace NHibernate.Action
 
 			if (!veto)
 			{
-				persister.Update(id, state, dirtyFields, hasDirtyCollection, previousState, previousVersion, instance, null, session);
+				await persister.Update(id, state, dirtyFields, hasDirtyCollection, previousState, previousVersion, instance, null, session);
 			}
 
 			EntityEntry entry = Session.PersistenceContext.GetEntry(instance);
@@ -95,7 +96,7 @@ namespace NHibernate.Action
 				{
 					// this entity defines property generation, so process those generated
 					// values...
-					persister.ProcessUpdateGeneratedProperties(id, instance, state, Session);
+					await persister.ProcessUpdateGeneratedProperties(id, instance, state, Session);
 					if (persister.IsVersionPropertyGenerated)
 					{
 						nextVersion = Versioning.GetVersion(state, persister);
