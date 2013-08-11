@@ -928,7 +928,12 @@ namespace NHibernate.Impl
 
 		#region Execution methods
 
-		public abstract Task<int> ExecuteUpdate();
+		public int ExecuteUpdate()
+		{
+			return AsyncHelper.RunSync(ExecuteUpdateAsync);
+		}
+
+		public abstract Task<int> ExecuteUpdateAsync();
 		public abstract IEnumerable Enumerable();
 		public abstract IEnumerable<T> Enumerable<T>();
 		public abstract IList List();

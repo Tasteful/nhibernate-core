@@ -161,7 +161,7 @@ namespace NHibernate
 		/// Execute the update or delete statement.
 		/// </summary>
 		/// <returns> The number of entities updated or deleted. </returns>
-		Task<int> ExecuteUpdate();
+		int ExecuteUpdate();
 
 		/// <summary>
 		/// Set the maximum number of rows to retrieve.

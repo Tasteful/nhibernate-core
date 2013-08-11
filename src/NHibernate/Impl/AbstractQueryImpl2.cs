@@ -27,7 +27,7 @@ namespace NHibernate.Impl
 			return this;
 		}
 
-		public override async Task<int> ExecuteUpdate()
+		public override async Task<int> ExecuteUpdateAsync()
 		{
 			VerifyParameters();
 			var namedParams = NamedParams;

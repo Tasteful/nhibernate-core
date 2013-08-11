@@ -6,7 +6,6 @@ using NHibernate.AdoNet;
 using NHibernate.Dialect;
 using NHibernate.Engine;
 using NHibernate.SqlTypes;
-using Nito.AsyncEx;
 
 namespace NHibernate.Driver
 {

@@ -12,7 +12,6 @@ using NHibernate.Persister.Entity;
 using NHibernate.SqlCommand;
 using NHibernate.SqlTypes;
 using NHibernate.Util;
-using Nito.AsyncEx;
 using IQueryable = NHibernate.Persister.Entity.IQueryable;
 
 namespace NHibernate.Hql.Ast.ANTLR.Exec
@@ -178,7 +177,7 @@ namespace NHibernate.Hql.Ast.ANTLR.Exec
 			}
 			finally
 			{
-				AsyncContext.Run(() => DropTemporaryTableIfNecessary(persister, session));
+				AsyncHelper.RunSync(() => DropTemporaryTableIfNecessary(persister, session));
 			}
 		}
 

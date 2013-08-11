@@ -2,7 +2,6 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
-using Nito.AsyncEx;
 
 namespace NHibernate.Impl
 {
@@ -72,7 +71,7 @@ namespace NHibernate.Impl
 			{
 				AddTo(multiApproach, queries[i], resultTypes[i]);
 			}
-			results = AsyncContext.Run(() => GetResultsFrom(multiApproach));
+			results = AsyncHelper.RunSync(() => GetResultsFrom(multiApproach));
 			ClearCurrentFutureBatch();
 		}
 

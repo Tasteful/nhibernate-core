@@ -299,7 +299,7 @@ namespace NHibernate.Impl
 			throw new NotSupportedException("cannot set the lock mode for a native SQL query");
 		}
 
-		public override async Task<int> ExecuteUpdate()
+		public override async Task<int> ExecuteUpdateAsync()
 		{
 			IDictionary<string,TypedValue> namedParams = NamedParams;
 			Before();

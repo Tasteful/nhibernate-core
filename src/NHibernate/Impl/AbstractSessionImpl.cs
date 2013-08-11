@@ -18,7 +18,6 @@ using NHibernate.Loader.Custom.Sql;
 using NHibernate.Persister.Entity;
 using NHibernate.Transaction;
 using NHibernate.Type;
-using Nito.AsyncEx;
 
 namespace NHibernate.Impl
 {
@@ -75,13 +74,13 @@ namespace NHibernate.Impl
 
 		public object InternalLoad(string entityName, object id, bool eager, bool isNullable)
 		{
-			return AsyncContext.Run(() => InternalLoadAsync(entityName, id, eager, isNullable));
+			return AsyncHelper.RunSync(() => InternalLoadAsync(entityName, id, eager, isNullable));
 		}
 		public abstract Task<object> InternalLoadAsync(string entityName, object id, bool eager, bool isNullable);
 
 		public object ImmediateLoad(string entityName, object id)
 		{
-			return AsyncContext.Run(() => ImmediateLoadAsync(entityName, id));
+			return AsyncHelper.RunSync(() => ImmediateLoadAsync(entityName, id));
 		}
 		public abstract Task<object> ImmediateLoadAsync(string entityName, object id);
 		public abstract long Timestamp { get; }
@@ -174,25 +173,25 @@ namespace NHibernate.Impl
 
 		public IList ListFilter(object collection, string filter, QueryParameters parameters)
 		{
-			return AsyncContext.Run(() => ListFilterAsync(collection, filter, parameters));
+			return AsyncHelper.RunSync(() => ListFilterAsync(collection, filter, parameters));
 		}
 		public abstract Task<IList> ListFilterAsync(object collection, string filter, QueryParameters parameters);
 
 		public IList<T> ListFilter<T>(object collection, string filter, QueryParameters parameters)
 		{
-			return AsyncContext.Run(() => ListFilterAsync<T>(collection, filter, parameters));
+			return AsyncHelper.RunSync(() => ListFilterAsync<T>(collection, filter, parameters));
 		}
 		public abstract Task<IList<T>> ListFilterAsync<T>(object collection, string filter, QueryParameters parameters);
 
 		public IEnumerable EnumerableFilter(object collection, string filter, QueryParameters parameters)
 		{
-			return AsyncContext.Run(() => EnumerableFilterAsync(collection, filter, parameters));
+			return AsyncHelper.RunSync(() => EnumerableFilterAsync(collection, filter, parameters));
 		}
 		public abstract Task<IEnumerable> EnumerableFilterAsync(object collection, string filter, QueryParameters parameters);
 
 		public IEnumerable<T> EnumerableFilter<T>(object collection, string filter, QueryParameters parameters)
 		{
-			return AsyncContext.Run(() => EnumerableFilterAsync<T>(collection, filter, parameters));
+			return AsyncHelper.RunSync(() => EnumerableFilterAsync<T>(collection, filter, parameters));
 		}
 		public abstract Task<IEnumerable<T>> EnumerableFilterAsync<T>(object collection, string filter, QueryParameters parameters);
 		public abstract IEntityPersister GetEntityPersister(string entityName, object obj);
@@ -492,7 +491,7 @@ namespace NHibernate.Impl
 
 		public IEnumerable Enumerable(IQueryExpression queryExpression, QueryParameters queryParameters)
 		{
-			return AsyncContext.Run(() => EnumerableAsync(queryExpression, queryParameters));
+			return AsyncHelper.RunSync(() => EnumerableAsync(queryExpression, queryParameters));
 		}
 		public abstract Task<IEnumerable> EnumerableAsync(IQueryExpression queryExpression, QueryParameters queryParameters);
 
@@ -510,7 +509,7 @@ namespace NHibernate.Impl
 
 		public IEnumerable<T> Enumerable<T>(IQueryExpression queryExpression, QueryParameters queryParameters)
 		{
-			return AsyncContext.Run(() => EnumerableAsync<T>(queryExpression, queryParameters));
+			return AsyncHelper.RunSync(() => EnumerableAsync<T>(queryExpression, queryParameters));
 		}
 		public abstract Task<IEnumerable<T>> EnumerableAsync<T>(IQueryExpression queryExpression, QueryParameters queryParameters);
 

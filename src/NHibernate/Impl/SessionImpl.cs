@@ -25,7 +25,6 @@ using NHibernate.Proxy;
 using NHibernate.Stat;
 using NHibernate.Type;
 using NHibernate.Util;
-using Nito.AsyncEx;
 
 namespace NHibernate.Impl
 {
@@ -483,7 +482,7 @@ namespace NHibernate.Impl
 		/// <returns></returns>
 		public object Save(object obj)
 		{
-			return AsyncContext.Run(() => SaveAsync(obj));
+			return AsyncHelper.RunSync(() => SaveAsync(obj));
 		}
 		public async Task<object> SaveAsync(object obj)
 		{
@@ -495,7 +494,7 @@ namespace NHibernate.Impl
 
 		public object Save(string entityName, object obj)
 		{
-			return AsyncContext.Run(() => SaveAsync(entityName, obj));
+			return AsyncHelper.RunSync(() => SaveAsync(entityName, obj));
 		}
 		public async Task<object> SaveAsync(string entityName, object obj)
 		{
@@ -507,7 +506,7 @@ namespace NHibernate.Impl
 
 		public void Save(string entityName, object obj, object id)
 		{
-			AsyncContext.Run(() => SaveAsync(entityName, obj, id));
+			AsyncHelper.RunSync(() => SaveAsync(entityName, obj, id));
 		}
 		public async Task SaveAsync(string entityName, object obj, object id)
 		{
@@ -524,7 +523,7 @@ namespace NHibernate.Impl
 		/// <param name="id"></param>
 		public void Save(object obj, object id)
 		{
-			AsyncContext.Run(() => SaveAsync(obj, id));
+			AsyncHelper.RunSync(() => SaveAsync(obj, id));
 		}
 		public async Task SaveAsync(object obj, object id)
 		{
@@ -540,7 +539,7 @@ namespace NHibernate.Impl
 		/// <param name="obj"></param>
 		public void Delete(object obj)
 		{
-			AsyncContext.Run(() => DeleteAsync(obj));
+			AsyncHelper.RunSync(() => DeleteAsync(obj));
 		}
 		public async Task DeleteAsync(object obj)
 		{
@@ -553,7 +552,7 @@ namespace NHibernate.Impl
 		/// <summary> Delete a persistent object (by explicit entity name)</summary>
 		public void Delete(string entityName, object obj)
 		{
-			AsyncContext.Run(() => DeleteAsync(entityName, obj));
+			AsyncHelper.RunSync(() => DeleteAsync(entityName, obj));
 		}
 		public async Task DeleteAsync(string entityName, object obj)
 		{
@@ -565,7 +564,7 @@ namespace NHibernate.Impl
 
 		public void Update(object obj)
 		{
-			AsyncContext.Run(() => UpdateAsync(obj));
+			AsyncHelper.RunSync(() => UpdateAsync(obj));
 		}
 		public async Task UpdateAsync(object obj)
 		{
@@ -577,7 +576,7 @@ namespace NHibernate.Impl
 
 		public void Update(string entityName, object obj)
 		{
-			AsyncContext.Run(() => UpdateAsync(entityName, obj));
+			AsyncHelper.RunSync(() => UpdateAsync(entityName, obj));
 		}
 		public async Task UpdateAsync(string entityName, object obj)
 		{
@@ -589,7 +588,7 @@ namespace NHibernate.Impl
 
 		public void Update(string entityName, object obj, object id)
 		{
-			AsyncContext.Run(() => UpdateAsync(entityName, obj, id));
+			AsyncHelper.RunSync(() => UpdateAsync(entityName, obj, id));
 		}
 		public async Task UpdateAsync(string entityName, object obj, object id)
 		{
@@ -601,7 +600,7 @@ namespace NHibernate.Impl
 
 		public void SaveOrUpdate(object obj)
 		{
-			AsyncContext.Run(() => SaveOrUpdateAsync(obj));
+			AsyncHelper.RunSync(() => SaveOrUpdateAsync(obj));
 		}
 		public async Task SaveOrUpdateAsync(object obj)
 		{
@@ -613,7 +612,7 @@ namespace NHibernate.Impl
 
 		public void SaveOrUpdate(string entityName, object obj)
 		{
-			AsyncContext.Run(() => SaveOrUpdateAsync(entityName, obj));
+			AsyncHelper.RunSync(() => SaveOrUpdateAsync(entityName, obj));
 		}
 		public async Task SaveOrUpdateAsync(string entityName, object obj)
 		{
@@ -625,7 +624,7 @@ namespace NHibernate.Impl
 
 		public void SaveOrUpdate(string entityName, object obj, object id)
 		{
-			AsyncContext.Run(() => SaveOrUpdateAsync(entityName, obj, id));
+			AsyncHelper.RunSync(() => SaveOrUpdateAsync(entityName, obj, id));
 		}
 		public async Task SaveOrUpdateAsync(string entityName, object obj, object id)
 		{
@@ -637,7 +636,7 @@ namespace NHibernate.Impl
 
 		public void Update(object obj, object id)
 		{
-			AsyncContext.Run(() => UpdateAsync(obj, id));
+			AsyncHelper.RunSync(() => UpdateAsync(obj, id));
 		}
 		public async Task UpdateAsync(object obj, object id)
 		{
@@ -798,7 +797,7 @@ namespace NHibernate.Impl
 
 		public void Lock(object obj, LockMode lockMode)
 		{
-			AsyncContext.Run(() => LockAsync(obj, lockMode));
+			AsyncHelper.RunSync(() => LockAsync(obj, lockMode));
 		}
 		public async Task LockAsync(object obj, LockMode lockMode)
 		{
@@ -810,7 +809,7 @@ namespace NHibernate.Impl
 
 		public void Lock(string entityName, object obj, LockMode lockMode)
 		{
-			AsyncContext.Run(() => LockAsync(entityName, obj, lockMode));
+			AsyncHelper.RunSync(() => LockAsync(entityName, obj, lockMode));
 		}
 		public async Task LockAsync(string entityName, object obj, LockMode lockMode)
 		{
@@ -965,7 +964,7 @@ namespace NHibernate.Impl
 		/// <summary> Cascade merge an entity instance</summary>
 		public void Merge(string entityName, object obj, IDictionary copiedAlready)
 		{
-			AsyncContext.Run(() => MergeAsync(entityName, obj, copiedAlready));
+			AsyncHelper.RunSync(() => MergeAsync(entityName, obj, copiedAlready));
 		}
 		public async Task MergeAsync(string entityName, object obj, IDictionary copiedAlready)
 		{
@@ -978,7 +977,7 @@ namespace NHibernate.Impl
 		/// <summary> Cascade persist an entity instance</summary>
 		public void Persist(string entityName, object obj, IDictionary createdAlready)
 		{
-			AsyncContext.Run(() => Persist(entityName, obj, createdAlready));
+			AsyncHelper.RunSync(() => PersistAsync(entityName, obj, createdAlready));
 		}
 		public async Task PersistAsync(string entityName, object obj, IDictionary createdAlready)
 		{
@@ -991,7 +990,7 @@ namespace NHibernate.Impl
 		/// <summary> Cascade persist an entity instance during the flush process</summary>
 		public void PersistOnFlush(string entityName, object obj, IDictionary copiedAlready)
 		{
-			AsyncContext.Run(() => PersistOnFlushAsync(entityName, obj, copiedAlready));
+			AsyncHelper.RunSync(() => PersistOnFlushAsync(entityName, obj, copiedAlready));
 		}
 		public async Task PersistOnFlushAsync(string entityName, object obj, IDictionary copiedAlready)
 		{
@@ -1004,7 +1003,7 @@ namespace NHibernate.Impl
 		/// <summary> Cascade refresh an entity instance</summary>
 		public void Refresh(object obj, IDictionary refreshedAlready)
 		{
-			AsyncContext.Run(() => RefreshAsync(obj, refreshedAlready));
+			AsyncHelper.RunSync(() => RefreshAsync(obj, refreshedAlready));
 		}
 		public async Task RefreshAsync(object obj, IDictionary refreshedAlready)
 		{
@@ -1017,7 +1016,7 @@ namespace NHibernate.Impl
 		/// <summary> Cascade delete an entity instance</summary>
 		public void Delete(string entityName, object child, bool isCascadeDeleteEnabled, ISet<object> transientEntities)
 		{
-			AsyncContext.Run(() => DeleteAsync(entityName, child, isCascadeDeleteEnabled, transientEntities));
+			AsyncHelper.RunSync(() => DeleteAsync(entityName, child, isCascadeDeleteEnabled, transientEntities));
 		}
 		public async Task DeleteAsync(string entityName, object child, bool isCascadeDeleteEnabled, ISet<object> transientEntities)
 		{
@@ -1031,7 +1030,7 @@ namespace NHibernate.Impl
 
 		public object Merge(string entityName, object obj)
 		{
-			return AsyncContext.Run(() => MergeAsync(entityName, obj));
+			return AsyncHelper.RunSync(() => MergeAsync(entityName, obj));
 		}
 		public async Task<object> MergeAsync(string entityName, object obj)
 		{
@@ -1043,7 +1042,7 @@ namespace NHibernate.Impl
 
 		public T Merge<T>(T entity) where T : class
 		{
-			return AsyncContext.Run(() => MergeAsync(entity));
+			return AsyncHelper.RunSync(() => MergeAsync(entity));
 		}
 		public async Task<T> MergeAsync<T>(T entity) where T : class
 		{
@@ -1052,7 +1051,7 @@ namespace NHibernate.Impl
 
 		public T Merge<T>(string entityName, T entity) where T : class
 		{
-			return AsyncContext.Run(() => MergeAsync(entityName, entity));
+			return AsyncHelper.RunSync(() => MergeAsync(entityName, entity));
 		}
 		public async Task<T> MergeAsync<T>(string entityName, T entity) where T : class
 		{
@@ -1061,7 +1060,7 @@ namespace NHibernate.Impl
 
 		public object Merge(object obj)
 		{
-			return AsyncContext.Run(() => MergeAsync(obj));
+			return AsyncHelper.RunSync(() => MergeAsync(obj));
 		}
 		public async Task<object> MergeAsync(object obj)
 		{
@@ -1073,7 +1072,7 @@ namespace NHibernate.Impl
 
 		public void Persist(string entityName, object obj)
 		{
-			AsyncContext.Run(() => PersistAsync(entityName, obj));
+			AsyncHelper.RunSync(() => PersistAsync(entityName, obj));
 		}
 		public async Task PersistAsync(string entityName, object obj)
 		{
@@ -1085,7 +1084,7 @@ namespace NHibernate.Impl
 
 		public void Persist(object obj)
 		{
-			AsyncContext.Run(() => PersistAsync(obj));
+			AsyncHelper.RunSync(() => PersistAsync(obj));
 		}
 		public async Task PersistAsync(object obj)
 		{
@@ -1097,7 +1096,7 @@ namespace NHibernate.Impl
 
 		public void PersistOnFlush(string entityName, object obj)
 		{
-			AsyncContext.Run(() => PersistOnFlushAsync(entityName, obj));
+			AsyncHelper.RunSync(() => PersistOnFlushAsync(entityName, obj));
 		}
 		public async Task PersistOnFlushAsync(string entityName, object obj)
 		{
@@ -1109,7 +1108,7 @@ namespace NHibernate.Impl
 
 		public void PersistOnFlush(object obj)
 		{
-			AsyncContext.Run(() => PersistOnFlushAsync(obj));
+			AsyncHelper.RunSync(() => PersistOnFlushAsync(obj));
 		}
 		public async Task PersistOnFlushAsync(object obj)
 		{
@@ -1252,7 +1251,7 @@ namespace NHibernate.Impl
 
 		public void Load(object obj, object id)
 		{
-			AsyncContext.Run(() => LoadAsync(obj, id));
+			AsyncHelper.RunSync(() => LoadAsync(obj, id));
 		}
 		public async Task LoadAsync(object obj, object id)
 		{
@@ -1265,7 +1264,7 @@ namespace NHibernate.Impl
 
 		public T Load<T>(object id)
 		{
-			return AsyncContext.Run(() => LoadAsync<T>(id));
+			return AsyncHelper.RunSync(() => LoadAsync<T>(id));
 		}
 		public async Task<T> LoadAsync<T>(object id)
 		{
@@ -1277,7 +1276,7 @@ namespace NHibernate.Impl
 
 		public T Load<T>(object id, LockMode lockMode)
 		{
-			return AsyncContext.Run(() => LoadAsync<T>(id, lockMode));
+			return AsyncHelper.RunSync(() => LoadAsync<T>(id, lockMode));
 		}
 		public async Task<T> LoadAsync<T>(object id, LockMode lockMode)
 		{
@@ -1303,7 +1302,7 @@ namespace NHibernate.Impl
 		/// </exception>
 		public object Load(System.Type entityClass, object id, LockMode lockMode)
 		{
-			return AsyncContext.Run(() => LoadAsync(entityClass, id, lockMode));
+			return AsyncHelper.RunSync(() => LoadAsync(entityClass, id, lockMode));
 		}
 		public async Task<object> LoadAsync(System.Type entityClass, object id, LockMode lockMode)
 		{
@@ -1315,7 +1314,7 @@ namespace NHibernate.Impl
 
 		public object Load(string entityName, object id)
 		{
-			return AsyncContext.Run(() => LoadAsync(entityName, id));
+			return AsyncHelper.RunSync(() => LoadAsync(entityName, id));
 		}
 		public async Task<object> LoadAsync(string entityName, object id)
 		{
@@ -1347,7 +1346,7 @@ namespace NHibernate.Impl
 
 		public object Load(string entityName, object id, LockMode lockMode)
 		{
-			return AsyncContext.Run(() => LoadAsync(entityName, id, lockMode));
+			return AsyncHelper.RunSync(() => LoadAsync(entityName, id, lockMode));
 		}
 		public async Task<object> LoadAsync(string entityName, object id, LockMode lockMode)
 		{
@@ -1361,7 +1360,7 @@ namespace NHibernate.Impl
 
 		public object Load(System.Type entityClass, object id)
 		{
-			return AsyncContext.Run(() => LoadAsync(entityClass, id));
+			return AsyncHelper.RunSync(() => LoadAsync(entityClass, id));
 		}
 		public async Task<object> LoadAsync(System.Type entityClass, object id)
 		{
@@ -1373,7 +1372,7 @@ namespace NHibernate.Impl
 
 		public T Get<T>(object id)
 		{
-			return AsyncContext.Run(() => GetAsync<T>(id));
+			return AsyncHelper.RunSync(() => GetAsync<T>(id));
 		}
 		public async Task<T> GetAsync<T>(object id)
 		{
@@ -1385,7 +1384,7 @@ namespace NHibernate.Impl
 
 		public T Get<T>(object id, LockMode lockMode)
 		{
-			return AsyncContext.Run(() => GetAsync<T>(id, lockMode));
+			return AsyncHelper.RunSync(() => GetAsync<T>(id, lockMode));
 		}
 		public async Task<T> GetAsync<T>(object id, LockMode lockMode)
 		{
@@ -1397,7 +1396,7 @@ namespace NHibernate.Impl
 
 		public object Get(System.Type entityClass, object id)
 		{
-			return AsyncContext.Run(() => GetAsync(entityClass, id));
+			return AsyncHelper.RunSync(() => GetAsync(entityClass, id));
 		}
 		public async Task<object> GetAsync(System.Type entityClass, object id)
 		{
@@ -1420,7 +1419,7 @@ namespace NHibernate.Impl
 		/// <returns></returns>
 		public object Get(System.Type clazz, object id, LockMode lockMode)
 		{
-			return AsyncContext.Run(() => GetAsync(clazz, id, lockMode));
+			return AsyncHelper.RunSync(() => GetAsync(clazz, id, lockMode));
 		}
 		public async Task<object> GetAsync(System.Type clazz, object id, LockMode lockMode)
 		{
@@ -1464,7 +1463,7 @@ namespace NHibernate.Impl
 
 		public object Get(string entityName, object id)
 		{
-			return AsyncContext.Run(() => GetAsync(entityName, id));
+			return AsyncHelper.RunSync(() => GetAsync(entityName, id));
 		}
 		public async Task<object> GetAsync(string entityName, object id)
 		{
@@ -1533,7 +1532,7 @@ namespace NHibernate.Impl
 
 		public void Refresh(object obj)
 		{
-			AsyncContext.Run(() => RefreshAsync(obj));
+			AsyncHelper.RunSync(() => RefreshAsync(obj));
 		}
 		public async Task RefreshAsync(object obj)
 		{
@@ -1545,7 +1544,7 @@ namespace NHibernate.Impl
 
 		public void Refresh(object obj, LockMode lockMode)
 		{
-			AsyncContext.Run(() => RefreshAsync(obj, lockMode));
+			AsyncHelper.RunSync(() => RefreshAsync(obj, lockMode));
 		}
 		public async Task RefreshAsync(object obj, LockMode lockMode)
 		{
@@ -2130,7 +2129,7 @@ namespace NHibernate.Impl
 		/// <param name="obj"></param>
 		public void Evict(object obj)
 		{
-			AsyncContext.Run(() => EvictAsync(obj));
+			AsyncHelper.RunSync(() => EvictAsync(obj));
 		}
 		public async Task EvictAsync(object obj)
 		{
@@ -2186,7 +2185,7 @@ namespace NHibernate.Impl
 
 		public void Replicate(object obj, ReplicationMode replicationMode)
 		{
-			AsyncContext.Run(() => ReplicateAsync(obj, replicationMode));
+			AsyncHelper.RunSync(() => ReplicateAsync(obj, replicationMode));
 		}
 		public async Task ReplicateAsync(object obj, ReplicationMode replicationMode)
 		{
@@ -2198,7 +2197,7 @@ namespace NHibernate.Impl
 
 		public void Replicate(string entityName, object obj, ReplicationMode replicationMode)
 		{
-			AsyncContext.Run(() => ReplicateAsync(entityName, obj, replicationMode));
+			AsyncHelper.RunSync(() => ReplicateAsync(entityName, obj, replicationMode));
 		}
 		public async Task ReplicateAsync(string entityName, object obj, ReplicationMode replicationMode)
 		{
