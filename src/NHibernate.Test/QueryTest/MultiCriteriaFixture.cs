@@ -1,7 +1,6 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
-using System.Threading.Tasks;
 using NHibernate.Criterion;
 using NHibernate.Test.SecondLevelCacheTests;
 using NUnit.Framework;
@@ -439,7 +438,7 @@ namespace NHibernate.Test.QueryTest
 		}
 
 		[Test]
-		public async Task CanGetResultInAGenericList()
+		public void CanGetResultInAGenericList()
 		{
 			using (var s = OpenSession())
 			{
@@ -450,7 +449,7 @@ namespace NHibernate.Test.QueryTest
 				var multiCriteria = s.CreateMultiCriteria()
 					.Add(getItems) // we expect a non-generic result from this (ArrayList)
 					.Add<int>(countItems); // we expect a generic result from this (List<int>)
-				var results = await multiCriteria.List();
+				var results = multiCriteria.List();
 
 				Assert.That(results[0], Is.InstanceOf<List<object>>());
 				Assert.That(results[1], Is.InstanceOf<List<int>>());

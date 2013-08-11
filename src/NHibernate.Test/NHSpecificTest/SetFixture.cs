@@ -1,7 +1,6 @@
 using System;
 using System.Collections;
 using System.Data;
-using System.Threading.Tasks;
 using NHibernate.Cache;
 using NHibernate.Cache.Entry;
 using NHibernate.Collection;
@@ -121,10 +120,9 @@ namespace NHibernate.Test.NHSpecificTest
 			}
 		}
 
-		public Task InsertRows(IPersistentCollection collection, object key, ISessionImplementor session)
+		public void InsertRows(IPersistentCollection collection, object key, ISessionImplementor session)
 		{
 			// TODO:  Add CollectionPersisterStub.InsertRows implementation
-			return Task.FromResult(0);
 		}
 
 		public bool IsLazy
@@ -143,16 +141,14 @@ namespace NHibernate.Test.NHSpecificTest
 			get { return collectionType; }
 		}
 
-		public Task UpdateRows(IPersistentCollection collection, object key, ISessionImplementor session)
+		public void UpdateRows(IPersistentCollection collection, object key, ISessionImplementor session)
 		{
 			// TODO:  Add CollectionPersisterStub.UpdateRows implementation
-			return Task.FromResult(0);
 		}
 
-		public Task DeleteRows(IPersistentCollection collection, object key, ISessionImplementor session)
+		public void DeleteRows(IPersistentCollection collection, object key, ISessionImplementor session)
 		{
 			// TODO:  Add CollectionPersisterStub.DeleteRows implementation
-			return Task.FromResult(0);
 		}
 
 		public void WriteElement(IDbCommand st, object elt, bool writeOrder, ISessionImplementor session)
@@ -182,10 +178,9 @@ namespace NHibernate.Test.NHSpecificTest
 			set { elementType = value; }
 		}
 
-		public Task Remove(object id, ISessionImplementor session)
+		public void Remove(object id, ISessionImplementor session)
 		{
 			// TODO:  Add CollectionPersisterStub.Remove implementation
-			return Task.FromResult(0);
 		}
 
 		public object ReadElement(IDataReader rs, object owner, string[] aliases, ISessionImplementor session)
@@ -328,22 +323,22 @@ namespace NHibernate.Test.NHSpecificTest
 			return null;
 		}
 
-		public Task<int> GetSize(object key, ISessionImplementor session)
+		public int GetSize(object key, ISessionImplementor session)
 		{
 			throw new NotImplementedException();
 		}
 
-		public Task<bool> IndexExists(object key, object index, ISessionImplementor session)
+		public bool IndexExists(object key, object index, ISessionImplementor session)
 		{
 			throw new NotImplementedException();
 		}
 
-		public Task<bool> ElementExists(object key, object element, ISessionImplementor session)
+		public bool ElementExists(object key, object element, ISessionImplementor session)
 		{
 			throw new NotImplementedException();
 		}
 
-		public Task<object> GetElementByIndex(object key, object index, ISessionImplementor session, object owner)
+		public object GetElementByIndex(object key, object index, ISessionImplementor session, object owner)
 		{
 			throw new NotImplementedException();
 		}

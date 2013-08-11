@@ -1,6 +1,5 @@
 using System;
 using System.Collections;
-using System.Threading.Tasks;
 using NHibernate.Collection;
 using NHibernate.Engine;
 using NHibernate.Persister.Collection;
@@ -37,7 +36,7 @@ namespace NHibernate.Test.MappingByCode.MappersTests
 			throw new NotImplementedException();
 		}
 
-		public Task<object> ReplaceElements(object original, object target, ICollectionPersister persister, object owner, IDictionary copyCache, ISessionImplementor session)
+		public object ReplaceElements(object original, object target, ICollectionPersister persister, object owner, IDictionary copyCache, ISessionImplementor session)
 		{
 			throw new NotImplementedException();
 		}

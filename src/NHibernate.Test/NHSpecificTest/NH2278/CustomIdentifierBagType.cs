@@ -3,7 +3,6 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
-using System.Threading.Tasks;
 using NHibernate.Collection;
 using NHibernate.Engine;
 using NHibernate.Persister.Collection;
@@ -30,13 +29,13 @@ namespace NHibernate.Test.NHSpecificTest.NH2278
 			return ((IList<T>)collection).IndexOf((T)entity);
 		}
 
-		public Task<object> ReplaceElements(object original, object target, ICollectionPersister persister, object owner, IDictionary copyCache, ISessionImplementor session)
+		public object ReplaceElements(object original, object target, ICollectionPersister persister, object owner, IDictionary copyCache, ISessionImplementor session)
 		{
 			IList<T> result = (IList<T>)target;
 			result.Clear();
 			foreach (object item in ((IEnumerable)original))
 				result.Add((T)item);
-			return Task.FromResult<object>(result);
+			return result;
 		}
 
 		// return an instance of the inner collection type

@@ -1,6 +1,5 @@
 using System.Collections;
 using System.Collections.Generic;
-using System.Threading.Tasks;
 using NHibernate.Collection;
 using NHibernate.Collection.Generic;
 using NHibernate.Engine;
@@ -132,7 +131,7 @@ namespace NHibernate.Test.NHSpecificTest.NH1810
 			return new List<T>((ISet<T>)collection).IndexOf((T)entity);
 		}
 
-		public Task<object> ReplaceElements(object original, object target, ICollectionPersister persister, object owner, IDictionary copyCache, ISessionImplementor session)
+		public object ReplaceElements(object original, object target, ICollectionPersister persister, object owner, IDictionary copyCache, ISessionImplementor session)
 		{
 			var result = (ISet<T>)target;
 			result.Clear();
@@ -140,7 +139,7 @@ namespace NHibernate.Test.NHSpecificTest.NH1810
 			foreach (var o in (IEnumerable)original)
 				result.Add((T)o);
 
-			return Task.FromResult<object>(result);
+			return result;
 		}
 
 		public object Instantiate(int anticipatedSize)

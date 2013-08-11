@@ -1,5 +1,4 @@
 using System.Collections;
-using System.Threading.Tasks;
 using NHibernate.Criterion;
 using NHibernate.Driver;
 using NUnit.Framework;
@@ -15,7 +14,7 @@ namespace NHibernate.Test.NHSpecificTest.NH1609
 		}
 
 		[Test]
-		public async Task Test()
+		public void Test()
 		{
 			using (var session = sessions.OpenSession())
 			using (session.BeginTransaction())
@@ -40,7 +39,7 @@ namespace NHibernate.Test.NHSpecificTest.NH1609
 					session.CreateCriteria(typeof (EntityB)).Add(Restrictions.Eq("A.Id", a1.Id)).Add(Restrictions.Eq("C.Id", c.Id)).
 						SetFirstResult(0).SetMaxResults(1));
 
-				IList results = await multi.List();
+				IList results = multi.List();
 
 				Assert.AreEqual(1, ((IList) results[0]).Count);
 				Assert.AreEqual(1, ((IList) results[1]).Count);

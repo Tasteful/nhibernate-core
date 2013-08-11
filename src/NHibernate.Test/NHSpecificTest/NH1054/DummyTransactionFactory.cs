@@ -1,6 +1,5 @@
 using System;
 using System.Collections;
-using System.Threading.Tasks;
 using NHibernate.AdoNet;
 using NHibernate.Engine;
 using NHibernate.Engine.Transaction;
@@ -29,7 +28,7 @@ namespace NHibernate.Test.NHSpecificTest.NH1054
 			return false;
 		}
 
-		public Task ExecuteWorkInIsolation(ISessionImplementor session, IIsolatedWork work, bool transacted)
+		public void ExecuteWorkInIsolation(ISessionImplementor session, IIsolatedWork work, bool transacted)
 		{
 			throw new NotImplementedException();
 		}

@@ -1,5 +1,4 @@
 using System.Collections;
-using System.Threading.Tasks;
 using NHibernate.Collection;
 using NHibernate.Engine;
 using NHibernate.Persister.Collection;
@@ -48,7 +47,7 @@ namespace NHibernate.Test.UserCollection.Parameterized
 			return index >= 0 ? (object) index : null;
 		}
 
-		public Task<object> ReplaceElements(object original, object target, ICollectionPersister persister, object owner, IDictionary copyCache, ISessionImplementor session)
+		public object ReplaceElements(object original, object target, ICollectionPersister persister, object owner, IDictionary copyCache, ISessionImplementor session)
 		{
 			IDefaultableList result = (IDefaultableList)target;
 			result.Clear();
@@ -56,7 +55,7 @@ namespace NHibernate.Test.UserCollection.Parameterized
 			{
 				result.Add(o);
 			}
-			return Task.FromResult<object>(result);
+			return result;
 		}
 
 		public object Instantiate(int anticipatedSize)
