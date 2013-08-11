@@ -392,7 +392,11 @@ namespace NHibernate.Impl
 		/// <summary>
 		/// Return the query results of all the queries
 		/// </summary>
-		public async Task<IList> List()
+		public IList List()
+		{
+			return AsyncHelper.RunSync(ListAsync);
+		}
+		public async Task<IList> ListAsync()
 		{
 			using (new SessionIdLoggingContext(session.SessionId))
 			{
