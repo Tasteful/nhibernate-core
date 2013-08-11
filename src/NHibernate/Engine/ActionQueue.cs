@@ -3,7 +3,7 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
-
+using System.Threading.Tasks;
 using NHibernate.Action;
 using NHibernate.Cache;
 
@@ -118,21 +118,21 @@ namespace NHibernate.Engine
 			beforeTransactionProcesses.Register(process);
 		}
 	
-		private void ExecuteActions(IList list)
+		private async Task ExecuteActions(IList list)
 		{
 			int size = list.Count;
 			for (int i = 0; i < size; i++)
-				Execute((IExecutable)list[i]);
+				await Execute((IExecutable)list[i]);
 
 			list.Clear();
 			session.Batcher.ExecuteBatch();
 		}
 
-		public void Execute(IExecutable executable)
+		public async Task Execute(IExecutable executable)
 		{
 			try
 			{
-				executable.Execute();
+				await executable.Execute();
 			}
 			finally
 			{
@@ -155,22 +155,22 @@ namespace NHibernate.Engine
 		/// <summary> 
 		/// Perform all currently queued entity-insertion actions.
 		/// </summary>
-		public void ExecuteInserts()
+		public Task ExecuteInserts()
 		{
-			ExecuteActions(insertions);
+			return ExecuteActions(insertions);
 		}
 
 		/// <summary> 
 		/// Perform all currently queued actions. 
 		/// </summary>
-		public void ExecuteActions()
+		public async Task ExecuteActions()
 		{
-			ExecuteActions(insertions);
-			ExecuteActions(updates);
-			ExecuteActions(collectionRemovals);
-			ExecuteActions(collectionUpdates);
-			ExecuteActions(collectionCreations);
-			ExecuteActions(deletions);
+			await ExecuteActions(insertions);
+			await ExecuteActions(updates);
+			await ExecuteActions(collectionRemovals);
+			await ExecuteActions(collectionUpdates);
+			await ExecuteActions(collectionCreations);
+			await ExecuteActions(deletions);
 		}
 
 		private void PrepareActions(IList queue)
