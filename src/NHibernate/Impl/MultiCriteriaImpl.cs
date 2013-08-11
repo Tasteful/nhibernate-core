@@ -59,7 +59,11 @@ namespace NHibernate.Impl
 			}
 		}
 
-		public async Task<IList> List()
+		public IList List()
+		{
+			return AsyncHelper.RunSync(ListAsync);
+		}
+		public async Task<IList> ListAsync()
 		{
 			using (new SessionIdLoggingContext(session.SessionId))
 			{
@@ -412,7 +416,7 @@ namespace NHibernate.Impl
 
 		public async Task<object> GetResult(string key)
 		{
-			if (criteriaResults == null) await List();
+			if (criteriaResults == null) await ListAsync();
 
 			int criteriaResultPosition;
 			if (!criteriaResultPositions.TryGetValue(key, out criteriaResultPosition))

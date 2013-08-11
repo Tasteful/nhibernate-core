@@ -651,11 +651,15 @@ namespace NHibernate.Impl
 			}
 		}
 
-		public async Task<object> GetResult(string key)
+		public object GetResult(string key)
+		{
+			return AsyncHelper.RunSync(() => GetResultAsync(key));
+		}
+		public async Task<object> GetResultAsync(string key)
 		{
 			if (queryResults == null)
 			{
-				queryResults = await List();
+				queryResults = await ListAsync();
 			}
 
 			int queryResultPosition;

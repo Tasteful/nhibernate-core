@@ -18,6 +18,13 @@ namespace NHibernate
 		/// The result is a IList of IList.
 		/// </remarks>
 		IList List();
+		/// <summary>
+		/// Get all the results
+		/// </summary>
+		/// <remarks>
+		/// The result is a IList of IList.
+		/// </remarks>
+		Task<IList> ListAsync();
 
 		/// <summary>
 		/// Adds the specified query to the query. The result will be contained in a <see cref="System.Collections.Generic.List{T}"/>
@@ -377,6 +384,12 @@ namespace NHibernate
 		/// </summary>
 		/// <param name="key">The key</param>
 		/// <returns>The instance for method chain.</returns>
-		Task<object> GetResult(string key);
+		object GetResult(string key);
+		/// <summary>
+		/// Returns the result of one of the query based on the key
+		/// </summary>
+		/// <param name="key">The key</param>
+		/// <returns>The instance for method chain.</returns>
+		Task<object> GetResultAsync(string key);
 	}
 }

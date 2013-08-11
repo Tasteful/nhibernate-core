@@ -22,7 +22,7 @@ namespace NHibernate.Impl
 
 		protected override Task<IList> GetResultsFrom(IMultiCriteria multiApproach)
 		{
-			return multiApproach.List();
+			return multiApproach.ListAsync();
 		}
 
 		protected override void ClearCurrentFutureBatch()
