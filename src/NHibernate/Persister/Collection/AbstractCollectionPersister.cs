@@ -1070,7 +1070,7 @@ namespace NHibernate.Persister.Collection
 			}
 		}
 
-		public void Recreate(IPersistentCollection collection, object id, ISessionImplementor session)
+		public async Task Recreate(IPersistentCollection collection, object id, ISessionImplementor session)
 		{
 			if (!isInverse && RowInsertEnabled)
 			{
@@ -1106,11 +1106,11 @@ namespace NHibernate.Persister.Collection
 							if (!IsIdentifierAssignedByInsert)
 							{
 								// NH Different implementation: write once
-								entryId = PerformInsert(id, collection, expectation, entry, i, useBatch, false, session);
+								entryId = await PerformInsert(id, collection, expectation, entry, i, useBatch, false, session);
 							}
 							else
 							{
-								entryId = PerformInsert(id, collection, entry, i, session);
+								entryId = await PerformInsert(id, collection, entry, i, session);
 							}
 							collection.AfterRowInsert(this, entry, i, entryId);
 							count++;

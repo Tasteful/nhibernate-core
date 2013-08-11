@@ -195,7 +195,7 @@ namespace NHibernate.Persister.Collection
 		/// <param name="collection"></param>
 		/// <param name="key"></param>
 		/// <param name="session"></param>
-		void Recreate(IPersistentCollection collection, object key, ISessionImplementor session);
+		Task Recreate(IPersistentCollection collection, object key, ISessionImplementor session);
 
 		/// <summary>
 		/// Delete the persistent state of any elements that were removed from the collection
