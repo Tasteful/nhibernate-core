@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Threading.Tasks;
 using NHibernate.Engine;
 using NHibernate.Metadata;
 using NHibernate.Persister.Entity;
@@ -106,9 +107,10 @@ namespace NHibernate.Action
 			// nothing to do
 		}
 
-		public void Execute()
+		public Task Execute()
 		{
 			// nothing to do
+			return Task.FromResult(0);
 		}
 
 		public BeforeTransactionCompletionProcessDelegate BeforeTransactionCompletionProcess

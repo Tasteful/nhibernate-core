@@ -105,7 +105,7 @@ namespace NHibernate.Event.Default
 		protected virtual async Task<object> SaveWithGeneratedId(object entity, string entityName, object anything, IEventSource source, bool requiresImmediateIdAccess)
 		{
 			IEntityPersister persister = source.GetEntityPersister(entityName, entity);
-			object generatedId = persister.IdentifierGenerator.Generate(source, entity);
+			object generatedId = await persister.IdentifierGenerator.Generate(source, entity);
 			if (generatedId == null)
 			{
 				throw new IdentifierGenerationException("null id generated for:" + entity.GetType());
@@ -227,7 +227,7 @@ namespace NHibernate.Event.Default
 			if (useIdentityColumn && !shouldDelayIdentityInserts)
 			{
 				log.Debug("executing insertions");
-				source.ActionQueue.ExecuteInserts();
+				await source.ActionQueue.ExecuteInserts();
 			}
 
 			object[] values = persister.GetPropertyValuesToInsert(entity, GetMergeMap(anything), source);
@@ -256,7 +256,7 @@ namespace NHibernate.Event.Default
 				if (!shouldDelayIdentityInserts)
 				{
 					log.Debug("executing identity-insert immediately");
-					source.ActionQueue.Execute(insert);
+					await source.ActionQueue.Execute(insert);
 					id = insert.GeneratedId;
 					//now done in EntityIdentityInsertAction
 					//persister.setIdentifier( entity, id, source.getEntityMode() );
