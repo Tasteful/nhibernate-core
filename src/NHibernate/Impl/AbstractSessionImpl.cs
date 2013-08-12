@@ -137,7 +137,11 @@ namespace NHibernate.Impl
 			return results;
 		}
 
-		public abstract void List(IQueryExpression queryExpression, QueryParameters queryParameters, IList results);
+		public void List(IQueryExpression queryExpression, QueryParameters queryParameters, IList results)
+		{
+			AsyncHelper.RunSync(() => ListAsync(queryExpression, queryParameters, results));
+		}
+		public abstract Task ListAsync(IQueryExpression queryExpression, QueryParameters queryParameters, IList results);
 
 		public virtual IList<T> List<T>(IQueryExpression query, QueryParameters parameters)
 		{

@@ -279,7 +279,7 @@ namespace NHibernate.Loader
 			try
 			{
 				result =
-					GetRowFromResultSet(resultSet, session, queryParameters, GetLockModes(queryParameters.LockModes), null,
+					await GetRowFromResultSet(resultSet, session, queryParameters, GetLockModes(queryParameters.LockModes), null,
 										hydratedObjects, new EntityKey[entitySpan], returnProxies);
 			}
 			catch (HibernateException)
@@ -316,7 +316,7 @@ namespace NHibernate.Loader
 			}
 		}
 
-		internal object GetRowFromResultSet(IDataReader resultSet, ISessionImplementor session,
+		internal async Task<object> GetRowFromResultSet(IDataReader resultSet, ISessionImplementor session,
 											QueryParameters queryParameters, LockMode[] lockModeArray,
 											EntityKey optionalObjectKey, IList hydratedObjects, EntityKey[] keys,
 											bool returnProxies)
@@ -335,7 +335,7 @@ namespace NHibernate.Loader
 
 			// this call is side-effecty
 			object[] row =
-				GetRow(resultSet, persisters, keys, queryParameters.OptionalObject, optionalObjectKey, lockModeArray,
+				await GetRow(resultSet, persisters, keys, queryParameters.OptionalObject, optionalObjectKey, lockModeArray,
 					   hydratedObjects, session);
 
 			ReadCollectionElements(row, resultSet, session);
@@ -448,7 +448,7 @@ namespace NHibernate.Loader
 							Log.Debug("result set row: " + count);
 						}
 
-						object result = GetRowFromResultSet(rs, session, queryParameters, lockModeArray, optionalObjectKey,
+						object result = await GetRowFromResultSet(rs, session, queryParameters, lockModeArray, optionalObjectKey,
 															hydratedObjects,
 															keys, returnProxies);
 						results.Add(result);
@@ -834,7 +834,7 @@ namespace NHibernate.Loader
 		/// array of objects (a row of results) and an array of booleans (by side-effect) that determine
 		/// wheter the corresponding object should be initialized
 		/// </summary>
-		private object[] GetRow(IDataReader rs, ILoadable[] persisters, EntityKey[] keys, object optionalObject,
+		private async Task<object[]> GetRow(IDataReader rs, ILoadable[] persisters, EntityKey[] keys, object optionalObject,
 								EntityKey optionalObjectKey, LockMode[] lockModes, IList hydratedObjects,
 								ISessionImplementor session)
 		{
@@ -873,7 +873,7 @@ namespace NHibernate.Loader
 					else
 					{
 						obj =
-							InstanceNotYetLoaded(rs, i, persisters[i], key, lockModes[i], descriptors[i].RowIdAlias, optionalObjectKey,
+							await InstanceNotYetLoaded(rs, i, persisters[i], key, lockModes[i], descriptors[i].RowIdAlias, optionalObjectKey,
 												 optionalObject, hydratedObjects, session);
 					}
 				}

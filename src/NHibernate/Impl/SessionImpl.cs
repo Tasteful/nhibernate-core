@@ -662,7 +662,7 @@ namespace NHibernate.Impl
 			Dispose(true);
 		}
 
-		public override void List(IQueryExpression queryExpression, QueryParameters queryParameters, IList results)
+		public override async Task ListAsync(IQueryExpression queryExpression, QueryParameters queryParameters, IList results)
 		{
 			using (new SessionIdLoggingContext(SessionId))
 			{
@@ -675,7 +675,7 @@ namespace NHibernate.Impl
 				dontFlushFromFind++; //stops flush being called multiple times if this method is recursively called
 				try
 				{
-					plan.PerformList(queryParameters, this, results);
+					await plan.PerformList(queryParameters, this, results);
 					success = true;
 				}
 				catch (HibernateException)

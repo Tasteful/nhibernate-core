@@ -235,7 +235,7 @@ namespace NHibernate.Impl
 							rowCount++;
 
 							object o =
-								loader.GetRowFromResultSet(reader, session, queryParameters, loader.GetLockModes(queryParameters.LockModes),
+								await loader.GetRowFromResultSet(reader, session, queryParameters, loader.GetLockModes(queryParameters.LockModes),
 																					 null, hydratedObjects[i], keys, true);
 							if (createSubselects[i])
 							{

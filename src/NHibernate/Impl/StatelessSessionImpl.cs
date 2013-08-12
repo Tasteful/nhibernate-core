@@ -109,7 +109,7 @@ namespace NHibernate.Impl
 			Dispose(true);
 		}
 
-		public override void List(IQueryExpression queryExpression, QueryParameters queryParameters, IList results)
+		public override async Task ListAsync(IQueryExpression queryExpression, QueryParameters queryParameters, IList results)
 		{
 			using (new SessionIdLoggingContext(SessionId))
 			{
@@ -120,7 +120,7 @@ namespace NHibernate.Impl
 				bool success = false;
 				try
 				{
-					plan.PerformList(queryParameters, this, results);
+					await plan.PerformList(queryParameters, this, results);
 					success = true;
 				}
 				catch (HibernateException)
