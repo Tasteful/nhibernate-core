@@ -66,7 +66,7 @@ namespace NHibernate.Event.Default
 			switch (entityState)
 			{
 				case EntityState.Detached:
-					EntityIsDetached(@event);
+					await EntityIsDetached(@event);
 					return null;
 
 				case EntityState.Persistent:
@@ -174,7 +174,7 @@ namespace NHibernate.Event.Default
 		/// Here, we will perform the update processing. 
 		/// </summary>
 		/// <param name="event">The update event to be handled. </param>
-		protected virtual void EntityIsDetached(SaveOrUpdateEvent @event)
+		protected virtual async Task EntityIsDetached(SaveOrUpdateEvent @event)
 		{
 			log.Debug("updating detached instance");
 
@@ -190,7 +190,7 @@ namespace NHibernate.Event.Default
 
 			@event.RequestedId = GetUpdateId(entity, persister, @event.RequestedId, @event.Session.EntityMode);
 
-			PerformUpdate(@event, entity, persister);
+			await PerformUpdate(@event, entity, persister);
 		}
 
 		/// <summary> Determine the id to use for updating. </summary>
@@ -215,7 +215,7 @@ namespace NHibernate.Event.Default
 			}
 		}
 
-		protected virtual void PerformUpdate(SaveOrUpdateEvent @event, object entity, IEntityPersister persister)
+		protected virtual async Task PerformUpdate(SaveOrUpdateEvent @event, object entity, IEntityPersister persister)
 		{
 			if (!persister.IsMutable)
 			{
@@ -235,7 +235,7 @@ namespace NHibernate.Event.Default
 
 			if (InvokeUpdateLifecycle(entity, persister, source))
 			{
-				Reassociate(@event, @event.Entity, @event.RequestedId, persister);
+				await Reassociate(@event, @event.Entity, @event.RequestedId, persister);
 				return;
 			}
 

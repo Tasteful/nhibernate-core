@@ -32,11 +32,11 @@ namespace NHibernate.Engine
 			/// been inserted in the database, where the foreign key
 			/// points toward that entity
 			/// </summary>
-			public void NullifyTransientReferences(object[] values, IType[] types)
+			public async Task NullifyTransientReferences(object[] values, IType[] types)
 			{
 				for (int i = 0; i < types.Length; i++)
 				{
-					values[i] = NullifyTransientReferences(values[i], types[i]);
+					values[i] = await NullifyTransientReferences(values[i], types[i]);
 				}
 			}
 

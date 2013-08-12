@@ -160,9 +160,10 @@ namespace NHibernate.Test.NHSpecificTest
 			// TODO:  Add CollectionPersisterStub.WriteElement implementation
 		}
 
-		public void Recreate(IPersistentCollection collection, object key, ISessionImplementor session)
+		public Task Recreate(IPersistentCollection collection, object key, ISessionImplementor session)
 		{
 			// TODO:  Add CollectionPersisterStub.Recreate implementation
+			return Task.FromResult(0);
 		}
 
 		public bool HasOrdering

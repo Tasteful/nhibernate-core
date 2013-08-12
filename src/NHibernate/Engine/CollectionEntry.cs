@@ -326,7 +326,7 @@ namespace NHibernate.Engine
 			collection.SetSnapshot(loadedKey, role, snapshot);
 		}
 
-		public void AfterAction(IPersistentCollection collection)
+		public async Task AfterAction(IPersistentCollection collection)
 		{
 			loadedKey = CurrentKey;
 			SetLoadedPersister(CurrentPersister);
@@ -335,7 +335,7 @@ namespace NHibernate.Engine
 			if (resnapshot)
 			{
 				//re-snapshot
-				snapshot = loadedPersister == null || !loadedPersister.IsMutable ? null : collection.GetSnapshot(loadedPersister);
+				snapshot = loadedPersister == null || !loadedPersister.IsMutable ? null : await collection.GetSnapshot(loadedPersister);
 			}
 
 			collection.PostAction();

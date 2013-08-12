@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections;
+using System.Threading.Tasks;
 using NHibernate.Engine;
 using NHibernate.Intercept;
 using NHibernate.Properties;
@@ -20,7 +21,7 @@ namespace NHibernate.Type
 		/// <param name="copy">An array indicating which values to include in the copy</param>
 		/// <param name="target">The array into which to copy the values</param>
 		/// <param name="session">The originating session</param>
-		public static void DeepCopy(object[] values, IType[] types, bool[] copy, object[] target, ISessionImplementor session)
+		public static async Task DeepCopy(object[] values, IType[] types, bool[] copy, object[] target, ISessionImplementor session)
 		{
 			for (int i = 0; i < types.Length; i++)
 			{
@@ -32,7 +33,7 @@ namespace NHibernate.Type
 					}
 					else
 					{
-						target[i] = types[i].DeepCopy(values[i], session.EntityMode, session.Factory);
+						target[i] = await types[i].DeepCopy(values[i], session.EntityMode, session.Factory);
 					}
 				}
 			}
@@ -116,7 +117,7 @@ namespace NHibernate.Type
 		/// <param name="owner">The entity "owning" the values</param>
 		/// <param name="copiedAlready">Represent a cache of already replaced state</param>
 		/// <returns> The replaced state</returns>
-		public static object[] Replace(object[] original, object[] target, IType[] types, ISessionImplementor session,
+		public static async Task<object[]> Replace(object[] original, object[] target, IType[] types, ISessionImplementor session,
 																	 object owner, IDictionary copiedAlready)
 		{
 			var copied = new object[original.Length];
@@ -128,7 +129,7 @@ namespace NHibernate.Type
 				}
 				else
 				{
-					copied[i] = types[i].Replace(original[i], target[i], session, owner, copiedAlready);
+					copied[i] = await types[i].Replace(original[i], target[i], session, owner, copiedAlready);
 				}
 			}
 			return copied;
@@ -146,7 +147,7 @@ namespace NHibernate.Type
 		/// <param name="copyCache">A map representing a cache of already replaced state</param>
 		/// <param name="foreignKeyDirection">FK directionality to be applied to the replacement</param>
 		/// <returns> The replaced state</returns>
-		public static object[] Replace(object[] original, object[] target, IType[] types,
+		public static async Task<object[]> Replace(object[] original, object[] target, IType[] types,
 			ISessionImplementor session, object owner, IDictionary copyCache, ForeignKeyDirection foreignKeyDirection)
 		{
 			object[] copied = new object[original.Length];
@@ -157,7 +158,7 @@ namespace NHibernate.Type
 					copied[i] = target[i];
 				}
 				else
-					copied[i] = types[i].Replace(original[i], target[i], session, owner, copyCache, foreignKeyDirection);
+					copied[i] = await types[i].Replace(original[i], target[i], session, owner, copyCache, foreignKeyDirection);
 			}
 			return copied;
 		}
@@ -178,7 +179,7 @@ namespace NHibernate.Type
 		/// If the corresponding type is a component type, then apply <see cref="ReplaceAssociations" />
 		/// across the component subtypes but do not replace the component value itself.
 		/// </remarks>
-		public static object[] ReplaceAssociations(object[] original, object[] target, IType[] types,
+		public static async Task<object[]> ReplaceAssociations(object[] original, object[] target, IType[] types,
 			ISessionImplementor session, object owner, IDictionary copyCache, ForeignKeyDirection foreignKeyDirection)
 		{
 			object[] copied = new object[original.Length];
@@ -196,7 +197,7 @@ namespace NHibernate.Type
 					object[] origComponentValues = original[i] == null ? new object[subtypes.Length] : componentType.GetPropertyValues(original[i], session);
 					object[] targetComponentValues = target[i] == null ? new object[subtypes.Length] : componentType.GetPropertyValues(target[i], session);
 
-					object[] componentCopy = ReplaceAssociations(origComponentValues, targetComponentValues, subtypes, session, null, copyCache, foreignKeyDirection);
+					object[] componentCopy = await ReplaceAssociations(origComponentValues, targetComponentValues, subtypes, session, null, copyCache, foreignKeyDirection);
 					
 					if (!componentType.IsAnyType && target[i] != null)
 						componentType.SetPropertyValues(target[i], componentCopy, session.EntityMode);
@@ -209,7 +210,7 @@ namespace NHibernate.Type
 				}
 				else
 				{
-					copied[i] = types[i].Replace(original[i], target[i], session, owner, copyCache, foreignKeyDirection);
+					copied[i] = await types[i].Replace(original[i], target[i], session, owner, copyCache, foreignKeyDirection);
 				}
 			}
 			return copied;

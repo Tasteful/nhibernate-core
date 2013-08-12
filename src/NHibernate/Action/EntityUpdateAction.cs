@@ -91,7 +91,7 @@ namespace NHibernate.Action
 				// get the updated snapshot of the entity state by cloning current state;
 				// it is safe to copy in place, since by this time no-one else (should have)
 				// has a reference  to the array
-				TypeHelper.DeepCopy(state, persister.PropertyTypes, persister.PropertyCheckability, state, Session);
+				await TypeHelper.DeepCopy(state, persister.PropertyTypes, persister.PropertyCheckability, state, Session);
 				if (persister.HasUpdateGeneratedProperties)
 				{
 					// this entity defines property generation, so process those generated

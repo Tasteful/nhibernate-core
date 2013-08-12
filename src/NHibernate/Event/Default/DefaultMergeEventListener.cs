@@ -189,7 +189,7 @@ namespace NHibernate.Event.Default
 			((EventCache)copyCache).Add(entity, entity, true); //before cascade!
 
 			await CascadeOnMerge(source, persister, entity, copyCache);
-			CopyValues(persister, entity, entity, source, copyCache);
+			await CopyValues(persister, entity, entity, source, copyCache);
 
 			@event.Result = entity;
 		}
@@ -229,7 +229,7 @@ namespace NHibernate.Event.Default
 			// copy created before we actually copy
 			//cascadeOnMerge(event, persister, entity, copyCache, Cascades.CASCADE_BEFORE_MERGE);
 			await base.CascadeBeforeSave(source, persister, entity, copyCache);
-			CopyValues(persister, entity, copy, source, copyCache, ForeignKeyDirection.ForeignKeyFromParent);
+			await CopyValues(persister, entity, copy, source, copyCache, ForeignKeyDirection.ForeignKeyFromParent);
 
 			try
 			{
@@ -271,7 +271,7 @@ namespace NHibernate.Event.Default
 			// cascade first, so that all unsaved objects get their
 			// copy created before we actually copy
 			await base.CascadeAfterSave(source, persister, entity, copyCache);
-			CopyValues(persister, entity, copy, source, copyCache, ForeignKeyDirection.ForeignKeyToParent);
+			await CopyValues(persister, entity, copy, source, copyCache, ForeignKeyDirection.ForeignKeyToParent);
 
 			return copy;
 		}
@@ -369,7 +369,7 @@ namespace NHibernate.Event.Default
 				// cascade first, so that all unsaved objects get their
 				// copy created before we actually copy
 				await CascadeOnMerge(source, persister, entity, copyCache);
-				CopyValues(persister, entity, target, source, copyCache);
+				await CopyValues(persister, entity, target, source, copyCache);
 
 				//copyValues works by reflection, so explicitly mark the entity instance dirty
 				MarkInterceptorDirty(entity, target);
@@ -455,17 +455,17 @@ namespace NHibernate.Event.Default
 			}
 		}
 
-		protected virtual void CopyValues(IEntityPersister persister, object entity, object target, ISessionImplementor source, IDictionary copyCache)
+		protected virtual async Task CopyValues(IEntityPersister persister, object entity, object target, ISessionImplementor source, IDictionary copyCache)
 		{
 			object[] copiedValues =
-				TypeHelper.Replace(persister.GetPropertyValues(entity, source.EntityMode),
+				await TypeHelper.Replace(persister.GetPropertyValues(entity, source.EntityMode),
 				                    persister.GetPropertyValues(target, source.EntityMode), persister.PropertyTypes, source, target,
 				                    copyCache);
 
 			persister.SetPropertyValues(target, copiedValues, source.EntityMode);
 		}
 
-		protected virtual void CopyValues(IEntityPersister persister, object entity, object target, ISessionImplementor source, IDictionary copyCache, ForeignKeyDirection foreignKeyDirection)
+		protected virtual async Task CopyValues(IEntityPersister persister, object entity, object target, ISessionImplementor source, IDictionary copyCache, ForeignKeyDirection foreignKeyDirection)
 		{
 			object[] copiedValues;
 
@@ -475,14 +475,14 @@ namespace NHibernate.Event.Default
 				// replacement to associations types (value types were already replaced
 				// during the first pass)
 				copiedValues =
-					TypeHelper.ReplaceAssociations(persister.GetPropertyValues(entity, source.EntityMode),
+					await TypeHelper.ReplaceAssociations(persister.GetPropertyValues(entity, source.EntityMode),
 					                                persister.GetPropertyValues(target, source.EntityMode), persister.PropertyTypes,
 					                                source, target, copyCache, foreignKeyDirection);
 			}
 			else
 			{
 				copiedValues =
-					TypeHelper.Replace(persister.GetPropertyValues(entity, source.EntityMode),
+					await TypeHelper.Replace(persister.GetPropertyValues(entity, source.EntityMode),
 					                    persister.GetPropertyValues(target, source.EntityMode), persister.PropertyTypes, source, target,
 					                    copyCache, foreignKeyDirection);
 			}

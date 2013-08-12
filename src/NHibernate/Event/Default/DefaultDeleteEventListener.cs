@@ -190,7 +190,7 @@ namespace NHibernate.Event.Default
 				currentState = entityEntry.LoadedState;
 			}
 
-			object[] deletedState = CreateDeletedState(persister, currentState, session);
+			object[] deletedState = await CreateDeletedState(persister, currentState, session);
 			entityEntry.DeletedState = deletedState;
 
 			session.Interceptor.OnDelete(entity, entityEntry.Id, deletedState, persister.PropertyNames, propTypes);
@@ -201,7 +201,7 @@ namespace NHibernate.Event.Default
 
 			await CascadeBeforeDelete(session, persister, entity, entityEntry, transientEntities);
 
-			new ForeignKeys.Nullifier(entity, true, false, session).NullifyTransientReferences(entityEntry.DeletedState, propTypes);
+			await new ForeignKeys.Nullifier(entity, true, false, session).NullifyTransientReferences(entityEntry.DeletedState, propTypes);
 			new Nullability(session).CheckNullability(entityEntry.DeletedState, persister, true);
 			persistenceContext.NullifiableEntityKeys.Add(key);
 
@@ -216,14 +216,14 @@ namespace NHibernate.Event.Default
 			//persistenceContext.removeDatabaseSnapshot(key);
 		}
 
-		private object[] CreateDeletedState(IEntityPersister persister, object[] currentState, IEventSource session)
+		private async Task<object[]> CreateDeletedState(IEntityPersister persister, object[] currentState, IEventSource session)
 		{
 			IType[] propTypes = persister.PropertyTypes;
 			object[] deletedState = new object[propTypes.Length];
 			//		TypeFactory.deepCopy( currentState, propTypes, persister.getPropertyUpdateability(), deletedState, session );
 			bool[] copyability = new bool[propTypes.Length];
 			ArrayHelper.Fill(copyability, true);
-			TypeHelper.DeepCopy(currentState, propTypes, copyability, deletedState, session);
+			await TypeHelper.DeepCopy(currentState, propTypes, copyability, deletedState, session);
 			return deletedState;
 		}
 

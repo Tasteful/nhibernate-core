@@ -368,7 +368,7 @@ namespace NHibernate.Type
 			return Task.FromResult(result);
 		}
 
-		public override Task<object> Replace(object original, object target, ISessionImplementor session, object owner,
+		public override async Task<object> Replace(object original, object target, ISessionImplementor session, object owner,
 									   IDictionary copiedAlready)
 		{
 			if (original == null)
@@ -377,13 +377,13 @@ namespace NHibernate.Type
 			object result = target ?? Instantiate(owner, session);
 
 			EntityMode entityMode = session.EntityMode;
-			object[] values = TypeHelper.Replace(GetPropertyValues(original, entityMode), GetPropertyValues(result, entityMode), propertyTypes, session, owner, copiedAlready);
+			object[] values = await TypeHelper.Replace(GetPropertyValues(original, entityMode), GetPropertyValues(result, entityMode), propertyTypes, session, owner, copiedAlready);
 
 			SetPropertyValues(result, values, entityMode);
-			return Task.FromResult(result);
+			return result;
 		}
 
-		public override Task<object> Replace(object original, object target, ISessionImplementor session, object owner, IDictionary copyCache, ForeignKeyDirection foreignKeyDirection)
+		public override async Task<object> Replace(object original, object target, ISessionImplementor session, object owner, IDictionary copyCache, ForeignKeyDirection foreignKeyDirection)
 		{
 			if (original == null)
 				return Task.FromResult<object>(null); ;
@@ -391,10 +391,10 @@ namespace NHibernate.Type
 			object result = target ?? Instantiate(owner, session);
 
 			EntityMode entityMode = session.EntityMode;
-			object[] values = TypeHelper.Replace(GetPropertyValues(original, entityMode), GetPropertyValues(result, entityMode), propertyTypes, session, owner, copyCache, foreignKeyDirection);
+			object[] values = await TypeHelper.Replace(GetPropertyValues(original, entityMode), GetPropertyValues(result, entityMode), propertyTypes, session, owner, copyCache, foreignKeyDirection);
 
 			SetPropertyValues(result, values, entityMode);
-			return Task.FromResult(result);
+			return result;
 		}
 
 		/// <summary> This method does not populate the component parent</summary>
