@@ -792,7 +792,7 @@ namespace NHibernate.Collection
 		/// <summary>
 		/// Get all the elements that need deleting
 		/// </summary>
-		public abstract IEnumerable GetDeletes(ICollectionPersister persister, bool indexIsFormula);
+		public abstract Task<IEnumerable> GetDeletes(ICollectionPersister persister, bool indexIsFormula);
 
 		public abstract bool IsSnapshotEmpty(object snapshot);
 
@@ -800,7 +800,7 @@ namespace NHibernate.Collection
 
 		public abstract Task<object> GetSnapshot(ICollectionPersister persister);
 
-		public abstract bool EqualsSnapshot(ICollectionPersister persister);
+		public abstract Task<bool> EqualsSnapshot(ICollectionPersister persister);
 
 		public abstract object GetElement(object entry);
 
@@ -819,7 +819,7 @@ namespace NHibernate.Collection
 		/// <param name="i"></param>
 		/// <param name="elemType"></param>
 		/// <returns></returns>
-		public abstract bool NeedsUpdating(object entry, int i, IType elemType);
+		public abstract Task<bool> NeedsUpdating(object entry, int i, IType elemType);
 
 		/// <summary>
 		/// Reads the row from the <see cref="IDataReader"/>.
@@ -841,7 +841,7 @@ namespace NHibernate.Collection
 		/// <param name="i"></param>
 		/// <param name="elemType"></param>
 		/// <returns></returns>
-		public abstract bool NeedsInserting(object entry, int i, IType elemType);
+		public abstract Task<bool> NeedsInserting(object entry, int i, IType elemType);
 
 		/// <summary>
 		/// Get the index of the given collection entry

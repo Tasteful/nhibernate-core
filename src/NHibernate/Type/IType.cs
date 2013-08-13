@@ -70,11 +70,11 @@ namespace NHibernate.Type
 		/// <include file='IType.cs.xmldoc' 
 		///		path='//members[@type="IType"]/member[@name="M:IType.IsDirty"]/*'
 		/// /> 
-		bool IsDirty(object old, object current, ISessionImplementor session);
+		Task<bool> IsDirty(object old, object current, ISessionImplementor session);
 
-		bool IsDirty(object old, object current, bool[] checkable, ISessionImplementor session);
+		Task<bool> IsDirty(object old, object current, bool[] checkable, ISessionImplementor session);
 
-		bool IsModified(object oldHydratedState, object currentState, bool[] checkable, ISessionImplementor session);
+		Task<bool> IsModified(object oldHydratedState, object currentState, bool[] checkable, ISessionImplementor session);
 
 		/// <include file='IType.cs.xmldoc' 
 		///		path='//members[@type="IType"]/member[@name="M:IType.NullSafeGet(IDataReader, String[], ISessionImplementor, Object)"]/*'
@@ -89,12 +89,12 @@ namespace NHibernate.Type
 		/// <include file='IType.cs.xmldoc' 
 		///		path='//members[@type="IType"]/member[@name="M:IType.NullSafeSet(settable)"]/*'
 		/// /> 
-		void NullSafeSet(IDbCommand st, object value, int index, bool[] settable, ISessionImplementor session);
+		Task NullSafeSet(IDbCommand st, object value, int index, bool[] settable, ISessionImplementor session);
 
 		/// <include file='IType.cs.xmldoc' 
 		///		path='//members[@type="IType"]/member[@name="M:IType.NullSafeSet"]/*'
 		/// /> 
-		void NullSafeSet(IDbCommand st, object value, int index, ISessionImplementor session);
+		Task NullSafeSet(IDbCommand st, object value, int index, ISessionImplementor session);
 
 		/// <include file='IType.cs.xmldoc' 
 		///		path='//members[@type="IType"]/member[@name="M:IType.ToString"]/*'

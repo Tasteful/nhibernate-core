@@ -90,13 +90,15 @@ namespace NHibernate.Type
 			return ResolveIdentifier(null, session, owner);
 		}
 
-		public override void NullSafeSet(IDbCommand st, object value, int index, bool[] settable, ISessionImplementor session)
+		public override Task NullSafeSet(IDbCommand st, object value, int index, bool[] settable, ISessionImplementor session)
 		{
 			// NOOP
+			return Task.FromResult(0);
 		}
 
-		public override void NullSafeSet(IDbCommand cmd, object value, int index, ISessionImplementor session)
+		public override Task NullSafeSet(IDbCommand cmd, object value, int index, ISessionImplementor session)
 		{
+			return Task.FromResult(0);
 		}
 
 		public override SqlType[] SqlTypes(IMapping session)
@@ -185,12 +187,12 @@ namespace NHibernate.Type
 			return session.Factory.GetCollectionPersister(role);
 		}
 
-		public override bool IsDirty(object old, object current, ISessionImplementor session)
+		public override async Task<bool> IsDirty(object old, object current, ISessionImplementor session)
 		{
 			// collections don't dirty an unversioned parent entity
 
 			// TODO: I don't like this implementation; it would be better if this was handled by SearchForDirtyCollections();
-			return IsOwnerVersioned(session) && base.IsDirty(old, current, session);
+			return IsOwnerVersioned(session) && await base.IsDirty(old, current, session);
 		}
 
 		/// <summary> 
@@ -448,15 +450,15 @@ namespace NHibernate.Type
 			get { return isEmbeddedInXML; }
 		}
 
-		public override bool IsDirty(object old, object current, bool[] checkable, ISessionImplementor session)
+		public override Task<bool> IsDirty(object old, object current, bool[] checkable, ISessionImplementor session)
 		{
 			return IsDirty(old, current, session);
 		}
 
-		public override bool IsModified(object oldHydratedState, object currentState, bool[] checkable,
+		public override Task<bool> IsModified(object oldHydratedState, object currentState, bool[] checkable,
 										ISessionImplementor session)
 		{
-			return false;
+			return Task.FromResult(false);
 		}
 
 		/// <summary>

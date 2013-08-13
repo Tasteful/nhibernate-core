@@ -77,15 +77,15 @@ namespace NHibernate.Dialect.Lock
 				IDbCommand st = session.Batcher.PrepareCommand(CommandType.Text, sql, lockable.IdAndVersionSqlTypes);
 				try
 				{
-					lockable.VersionType.NullSafeSet(st, version, 1, session);
+					await lockable.VersionType.NullSafeSet(st, version, 1, session);
 					int offset = 2;
 
-					lockable.IdentifierType.NullSafeSet(st, id, offset, session);
+					await lockable.IdentifierType.NullSafeSet(st, id, offset, session);
 					offset += lockable.IdentifierType.GetColumnSpan(factory);
 
 					if (lockable.IsVersioned)
 					{
-						lockable.VersionType.NullSafeSet(st, version, offset, session);
+						await lockable.VersionType.NullSafeSet(st, version, offset, session);
 					}
 
 					int affected = await session.Batcher.ExecuteNonQuery(st);

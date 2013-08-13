@@ -101,7 +101,7 @@ namespace NHibernate.Collection.Generic
 			return await GetOrphans(sn, set.ToArray(), entityName, Session);
 		}
 
-		public override bool EqualsSnapshot(ICollectionPersister persister)
+		public override async Task<bool> EqualsSnapshot(ICollectionPersister persister)
 		{
 			var elementType = persister.ElementType;
 			var snapshot = (ISetSnapshot<T>)GetSnapshot();
@@ -110,10 +110,17 @@ namespace NHibernate.Collection.Generic
 				return false;
 			}
 
-			return !(from object obj in set
-					 let oldValue = snapshot[(T)obj]
-					 where oldValue == null || elementType.IsDirty(oldValue, obj, Session)
-					 select obj).Any();
+			bool any = false;
+			foreach (object obj in set)
+			{
+				T oldValue = snapshot[(T)obj];
+				if (oldValue == null || await elementType.IsDirty(oldValue, obj, Session))
+				{
+					any = true;
+					break;
+				}
+			}
+			return !any;
 		}
 
 		public override bool IsSnapshotEmpty(object snapshot)
@@ -212,7 +219,7 @@ namespace NHibernate.Collection.Generic
 			return result;
 		}
 
-		public override IEnumerable GetDeletes(ICollectionPersister persister, bool indexIsFormula)
+		public override async Task<IEnumerable> GetDeletes(ICollectionPersister persister, bool indexIsFormula)
 		{
 			IType elementType = persister.ElementType;
 			var sn = (ISetSnapshot<T>)GetSnapshot();
@@ -220,27 +227,36 @@ namespace NHibernate.Collection.Generic
 
 			deletes.AddRange(sn.Where(obj => !set.Contains(obj)));
 
-			deletes.AddRange(from obj in set
-							 let oldValue = sn[obj]
-							 where oldValue != null && elementType.IsDirty(obj, oldValue, Session)
-							 select oldValue);
+			//deletes.AddRange(from obj in set
+			//				 let oldValue = sn[obj]
+			//				 where oldValue != null && await elementType.IsDirty(obj, oldValue, Session)
+			//				 select oldValue);
+
+			foreach (T obj in set)
+			{
+				var oldValue = sn[obj];
+				if (oldValue != null && await elementType.IsDirty(obj, oldValue, Session))
+				{
+					deletes.Add(oldValue);
+				}
+			}
 
 			return deletes;
 		}
 
-		public override bool NeedsInserting(object entry, int i, IType elemType)
+		public override async Task<bool> NeedsInserting(object entry, int i, IType elemType)
 		{
 			var sn = (ISetSnapshot<T>)GetSnapshot();
 			object oldKey = sn[(T)entry];
 			// note that it might be better to iterate the snapshot but this is safe,
 			// assuming the user implements equals() properly, as required by the PersistentSet
 			// contract!
-			return oldKey == null || elemType.IsDirty(oldKey, entry, Session);
+			return oldKey == null || await elemType.IsDirty(oldKey, entry, Session);
 		}
 
-		public override bool NeedsUpdating(object entry, int i, IType elemType)
+		public override Task<bool> NeedsUpdating(object entry, int i, IType elemType)
 		{
-			return false;
+			return Task.FromResult(false);
 		}
 
 		public override object GetIndex(object entry, int i, ICollectionPersister persister)

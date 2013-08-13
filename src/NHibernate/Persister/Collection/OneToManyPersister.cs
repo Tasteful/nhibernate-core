@@ -173,7 +173,7 @@ namespace NHibernate.Persister.Collection
 
 						foreach (object entry in entries)
 						{
-							if (collection.NeedsUpdating(entry, i, ElementType))
+							if (await collection.NeedsUpdating(entry, i, ElementType))
 							{
 								// will still be issued when it used to be null
 								if (st == null)
@@ -194,7 +194,7 @@ namespace NHibernate.Persister.Collection
 									}
 								}
 
-								int loc = WriteKey(st, id, offset, session);
+								int loc = await WriteKey(st, id, offset, session);
 								WriteElementToWhere(st, collection.GetSnapshotElement(entry, i), loc, session);
 								if (useBatch)
 								{
@@ -241,7 +241,7 @@ namespace NHibernate.Persister.Collection
 						IEnumerable entries = collection.Entries(this);
 						foreach (object entry in entries)
 						{
-							if (collection.NeedsUpdating(entry, i, ElementType))
+							if (await collection.NeedsUpdating(entry, i, ElementType))
 							{
 								if (useBatch)
 								{
@@ -256,10 +256,10 @@ namespace NHibernate.Persister.Collection
 								}
 
 								//offset += expectation.Prepare(st, Factory.ConnectionProvider.Driver);
-								int loc = WriteKey(st, id, offset, session);
+								int loc = await WriteKey(st, id, offset, session);
 								if (HasIndex && !indexContainsFormula)
 								{
-									loc = WriteIndexToWhere(st, collection.GetIndex(entry, i, this), loc, session);
+									loc = await WriteIndexToWhere(st, collection.GetIndex(entry, i, this), loc, session);
 								}
 								WriteElementToWhere(st, collection.GetElement(entry), loc, session);
 								if (useBatch)

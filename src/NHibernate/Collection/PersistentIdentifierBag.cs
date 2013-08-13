@@ -172,7 +172,7 @@ namespace NHibernate.Collection
 			return entry != null;
 		}
 
-		public override bool EqualsSnapshot(ICollectionPersister persister)
+		public override async Task<bool> EqualsSnapshot(ICollectionPersister persister)
 		{
 			IType elementType = persister.ElementType;
 			var snap = (ISet<SnapshotElement>) GetSnapshot();
@@ -185,7 +185,7 @@ namespace NHibernate.Collection
 				object val = values[i];
 				object id = GetIdentifier(i);
 				object old = snap.Where(x=> Equals(x.Id, id)).Select(x=> x.Value).FirstOrDefault();
-				if (elementType.IsDirty(old, val, Session))
+				if (await elementType.IsDirty(old, val, Session))
 				{
 					return false;
 				}
@@ -199,7 +199,7 @@ namespace NHibernate.Collection
 			return ((ISet<SnapshotElement>) snapshot).Count == 0;
 		}
 
-		public override IEnumerable GetDeletes(ICollectionPersister persister, bool indexIsFormula)
+		public override Task<IEnumerable> GetDeletes(ICollectionPersister persister, bool indexIsFormula)
 		{
 			var snap = (ISet<SnapshotElement>)GetSnapshot();
 			ArrayList deletes = new ArrayList(snap.Select(x=> x.Id).ToArray());
@@ -210,7 +210,7 @@ namespace NHibernate.Collection
 					deletes.Remove(GetIdentifier(i));
 				}
 			}
-			return deletes;
+			return Task.FromResult<IEnumerable>(deletes);
 		}
 
 		public override object GetIndex(object entry, int i, ICollectionPersister persister)
@@ -230,16 +230,16 @@ namespace NHibernate.Collection
 			return snap.Where(x => Equals(x.Id, id)).Select(x => x.Value).FirstOrDefault();
 		}
 
-		public override bool NeedsInserting(object entry, int i, IType elemType)
+		public override Task<bool> NeedsInserting(object entry, int i, IType elemType)
 		{
 			var snap = (ISet<SnapshotElement>)GetSnapshot();
 			object id = GetIdentifier(i);
 			object valueFound = snap.Where(x => Equals(x.Id, id)).Select(x => x.Value).FirstOrDefault();
 
-			return entry != null && (id == null || valueFound == null);
+			return Task.FromResult(entry != null && (id == null || valueFound == null));
 		}
 
-		public override bool NeedsUpdating(object entry, int i, IType elemType)
+		public override async Task<bool> NeedsUpdating(object entry, int i, IType elemType)
 		{
 			if (entry == null)
 			{
@@ -254,7 +254,7 @@ namespace NHibernate.Collection
 			}
 
 			object old = snap.Where(x => Equals(x.Id, id)).Select(x => x.Value).FirstOrDefault();
-			return old != null && elemType.IsDirty(old, entry, Session);
+			return old != null && await elemType.IsDirty(old, entry, Session);
 		}
 
 		public override object ReadFrom(IDataReader reader, ICollectionPersister persister, ICollectionAliases descriptor, object owner)

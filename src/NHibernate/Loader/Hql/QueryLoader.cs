@@ -403,7 +403,7 @@ namespace NHibernate.Loader.Hql
 				stopWath.Start();
 			}
 
-			IDbCommand cmd = PrepareQueryCommand(queryParameters, false, session);
+			IDbCommand cmd = await PrepareQueryCommand(queryParameters, false, session);
 
 			// This IDataReader is disposed of in EnumerableImpl.Dispose
 			IDataReader rs = await GetResultSet(cmd, queryParameters.HasAutoDiscoverScalarTypes, false, queryParameters.RowSelection, session);

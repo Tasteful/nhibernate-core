@@ -728,14 +728,14 @@ namespace NHibernate.Persister.Collection
 			return KeyType.NullSafeGet(dr, aliases, session, null);
 		}
 
-		protected int WriteKey(IDbCommand st, object id, int i, ISessionImplementor session)
+		protected async Task<int> WriteKey(IDbCommand st, object id, int i, ISessionImplementor session)
 		{
 			if (id == null)
 			{
 				throw new ArgumentNullException("id", "Null key for collection: " + role);
 			}
 
-			KeyType.NullSafeSet(st, id, i, session);
+			await KeyType.NullSafeSet(st, id, i, session);
 			return i + keyColumnAliases.Length;
 		}
 
@@ -772,20 +772,20 @@ namespace NHibernate.Persister.Collection
 			return i + elementColumnAliases.Length;
 		}
 
-		protected int WriteIndexToWhere(IDbCommand st, object index, int i, ISessionImplementor session)
+		protected async Task<int> WriteIndexToWhere(IDbCommand st, object index, int i, ISessionImplementor session)
 		{
 			if (indexContainsFormula)
 			{
 				throw new AssertionFailure("cannot use a formula-based index in the where condition");
 			}
 
-			IndexType.NullSafeSet(st, IncrementIndexByBase(index), i, session);
+			await IndexType.NullSafeSet(st, IncrementIndexByBase(index), i, session);
 			return i + indexColumnAliases.Length;
 		}
 
-		protected int WriteIdentifier(IDbCommand st, object idx, int i, ISessionImplementor session)
+		protected async Task<int> WriteIdentifier(IDbCommand st, object idx, int i, ISessionImplementor session)
 		{
-			IdentifierType.NullSafeSet(st, idx, i, session);
+			await IdentifierType.NullSafeSet(st, idx, i, session);
 			return i + 1;
 		}
 
@@ -1031,7 +1031,7 @@ namespace NHibernate.Persister.Collection
 					try
 					{
 						//offset += expectation.Prepare(st, factory.ConnectionProvider.Driver);
-						WriteKey(st, id, offset, session);
+						await WriteKey(st, id, offset, session);
 						if (useBatch)
 						{
 							session.Batcher.AddToBatch(expectation);
@@ -1148,7 +1148,7 @@ namespace NHibernate.Persister.Collection
 				try
 				{
 					// delete all the deleted entries
-					IEnumerator deletes = collection.GetDeletes(this, !deleteByIndex).GetEnumerator();
+					IEnumerator deletes = (await collection.GetDeletes(this, !deleteByIndex)).GetEnumerator();
 					if (deletes.MoveNext())
 					{
 						deletes.Reset();
@@ -1180,15 +1180,15 @@ namespace NHibernate.Persister.Collection
 								int loc = offset;
 								if (hasIdentifier)
 								{
-									WriteIdentifier(st, entry, loc, session);
+									await WriteIdentifier(st, entry, loc, session);
 								}
 								else
 								{
-									loc = WriteKey(st, id, loc, session);
+									loc = await WriteKey(st, id, loc, session);
 
 									if (deleteByIndex)
 									{
-										WriteIndexToWhere(st, entry, loc, session);
+										await WriteIndexToWhere(st, entry, loc, session);
 									}
 									else
 									{
@@ -1265,7 +1265,7 @@ namespace NHibernate.Persister.Collection
 					IEnumerable entries = collection.Entries(this);
 					foreach (object entry in entries)
 					{
-						if (collection.NeedsInserting(entry, i, elementType))
+						if (await collection.NeedsInserting(entry, i, elementType))
 						{
 							object entryId;
 							if (!IsIdentifierAssignedByInsert)
@@ -1523,7 +1523,7 @@ namespace NHibernate.Persister.Collection
 				IDataReader rs = null;
 				try
 				{
-					KeyType.NullSafeSet(st, key, 0, session);
+					await KeyType.NullSafeSet(st, key, 0, session);
 					rs = await session.Batcher.ExecuteReader(st);
 					return rs.Read() ? Convert.ToInt32(rs.GetValue(0)) - baseIndex : 0;
 				}
@@ -1562,8 +1562,8 @@ namespace NHibernate.Persister.Collection
 				IDataReader rs = null;
 				try
 				{
-					KeyType.NullSafeSet(st, key, 0, session);
-					indexOrElementType.NullSafeSet(st, indexOrElement, keyColumnNames.Length, session);
+					await KeyType.NullSafeSet(st, key, 0, session);
+					await indexOrElementType.NullSafeSet(st, indexOrElement, keyColumnNames.Length, session);
 					rs = await session.Batcher.ExecuteReader(st);
 					try
 					{
@@ -1602,8 +1602,8 @@ namespace NHibernate.Persister.Collection
 				IDataReader rs = null;
 				try
 				{
-					KeyType.NullSafeSet(st, key, 0, session);
-					IndexType.NullSafeSet(st, IncrementIndexByBase(index), keyColumnNames.Length, session);
+					await KeyType.NullSafeSet(st, key, 0, session);
+					await IndexType.NullSafeSet(st, IncrementIndexByBase(index), keyColumnNames.Length, session);
 					rs = await session.Batcher.ExecuteReader(st);
 					try
 					{
@@ -1970,11 +1970,11 @@ namespace NHibernate.Persister.Collection
 			try
 			{
 				//offset += expectation.Prepare(st, factory.ConnectionProvider.Driver);
-				offset = WriteKey(st, ownerId, offset, session);
+				offset = await WriteKey(st, ownerId, offset, session);
 				if (hasIdentifier)
 				{
 					entryId = collection.GetIdentifier(entry, index);
-					offset = WriteIdentifier(st, entryId, offset, session);
+					offset = await WriteIdentifier(st, entryId, offset, session);
 				}
 				if (hasIndex)
 				{
@@ -2101,10 +2101,10 @@ namespace NHibernate.Persister.Collection
 				get { return entry; }
 			}
 
-			public void BindValues(IDbCommand cm)
+			public async Task BindValues(IDbCommand cm)
 			{
 				int offset = 0;
-				offset = persister.WriteKey(cm, ownerId, offset, session);
+				offset = await persister.WriteKey(cm, ownerId, offset, session);
 				if (persister.HasIndex)
 				{
 					offset = persister.WriteIndex(cm, collection.GetIndex(entry, index, persister), offset, session);

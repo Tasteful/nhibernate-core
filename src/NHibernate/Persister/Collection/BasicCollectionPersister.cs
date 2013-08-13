@@ -172,7 +172,7 @@ namespace NHibernate.Persister.Collection
 				int count = 0;
 				foreach (object entry in entries)
 				{
-					if (collection.NeedsUpdating(entry, i, ElementType))
+					if (await collection.NeedsUpdating(entry, i, ElementType))
 					{
 						int offset = 0;
 						if (useBatch)
@@ -198,14 +198,14 @@ namespace NHibernate.Persister.Collection
 							int loc = WriteElement(st, collection.GetElement(entry), offset, session);
 							if (hasIdentifier)
 							{
-								WriteIdentifier(st, collection.GetIdentifier(entry, i), loc, session);
+								await WriteIdentifier(st, collection.GetIdentifier(entry, i), loc, session);
 							}
 							else
 							{
-								loc = WriteKey(st, id, loc, session);
+								loc = await WriteKey(st, id, loc, session);
 								if (HasIndex && !indexContainsFormula)
 								{
-									WriteIndexToWhere(st, collection.GetIndex(entry, i, this), loc, session);
+									await WriteIndexToWhere(st, collection.GetIndex(entry, i, this), loc, session);
 								}
 								else
 								{

@@ -68,7 +68,7 @@ namespace NHibernate.Hql.Ast.ANTLR.Exec
 					st = session.Batcher.PrepareCommand(CommandType.Text, sql, parameterTypes);
 					foreach (var parameterSpecification in Parameters)
 					{
-						parameterSpecification.Bind(st, sqlQueryParametersList, parameters, session);
+						await parameterSpecification.Bind(st, sqlQueryParametersList, parameters, session);
 					}
 
 					if (selection != null)

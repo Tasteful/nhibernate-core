@@ -53,14 +53,14 @@ namespace NHibernate.Type
 			return key == null ? null : values[key];
 		}
 
-		public override void NullSafeSet(IDbCommand st, object value, int index, bool[] settable, ISessionImplementor session)
+		public override async Task NullSafeSet(IDbCommand st, object value, int index, bool[] settable, ISessionImplementor session)
 		{
-			if (settable[0]) NullSafeSet(st, value, index, session);
+			if (settable[0]) await NullSafeSet(st, value, index, session);
 		}
 
-		public override void NullSafeSet(IDbCommand st,object value,int index,ISessionImplementor session)
+		public override Task NullSafeSet(IDbCommand st,object value,int index,ISessionImplementor session)
 		{
-			baseType.NullSafeSet(st, value == null ? null : keys[(string)value], index, session);
+			return baseType.NullSafeSet(st, value == null ? null : keys[(string)value], index, session);
 		}
 
 		public override string ToLoggableString(object value, ISessionFactoryImplementor factory)
@@ -83,9 +83,9 @@ namespace NHibernate.Type
 			get { return false; }
 		}
 
-		public override bool IsDirty(object old, object current, bool[] checkable, ISessionImplementor session)
+		public override async Task<bool> IsDirty(object old, object current, bool[] checkable, ISessionImplementor session)
 		{
-			return checkable[0] && IsDirty(old, current, session);
+			return checkable[0] && await IsDirty(old, current, session);
 		}
 
 		public override object FromXMLNode(XmlNode xml, IMapping factory)

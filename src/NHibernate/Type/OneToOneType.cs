@@ -1,5 +1,6 @@
 using System;
 using System.Data;
+using System.Threading.Tasks;
 using NHibernate.Engine;
 using NHibernate.Persister.Entity;
 using NHibernate.SqlTypes;
@@ -37,14 +38,16 @@ namespace NHibernate.Type
 			this.entityName = entityName;
 		}
 
-		public override void NullSafeSet(IDbCommand st, object value, int index, bool[] settable, ISessionImplementor session)
+		public override Task NullSafeSet(IDbCommand st, object value, int index, bool[] settable, ISessionImplementor session)
 		{
 			//nothing to do
+			return Task.FromResult(0);
 		}
 
-		public override void NullSafeSet(IDbCommand cmd, object value, int index, ISessionImplementor session)
+		public override Task NullSafeSet(IDbCommand cmd, object value, int index, ISessionImplementor session)
 		{
 			//nothing to do
+			return Task.FromResult(0);
 		}
 
 		public override bool IsOneToOne
@@ -52,19 +55,19 @@ namespace NHibernate.Type
 			get { return true; }
 		}
 
-		public override bool IsDirty(object old, object current, ISessionImplementor session)
+		public override Task<bool> IsDirty(object old, object current, ISessionImplementor session)
 		{
-			return false;
+			return Task.FromResult(false);
 		}
 
-		public override bool IsDirty(object old, object current, bool[] checkable, ISessionImplementor session)
+		public override Task<bool> IsDirty(object old, object current, bool[] checkable, ISessionImplementor session)
 		{
-			return false;
+			return Task.FromResult(false);
 		}
 
-		public override bool IsModified(object old, object current, bool[] checkable, ISessionImplementor session)
+		public override Task<bool> IsModified(object old, object current, bool[] checkable, ISessionImplementor session)
 		{
-			return false;
+			return Task.FromResult(false);
 		}
 
 		public override bool IsNull(object owner, ISessionImplementor session)

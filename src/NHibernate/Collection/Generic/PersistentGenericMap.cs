@@ -49,7 +49,7 @@ namespace NHibernate.Collection.Generic
 			map = (IDictionary)gmap;
 		}
 
-		public override IEnumerable GetDeletes(ICollectionPersister persister, bool indexIsFormula)
+		public override Task<IEnumerable> GetDeletes(ICollectionPersister persister, bool indexIsFormula)
 		{
 			IList deletes = new List<object>();
 			var sn = (IDictionary<TKey, TValue>)GetSnapshot();
@@ -61,23 +61,23 @@ namespace NHibernate.Collection.Generic
 					deletes.Add(indexIsFormula ? e.Value : key);
 				}
 			}
-			return deletes;
+			return Task.FromResult<IEnumerable>(deletes);
 		}
 
-		public override bool NeedsInserting(object entry, int i, IType elemType)
+		public override Task<bool> NeedsInserting(object entry, int i, IType elemType)
 		{
 			var sn = (IDictionary)GetSnapshot();
 			var e = (KeyValuePair<TKey, TValue>)entry;
-			return !sn.Contains(e.Key);
+			return Task.FromResult(!sn.Contains(e.Key));
 		}
 
-		public override bool NeedsUpdating(object entry, int i, IType elemType)
+		public override async Task<bool> NeedsUpdating(object entry, int i, IType elemType)
 		{
 			var sn = (IDictionary)GetSnapshot();
 			var e = (KeyValuePair<TKey, TValue>)entry;
 			var snValue = sn[e.Key];
 			var isNew = !sn.Contains(e.Key);
-			return e.Value != null && snValue != null && elemType.IsDirty(snValue, e.Value, Session)
+			return e.Value != null && snValue != null && await elemType.IsDirty(snValue, e.Value, Session)
 				|| (!isNew && ((e.Value == null) != (snValue == null)));
 		}
 

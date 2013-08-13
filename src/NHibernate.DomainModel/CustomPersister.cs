@@ -261,11 +261,11 @@ namespace NHibernate.DomainModel
 			throw new NotSupportedException();
 		}
 
-		public int[] FindDirty(object[] currentState, object[] previousState, object entity, ISessionImplementor session)
+		public Task<int[]> FindDirty(object[] currentState, object[] previousState, object entity, ISessionImplementor session)
 		{
 			if (!EqualsHelper.Equals(currentState[0], previousState[0]))
 			{
-				return new int[] { 0 };
+				return Task.FromResult(new int[] { 0 });
 			}
 			else
 			{
@@ -273,11 +273,11 @@ namespace NHibernate.DomainModel
 			}
 		}
 
-		public int[] FindModified(object[] old, object[] current, object entity, ISessionImplementor session)
+		public Task<int[]> FindModified(object[] old, object[] current, object entity, ISessionImplementor session)
 		{
 			if (!EqualsHelper.Equals(old[0], current[0]))
 			{
-				return new int[] { 0 };
+				return Task.FromResult(new int[] { 0 });
 			}
 			else
 			{

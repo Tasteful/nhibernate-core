@@ -107,15 +107,17 @@ namespace NHibernate.Type
 			return NullSafeGet(rs, new string[] {name}, session, owner);
 		}
 
-		public override void NullSafeSet(IDbCommand st, object value, int index, bool[] settable, ISessionImplementor session)
+		public override Task NullSafeSet(IDbCommand st, object value, int index, bool[] settable, ISessionImplementor session)
 		{
 			if (settable[0]) 
 				userType.NullSafeSet(st, value, index);
+			return Task.FromResult(0);
 		}
 
-		public override void NullSafeSet(IDbCommand cmd, object value, int index, ISessionImplementor session)
+		public override Task NullSafeSet(IDbCommand cmd, object value, int index, ISessionImplementor session)
 		{
 			userType.NullSafeSet(cmd, value, index);
+			return Task.FromResult(0);
 		}
 
 		/// <summary>
@@ -173,9 +175,9 @@ namespace NHibernate.Type
 			return userType.GetHashCode(x);
 		}
 
-		public override bool IsDirty(object old, object current, bool[] checkable, ISessionImplementor session)
+		public override async Task<bool> IsDirty(object old, object current, bool[] checkable, ISessionImplementor session)
 		{
-			return checkable[0] && IsDirty(old, current, session);
+			return checkable[0] && await IsDirty(old, current, session);
 		}
 
 		public object StringToObject(string xml)

@@ -81,7 +81,7 @@ namespace NHibernate.Collection
 			bag = (IList) persister.CollectionType.Instantiate(anticipatedSize);
 		}
 
-		public override bool EqualsSnapshot(ICollectionPersister persister)
+		public override Task<bool> EqualsSnapshot(ICollectionPersister persister)
 		{
 			IType elementType = persister.ElementType;
 			EntityMode entityMode = Session.EntityMode;
@@ -89,18 +89,18 @@ namespace NHibernate.Collection
 			IList sn = (IList) GetSnapshot();
 			if (sn.Count != bag.Count)
 			{
-				return false;
+				return Task.FromResult(false);
 			}
 
 			foreach (object elt in bag)
 			{
 				if (CountOccurrences(elt, bag, elementType, entityMode) != CountOccurrences(elt, sn, elementType, entityMode))
 				{
-					return false;
+					return Task.FromResult(false);
 				}
 			}
 
-			return true;
+			return Task.FromResult(true);
 		}
 
 		public override bool IsSnapshotEmpty(object snapshot)
@@ -208,7 +208,7 @@ namespace NHibernate.Collection
 		// Anyway, here we implement <set> semantics for a
 		// <one-to-many> <bag>!
 
-		public override IEnumerable GetDeletes(ICollectionPersister persister, bool indexIsFormula)
+		public override Task<IEnumerable> GetDeletes(ICollectionPersister persister, bool indexIsFormula)
 		{
 			IType elementType = persister.ElementType;
 			EntityMode entityMode = Session.EntityMode;
@@ -239,10 +239,10 @@ namespace NHibernate.Collection
 					deletes.Add(old);
 				}
 			}
-			return deletes;
+			return Task.FromResult<IEnumerable>(deletes);
 		}
 
-		public override bool NeedsInserting(object entry, int i, IType elemType)
+		public override Task<bool> NeedsInserting(object entry, int i, IType elemType)
 		{
 			IList sn = (IList) GetSnapshot();
 			EntityMode entityMode = Session.EntityMode;
@@ -250,7 +250,7 @@ namespace NHibernate.Collection
 			if (sn.Count > i && elemType.IsSame(sn[i], entry, entityMode))
 			{
 				// a shortcut if its location didn't change
-				return false;
+				return Task.FromResult(false);
 			}
 			else
 			{
@@ -259,16 +259,16 @@ namespace NHibernate.Collection
 				{
 					if (elemType.IsEqual(old, entry, entityMode))
 					{
-						return false;
+						return Task.FromResult(false);
 					}
 				}
-				return true;
+				return Task.FromResult(true);
 			}
 		}
 
-		public override bool NeedsUpdating(object entry, int i, IType elemType)
+		public override Task<bool> NeedsUpdating(object entry, int i, IType elemType)
 		{
-			return false;
+			return Task.FromResult(false);
 		}
 
 		public override object GetIndex(object entry, int i, ICollectionPersister persister)

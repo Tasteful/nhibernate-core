@@ -155,7 +155,7 @@ namespace NHibernate.Type
 			}
 		}
 
-		protected internal object GetIdentifier(object value, ISessionImplementor session)
+		protected internal async Task<object> GetIdentifier(object value, ISessionImplementor session)
 		{
 			if (IsNotEmbedded(session))
 			{
@@ -164,7 +164,7 @@ namespace NHibernate.Type
 
 			if (IsReferenceToPrimaryKey)
 			{
-				return ForeignKeys.GetEntityIdentifierIfNotUnsaved(GetAssociatedEntityName(), value, session); //tolerates nulls
+				return await ForeignKeys.GetEntityIdentifierIfNotUnsaved(GetAssociatedEntityName(), value, session); //tolerates nulls
 			}
 			else if (value == null)
 			{
@@ -181,7 +181,7 @@ namespace NHibernate.Type
 				IType type = entityPersister.GetPropertyType(uniqueKeyPropertyName);
 				if (type.IsEntityType)
 				{
-					propertyValue = ((EntityType)type).GetIdentifier(propertyValue, session);
+					propertyValue = await ((EntityType)type).GetIdentifier(propertyValue, session);
 				}
 
 				return propertyValue;
@@ -280,7 +280,7 @@ namespace NHibernate.Type
 				}
 				else
 				{
-					object id = GetIdentifier(original, session);
+					object id = await GetIdentifier(original, session);
 					if (id == null)
 					{
 						throw new AssertionFailure("non-transient entity has a null id");

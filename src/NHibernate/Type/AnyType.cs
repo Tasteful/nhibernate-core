@@ -113,7 +113,7 @@ namespace NHibernate.Type
 			throw new NotSupportedException("any mappings may not form part of a property-ref");
 		}
 
-		public override void NullSafeSet(IDbCommand st, object value, int index, bool[] settable, ISessionImplementor session)
+		public override async Task NullSafeSet(IDbCommand st, object value, int index, bool[] settable, ISessionImplementor session)
 		{
 			object id;
 			string entityName;
@@ -131,23 +131,23 @@ namespace NHibernate.Type
 			// metaType is assumed to be single-column type
 			if (settable == null || settable[0])
 			{
-				metaType.NullSafeSet(st, entityName, index, session);
+				await metaType.NullSafeSet(st, entityName, index, session);
 			}
 			if (settable == null)
 			{
-				identifierType.NullSafeSet(st, id, index + 1, session);
+				await identifierType.NullSafeSet(st, id, index + 1, session);
 			}
 			else
 			{
 				bool[] idsettable = new bool[settable.Length - 1];
 				Array.Copy(settable, 1, idsettable, 0, idsettable.Length);
-				identifierType.NullSafeSet(st, id, index + 1, idsettable, session);
+				await identifierType.NullSafeSet(st, id, index + 1, idsettable, session);
 			}
 		}
 
-		public override void NullSafeSet(IDbCommand st, object value, int index, ISessionImplementor session)
+		public override Task NullSafeSet(IDbCommand st, object value, int index, ISessionImplementor session)
 		{
-			NullSafeSet(st, value, index, null, session);
+			return NullSafeSet(st, value, index, null, session);
 		}
 
 		public override System.Type ReturnedClass
@@ -343,13 +343,13 @@ namespace NHibernate.Type
 			get { return false; }
 		}
 
-		public override bool IsDirty(object old, object current, bool[] checkable, ISessionImplementor session)
+		public override Task<bool> IsDirty(object old, object current, bool[] checkable, ISessionImplementor session)
 		{
 			//TODO!!!
 			return IsDirty(old, current, session);
 		}
 
-		public override bool IsModified(object old, object current, bool[] checkable, ISessionImplementor session)
+		public override async Task<bool> IsModified(object old, object current, bool[] checkable, ISessionImplementor session)
 		{
 			if (current == null)
 				return old != null;
@@ -359,7 +359,7 @@ namespace NHibernate.Type
 			bool[] idcheckable = new bool[checkable.Length - 1];
 			Array.Copy(checkable, 1, idcheckable, 0, idcheckable.Length);
 			return (checkable[0] && !holder.entityName.Equals(session.BestGuessEntityName(current))) || 
-				identifierType.IsModified(holder.id, Id(current, session), idcheckable, session);
+				await identifierType.IsModified(holder.id, Id(current, session), idcheckable, session);
 		}
 
 		public bool[] PropertyNullability

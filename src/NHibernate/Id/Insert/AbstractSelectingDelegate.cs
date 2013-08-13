@@ -35,7 +35,7 @@ namespace NHibernate.Id.Insert
 				IDbCommand insert = session.Batcher.PrepareCommand(insertSQL.CommandType, insertSQL.Text, insertSQL.ParameterTypes);
 				try
 				{
-					binder.BindValues(insert);
+					await binder.BindValues(insert);
 					await session.Batcher.ExecuteNonQuery(insert);
 				}
 				finally
@@ -57,7 +57,7 @@ namespace NHibernate.Id.Insert
 				IDbCommand idSelect = session.Batcher.PrepareCommand(CommandType.Text, selectSQL, ParametersTypes);
 				try
 				{
-					BindParameters(session, idSelect, binder.Entity);
+					await BindParameters(session, idSelect, binder.Entity);
 					IDataReader rs = await session.Batcher.ExecuteReader(idSelect);
 					try
 					{
@@ -98,7 +98,10 @@ namespace NHibernate.Id.Insert
 		/// <param name="session">The session </param>
 		/// <param name="ps">The prepared <see cref="SelectSQL"/> command </param>
 		/// <param name="entity">The entity being saved. </param>
-		protected internal virtual void BindParameters(ISessionImplementor session, IDbCommand ps, object entity) { }
+		protected internal virtual Task BindParameters(ISessionImplementor session, IDbCommand ps, object entity)
+		{
+			return Task.FromResult(0);
+		}
 
 		#region NH Specific
 

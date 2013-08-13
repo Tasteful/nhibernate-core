@@ -39,7 +39,7 @@ namespace NHibernate.Id.Insert
 				IDbCommand insert = Prepare(insertSQL, session);
 				try
 				{
-					binder.BindValues(insert);
+					await binder.BindValues(insert);
 					return await ExecuteAndExtract(insert, session);
 				}
 				finally

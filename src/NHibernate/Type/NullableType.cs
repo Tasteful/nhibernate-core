@@ -1,5 +1,6 @@
 using System;
 using System.Data;
+using System.Threading.Tasks;
 using System.Xml;
 
 using NHibernate.Engine;
@@ -116,9 +117,9 @@ namespace NHibernate.Type
 		/// <returns></returns>
 		public abstract object FromStringValue(string xml);
 
-		public override void NullSafeSet(IDbCommand st, object value, int index, bool[] settable, ISessionImplementor session)
+		public override async Task NullSafeSet(IDbCommand st, object value, int index, bool[] settable, ISessionImplementor session)
 		{
-			if (settable[0]) NullSafeSet(st, value, index);
+			if (settable[0]) await NullSafeSet(st, value, index);
 		}
 
 		/// <include file='IType.cs.xmldoc' 
@@ -134,9 +135,9 @@ namespace NHibernate.Type
 		/// should be in <see cref="NullSafeSet(IDbCommand, object, int)" />.
 		/// </para>
 		/// </remarks>
-		public override sealed void NullSafeSet(IDbCommand st, object value, int index, ISessionImplementor session)
+		public override sealed Task NullSafeSet(IDbCommand st, object value, int index, ISessionImplementor session)
 		{
-			NullSafeSet(st, value, index);
+			return NullSafeSet(st, value, index);
 		}
 
 		/// <summary>
@@ -155,7 +156,7 @@ namespace NHibernate.Type
 		/// is called and that method is responsible for setting the value.
 		/// </para>
 		/// </remarks>
-		public void NullSafeSet(IDbCommand cmd, object value, int index)
+		public Task NullSafeSet(IDbCommand cmd, object value, int index)
 		{
 			if (value == null)
 			{
@@ -179,6 +180,7 @@ namespace NHibernate.Type
 
 				Set(cmd, value, index);
 			}
+			return Task.FromResult(0);
 		}
 
 		/// <include file='IType.cs.xmldoc' 
@@ -333,9 +335,9 @@ namespace NHibernate.Type
 			return 1;
 		}
 
-		public override bool IsDirty(object old, object current, bool[] checkable, ISessionImplementor session)
+		public override async Task<bool> IsDirty(object old, object current, bool[] checkable, ISessionImplementor session)
 		{
-			return checkable[0] && IsDirty(old, current, session);
+			return checkable[0] && await IsDirty(old, current, session);
 		}
 
 		public override bool[] ToColumnNullness(object value, IMapping mapping)

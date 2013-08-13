@@ -1,5 +1,6 @@
 using System;
 using System.Data;
+using System.Threading.Tasks;
 using NHibernate.Engine;
 using NHibernate.Persister.Entity;
 using NHibernate.SqlTypes;
@@ -43,16 +44,16 @@ namespace NHibernate.Type
 			return GetIdentifierOrUniqueKeyType(mapping).SqlTypes(mapping);
 		}
 
-		public override void NullSafeSet(IDbCommand st, object value, int index, bool[] settable, ISessionImplementor session)
+		public override async Task NullSafeSet(IDbCommand st, object value, int index, bool[] settable, ISessionImplementor session)
 		{
-			GetIdentifierOrUniqueKeyType(session.Factory)
-				.NullSafeSet(st, GetIdentifier(value, session), index, settable, session);
+			await GetIdentifierOrUniqueKeyType(session.Factory)
+				.NullSafeSet(st, await GetIdentifier(value, session), index, settable, session);
 		}
 
-		public override void NullSafeSet(IDbCommand cmd, object value, int index, ISessionImplementor session)
+		public override async Task NullSafeSet(IDbCommand cmd, object value, int index, ISessionImplementor session)
 		{
-			GetIdentifierOrUniqueKeyType(session.Factory)
-				.NullSafeSet(cmd, GetIdentifier(value, session), index, session);
+			await GetIdentifierOrUniqueKeyType(session.Factory)
+				.NullSafeSet(cmd, await GetIdentifier(value, session), index, session);
 		}
 
 		public override bool IsOneToOne
@@ -105,7 +106,7 @@ namespace NHibernate.Type
 			get { return false; }
 		}
 
-		public override bool IsModified(object old, object current, bool[] checkable, ISessionImplementor session)
+		public override async Task<bool> IsModified(object old, object current, bool[] checkable, ISessionImplementor session)
 		{
 			if (current == null)
 			{
@@ -116,7 +117,7 @@ namespace NHibernate.Type
 				return true;
 			}
 			// the ids are fully resolved, so compare them with isDirty(), not isModified()
-			return GetIdentifierOrUniqueKeyType(session.Factory).IsDirty(old, GetIdentifier(current, session), session);
+			return await GetIdentifierOrUniqueKeyType(session.Factory).IsDirty(old, await GetIdentifier(current, session), session);
 		}
 
 		public override object Disassemble(object value, ISessionImplementor session, object owner)
@@ -181,23 +182,23 @@ namespace NHibernate.Type
 			get { return ignoreNotFound; }
 		}
 
-		public override bool IsDirty(object old, object current, ISessionImplementor session)
+		public override async Task<bool> IsDirty(object old, object current, ISessionImplementor session)
 		{
 			if (IsSame(old, current, session.EntityMode))
 			{
 				return false;
 			}
 
-			object oldid = GetIdentifier(old, session);
-			object newid = GetIdentifier(current, session);
-			return GetIdentifierType(session).IsDirty(oldid, newid, session);
+			object oldid = await GetIdentifier(old, session);
+			object newid = await GetIdentifier(current, session);
+			return await GetIdentifierType(session).IsDirty(oldid, newid, session);
 		}
 
-		public override bool IsDirty(object old, object current, bool[] checkable, ISessionImplementor session)
+		public override async Task<bool> IsDirty(object old, object current, bool[] checkable, ISessionImplementor session)
 		{
 			if (IsAlwaysDirtyChecked)
 			{
-				return IsDirty(old, current, session);
+				return await IsDirty(old, current, session);
 			}
 			else
 			{
@@ -206,9 +207,9 @@ namespace NHibernate.Type
 					return false;
 				}
 
-				object oldid = GetIdentifier(old, session);
-				object newid = GetIdentifier(current, session);
-				return GetIdentifierType(session).IsDirty(oldid, newid, checkable, session);
+				object oldid = await GetIdentifier(old, session);
+				object newid = await GetIdentifier(current, session);
+				return await GetIdentifierType(session).IsDirty(oldid, newid, checkable, session);
 			}
 		}
 

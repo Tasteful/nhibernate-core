@@ -129,7 +129,7 @@ namespace NHibernate.Type
 			return result;
 		}
 
-		public override bool IsDirty(object x, object y, ISessionImplementor session)
+		public override async Task<bool> IsDirty(object x, object y, ISessionImplementor session)
 		{
 			if (x == y)
 			{
@@ -148,7 +148,7 @@ namespace NHibernate.Type
 			object[] yvalues = GetPropertyValues(y, entityMode);
 			for (int i = 0; i < xvalues.Length; i++)
 			{
-				if (propertyTypes[i].IsDirty(xvalues[i], yvalues[i], session))
+				if (await propertyTypes[i].IsDirty(xvalues[i], yvalues[i], session))
 				{
 					return true;
 				}
@@ -156,7 +156,7 @@ namespace NHibernate.Type
 			return false;
 		}
 
-		public override bool IsDirty(object x, object y, bool[] checkable, ISessionImplementor session)
+		public override async Task<bool> IsDirty(object x, object y, bool[] checkable, ISessionImplementor session)
 		{
 			if (x == y)
 			{
@@ -180,7 +180,7 @@ namespace NHibernate.Type
 				if (len <= 1)
 				{
 					bool dirty = (len == 0 || checkable[loc]) &&
-								 propertyTypes[i].IsDirty(xvalues[i], yvalues[i], session);
+								 await propertyTypes[i].IsDirty(xvalues[i], yvalues[i], session);
 					if (dirty)
 					{
 						return true;
@@ -190,7 +190,7 @@ namespace NHibernate.Type
 				{
 					bool[] subcheckable = new bool[len];
 					Array.Copy(checkable, loc, subcheckable, 0, len);
-					bool dirty = propertyTypes[i].IsDirty(xvalues[i], yvalues[i], subcheckable, session);
+					bool dirty = await propertyTypes[i].IsDirty(xvalues[i], yvalues[i], subcheckable, session);
 					if (dirty)
 					{
 						return true;
@@ -213,18 +213,18 @@ namespace NHibernate.Type
 		/// <param name="value"></param>
 		/// <param name="begin"></param>
 		/// <param name="session"></param>
-		public override void NullSafeSet(IDbCommand st, object value, int begin, ISessionImplementor session)
+		public override async Task NullSafeSet(IDbCommand st, object value, int begin, ISessionImplementor session)
 		{
 			object[] subvalues = NullSafeGetValues(value, session.EntityMode);
 
 			for (int i = 0; i < propertySpan; i++)
 			{
-				propertyTypes[i].NullSafeSet(st, subvalues[i], begin, session);
+				await propertyTypes[i].NullSafeSet(st, subvalues[i], begin, session);
 				begin += propertyTypes[i].GetColumnSpan(session.Factory);
 			}
 		}
 
-		public override void NullSafeSet(IDbCommand st, object value, int begin, bool[] settable, ISessionImplementor session)
+		public override async Task NullSafeSet(IDbCommand st, object value, int begin, bool[] settable, ISessionImplementor session)
 		{
 			object[] subvalues = NullSafeGetValues(value, session.EntityMode);
 
@@ -240,7 +240,7 @@ namespace NHibernate.Type
 				{
 					if (settable[loc])
 					{
-						propertyTypes[i].NullSafeSet(st, subvalues[i], begin, session);
+						await propertyTypes[i].NullSafeSet(st, subvalues[i], begin, session);
 						begin++;
 					}
 				}
@@ -248,7 +248,7 @@ namespace NHibernate.Type
 				{
 					bool[] subsettable = new bool[len];
 					Array.Copy(settable, loc, subsettable, 0, len);
-					propertyTypes[i].NullSafeSet(st, subvalues[i], begin, subsettable, session);
+					await propertyTypes[i].NullSafeSet(st, subvalues[i], begin, subsettable, session);
 					begin += ArrayHelper.CountTrue(subsettable);
 				}
 				loc += len;
@@ -537,7 +537,7 @@ namespace NHibernate.Type
 			return ResolveIdentifier(value, session, owner);
 		}
 
-		public override bool IsModified(object old, object current, bool[] checkable, ISessionImplementor session)
+		public override async Task<bool> IsModified(object old, object current, bool[] checkable, ISessionImplementor session)
 		{
 			if (current == null)
 			{
@@ -555,7 +555,7 @@ namespace NHibernate.Type
 				int len = propertyTypes[i].GetColumnSpan(session.Factory);
 				bool[] subcheckable = new bool[len];
 				Array.Copy(checkable, loc, subcheckable, 0, len);
-				if (propertyTypes[i].IsModified(oldValues[i], currentValues[i], subcheckable, session))
+				if (await propertyTypes[i].IsModified(oldValues[i], currentValues[i], subcheckable, session))
 				{
 					return true;
 				}

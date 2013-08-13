@@ -49,7 +49,7 @@ namespace NHibernate.Event.Default
 			// we could move this inside if we wanted to
 			// tolerate collection initializations during
 			// collection dirty checking:
-			PrepareCollectionFlushes(session);
+			await PrepareCollectionFlushes(session);
 			// now, any collections that are initialized
 			// inside this block do not get updated - they
 			// are ignored until the next flush
@@ -166,7 +166,7 @@ namespace NHibernate.Event.Default
 		}
 
 		// Initialize the flags of the CollectionEntry, including the dirty check.
-		protected virtual void PrepareCollectionFlushes(ISessionImplementor session)
+		protected virtual async Task PrepareCollectionFlushes(ISessionImplementor session)
 		{
 			// Initialize dirty flags for arrays + collections with composite elements
 			// and reset reached, doupdate, etc.
@@ -175,7 +175,7 @@ namespace NHibernate.Event.Default
 			ICollection list = IdentityMap.Entries(session.PersistenceContext.CollectionEntries);
 			foreach (DictionaryEntry entry in list)
 			{
-				((CollectionEntry) entry.Value).PreFlush((IPersistentCollection) entry.Key);
+				await ((CollectionEntry) entry.Value).PreFlush((IPersistentCollection) entry.Key);
 			}
 		}
 

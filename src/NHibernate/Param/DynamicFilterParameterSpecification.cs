@@ -36,12 +36,12 @@ namespace NHibernate.Param
 
 		#region IParameterSpecification Members
 
-		public void Bind(IDbCommand command, IList<Parameter> sqlQueryParametersList, QueryParameters queryParameters, ISessionImplementor session)
+		public Task Bind(IDbCommand command, IList<Parameter> sqlQueryParametersList, QueryParameters queryParameters, ISessionImplementor session)
 		{
-			Bind(command, sqlQueryParametersList, 0, sqlQueryParametersList, queryParameters, session);
+			return Bind(command, sqlQueryParametersList, 0, sqlQueryParametersList, queryParameters, session);
 		}
 
-		public void Bind(IDbCommand command, IList<Parameter> multiSqlQueryParametersList, int singleSqlParametersOffset, IList<Parameter> sqlQueryParametersList, QueryParameters queryParameters, ISessionImplementor session)
+		public async Task Bind(IDbCommand command, IList<Parameter> multiSqlQueryParametersList, int singleSqlParametersOffset, IList<Parameter> sqlQueryParametersList, QueryParameters queryParameters, ISessionImplementor session)
 		{
 			string backTrackId = GetIdsForBackTrack(session.Factory).First(); // just the first because IType suppose the oders in certain sequence
 
@@ -49,7 +49,7 @@ namespace NHibernate.Param
 			object value = session.GetFilterParameterValue(filterParameterFullName);
 			foreach (int position in multiSqlQueryParametersList.GetEffectiveParameterLocations(backTrackId))
 			{
-				ExpectedType.NullSafeSet(command, value, position, session);
+				await ExpectedType.NullSafeSet(command, value, position, session);
 			}
 		}
 
@@ -180,19 +180,19 @@ namespace NHibernate.Param
 				return elementType.GetColumnSpan(mapping) * valueSpan;
 			}
 
-			public bool IsDirty(object old, object current, ISessionImplementor session)
+			public Task<bool> IsDirty(object old, object current, ISessionImplementor session)
 			{
-				return false;
+				return Task.FromResult(false);
 			}
 
-			public bool IsDirty(object old, object current, bool[] checkable, ISessionImplementor session)
+			public Task<bool> IsDirty(object old, object current, bool[] checkable, ISessionImplementor session)
 			{
-				return false;
+				return Task.FromResult(false);
 			}
 
-			public bool IsModified(object oldHydratedState, object currentState, bool[] checkable, ISessionImplementor session)
+			public Task<bool> IsModified(object oldHydratedState, object currentState, bool[] checkable, ISessionImplementor session)
 			{
-				return false;
+				return Task.FromResult(false);
 			}
 
 			public object NullSafeGet(IDataReader rs, string[] names, ISessionImplementor session, object owner)
@@ -205,12 +205,12 @@ namespace NHibernate.Param
 				throw new InvalidOperationException();
 			}
 
-			public void NullSafeSet(IDbCommand st, object value, int index, bool[] settable, ISessionImplementor session)
+			public Task NullSafeSet(IDbCommand st, object value, int index, bool[] settable, ISessionImplementor session)
 			{
 				throw new InvalidOperationException();
 			}
 
-			public void NullSafeSet(IDbCommand st, object value, int index, ISessionImplementor session)
+			public async Task NullSafeSet(IDbCommand st, object value, int index, ISessionImplementor session)
 			{
 				var start = index;
 				var positions = 0;
@@ -219,7 +219,7 @@ namespace NHibernate.Param
 				var collection = (IEnumerable) value;
 				foreach (var element in collection)
 				{
-					elementType.NullSafeSet(st, element, start + positions, session);
+					await elementType.NullSafeSet(st, element, start + positions, session);
 					positions += singleParameterColumnSpan;
 				}
 			}

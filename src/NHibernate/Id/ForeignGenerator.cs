@@ -65,7 +65,7 @@ namespace NHibernate.Id
 			object id;
 			try
 			{
-				id = ForeignKeys.GetEntityIdentifierIfNotUnsaved(
+				id = await ForeignKeys.GetEntityIdentifierIfNotUnsaved(
 					foreignValueSourceType.GetAssociatedEntityName(),
 					associatedObject,
 					sessionImplementor);
@@ -78,7 +78,7 @@ namespace NHibernate.Id
 			if (session.Contains(obj))
 			{
 				//abort the save (the object is already saved by a circular cascade)
-				return await IdentifierGeneratorFactory.ShortCircuitIndicator;
+				return IdentifierGeneratorFactory.ShortCircuitIndicator;
 			}
 
 			return id;

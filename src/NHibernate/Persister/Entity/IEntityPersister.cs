@@ -283,7 +283,7 @@ namespace NHibernate.Persister.Entity
 		/// <param name="entity">The entity for which we are checking state dirtiness. </param>
 		/// <param name="session">The session in which the check is ccurring. </param>
 		/// <returns> <see langword="null" /> or the indices of the dirty properties </returns>
-		int[] FindDirty(object[] currentState, object[] previousState, object entity, ISessionImplementor session);
+		Task<int[]> FindDirty(object[] currentState, object[] previousState, object entity, ISessionImplementor session);
 
 		/// <summary> Locate the property-indices of all properties considered to be dirty. </summary>
 		/// <param name="old">The old state of the entity.</param>
@@ -291,7 +291,7 @@ namespace NHibernate.Persister.Entity
 		/// <param name="entity">The entity for which we are checking state modification. </param>
 		/// <param name="session">The session in which the check is ccurring. </param>
 		/// <returns>return <see langword="null" /> or the indicies of the modified properties</returns>
-		int[] FindModified(object[] old, object[] current, object entity, ISessionImplementor session);
+		Task<int[]> FindModified(object[] old, object[] current, object entity, ISessionImplementor session);
 
 		/// <summary>
 		/// Does the class have a property holding the identifier value?

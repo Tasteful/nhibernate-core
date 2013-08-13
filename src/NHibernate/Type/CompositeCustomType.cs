@@ -175,15 +175,17 @@ namespace NHibernate.Type
 			return userType.NullSafeGet(rs, names, session, owner);
 		}
 
-		public override void NullSafeSet(IDbCommand st, object value, int index, bool[] settable, ISessionImplementor session)
+		public override Task NullSafeSet(IDbCommand st, object value, int index, bool[] settable, ISessionImplementor session)
 		{
 			userType.NullSafeSet(st, value, index, settable, session);
+			return Task.FromResult(0);
 		}
 
-		public override void NullSafeSet(IDbCommand cmd, object value, int index, ISessionImplementor session)
+		public override Task NullSafeSet(IDbCommand cmd, object value, int index, ISessionImplementor session)
 		{
 			bool[] settable = Enumerable.Repeat(true, GetColumnSpan(session.Factory)).ToArray();
 			userType.NullSafeSet(cmd, value, index, settable, session);
+			return Task.FromResult(0);
 		}
 
 		public override SqlType[] SqlTypes(IMapping mapping)
@@ -222,7 +224,7 @@ namespace NHibernate.Type
 			return userType.GetHashCode();
 		}
 
-		public override bool IsDirty(object old, object current, bool[] checkable, ISessionImplementor session)
+		public override Task<bool> IsDirty(object old, object current, bool[] checkable, ISessionImplementor session)
 		{
 			return IsDirty(old, current, session);
 		}

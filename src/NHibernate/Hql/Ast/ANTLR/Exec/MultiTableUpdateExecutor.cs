@@ -117,7 +117,7 @@ namespace NHibernate.Hql.Ast.ANTLR.Exec
 						ps = session.Batcher.PrepareCommand(CommandType.Text, idInsertSelect, parameterTypes);
 						foreach (var parameterSpecification in whereParams)
 						{
-							parameterSpecification.Bind(ps, sqlQueryParametersList, parameters, session);
+							await parameterSpecification.Bind(ps, sqlQueryParametersList, parameters, session);
 						}
 
 						resultCount = await session.Batcher.ExecuteNonQuery(ps);
@@ -154,7 +154,7 @@ namespace NHibernate.Hql.Ast.ANTLR.Exec
 							ps = session.Batcher.PrepareCommand(CommandType.Text, updates[i], parameterTypes);
 							foreach (var parameterSpecification in paramsSpec)
 							{
-								parameterSpecification.Bind(ps, sqlQueryParametersList, parameters, session);
+								await parameterSpecification.Bind(ps, sqlQueryParametersList, parameters, session);
 							}
 
 							await session.Batcher.ExecuteNonQuery(ps);

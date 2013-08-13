@@ -111,7 +111,7 @@ namespace NHibernate.Collection
 			return array == collection;
 		}
 
-		public override bool EqualsSnapshot(ICollectionPersister persister)
+		public override async Task<bool> EqualsSnapshot(ICollectionPersister persister)
 		{
 			IType elementType = persister.ElementType;
 			Array snapshot = (Array) GetSnapshot();
@@ -123,7 +123,7 @@ namespace NHibernate.Collection
 			}
 			for (int i = 0; i < xlen; i++)
 			{
-				if (elementType.IsDirty(snapshot.GetValue(i), array.GetValue(i), Session))
+				if (await elementType.IsDirty(snapshot.GetValue(i), array.GetValue(i), Session))
 				{
 					return false;
 				}
@@ -222,7 +222,7 @@ namespace NHibernate.Collection
 			return result;
 		}
 
-		public override IEnumerable GetDeletes(ICollectionPersister persister, bool indexIsFormula)
+		public override Task<IEnumerable> GetDeletes(ICollectionPersister persister, bool indexIsFormula)
 		{
 			IList deletes = new List<object>();
 			Array sn = (Array) GetSnapshot();
@@ -248,21 +248,21 @@ namespace NHibernate.Collection
 					deletes.Add(i);
 				}
 			}
-			return deletes;
+			return Task.FromResult<IEnumerable>(deletes);
 		}
 
-		public override bool NeedsInserting(object entry, int i, IType elemType)
+		public override Task<bool> NeedsInserting(object entry, int i, IType elemType)
 		{
 			Array sn = (Array) GetSnapshot();
-			return array.GetValue(i) != null && (i >= sn.Length || sn.GetValue(i) == null);
+			return Task.FromResult(array.GetValue(i) != null && (i >= sn.Length || sn.GetValue(i) == null));
 		}
 
-		public override bool NeedsUpdating(object entry, int i, IType elemType)
+		public override async Task<bool> NeedsUpdating(object entry, int i, IType elemType)
 		{
 			Array sn = (Array) GetSnapshot();
 			return
 				i < sn.Length && sn.GetValue(i) != null && array.GetValue(i) != null
-				&& elemType.IsDirty(array.GetValue(i), sn.GetValue(i), Session);
+				&& await elemType.IsDirty(array.GetValue(i), sn.GetValue(i), Session);
 		}
 
 		public override object GetIndex(object entry, int i, ICollectionPersister persister)

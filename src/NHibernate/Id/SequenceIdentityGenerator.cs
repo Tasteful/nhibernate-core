@@ -13,9 +13,9 @@ namespace NHibernate.Id
 	{
 		#region IPostInsertIdentifierGenerator Members
 
-		public override async Task<object> Generate(ISessionImplementor session, object obj)
+		public override Task<object> Generate(ISessionImplementor session, object obj)
 		{
-			return await IdentifierGeneratorFactory.PostInsertIndicator;
+			return Task.FromResult(IdentifierGeneratorFactory.PostInsertIndicator);
 		}
 
 		#endregion

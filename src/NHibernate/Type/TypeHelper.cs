@@ -228,7 +228,7 @@ namespace NHibernate.Type
 		/// <param name="anyUninitializedProperties">Does the entity currently hold any uninitialized property values?</param>
 		/// <param name="session">The session from which the dirty check request originated.</param>
 		/// <returns>Array containing indices of the dirty properties, or null if no properties considered dirty.</returns>
-		public static int[] FindDirty(StandardProperty[] properties,
+		public static async Task<int[]> FindDirty(StandardProperty[] properties,
 										object[] currentState,
 										object[] previousState,
 										bool[][] includeColumns,
@@ -241,7 +241,7 @@ namespace NHibernate.Type
 
 			for (int i = 0; i < span; i++)
 			{
-				var dirty = Dirty(properties, currentState, previousState, includeColumns, anyUninitializedProperties, session, i);
+				var dirty = await Dirty(properties, currentState, previousState, includeColumns, anyUninitializedProperties, session, i);
 				if (dirty)
 				{
 					if (results == null)
@@ -263,14 +263,14 @@ namespace NHibernate.Type
 			}
 		}
 
-		private static bool Dirty(StandardProperty[] properties, object[] currentState, object[] previousState, bool[][] includeColumns, bool anyUninitializedProperties, ISessionImplementor session, int i)
+		private static async Task<bool> Dirty(StandardProperty[] properties, object[] currentState, object[] previousState, bool[][] includeColumns, bool anyUninitializedProperties, ISessionImplementor session, int i)
 		{
 			if (Equals(LazyPropertyInitializer.UnfetchedProperty, currentState[i]))
 				return false;
 			if (Equals(LazyPropertyInitializer.UnfetchedProperty, previousState[i]))
 				return true;
 			return properties[i].IsDirtyCheckable(anyUninitializedProperties) &&
-				   properties[i].Type.IsDirty(previousState[i], currentState[i], includeColumns[i], session);
+				   await properties[i].Type.IsDirty(previousState[i], currentState[i], includeColumns[i], session);
 		}
 
 		/// <summary>
@@ -285,7 +285,7 @@ namespace NHibernate.Type
 		/// <param name="anyUninitializedProperties">Does the entity currently hold any uninitialized property values?</param>
 		/// <param name="session">The session from which the dirty check request originated.</param>
 		/// <returns>Array containing indices of the modified properties, or null if no properties considered modified.</returns>
-		public static int[] FindModified(StandardProperty[] properties,
+		public static async Task<int[]> FindModified(StandardProperty[] properties,
 											object[] currentState,
 											object[] previousState,
 											bool[][] includeColumns,
@@ -301,7 +301,7 @@ namespace NHibernate.Type
 				bool dirty =
 					!Equals(LazyPropertyInitializer.UnfetchedProperty, currentState[i]) &&
 					properties[i].IsDirtyCheckable(anyUninitializedProperties)
-					&& properties[i].Type.IsModified(previousState[i], currentState[i], includeColumns[i], session);
+					&& await properties[i].Type.IsModified(previousState[i], currentState[i], includeColumns[i], session);
 
 				if (dirty)
 				{

@@ -60,9 +60,9 @@ namespace NHibernate.Type
 		/// <param name="value"></param>
 		/// <param name="index"></param>
 		/// <param name="session"></param>
-		public override void NullSafeSet(IDbCommand st, object value, int index, ISessionImplementor session)
+		public override Task NullSafeSet(IDbCommand st, object value, int index, ISessionImplementor session)
 		{
-			base.NullSafeSet(st, session.PersistenceContext.GetCollectionHolder(value), index, session);
+			return base.NullSafeSet(st, session.PersistenceContext.GetCollectionHolder(value), index, session);
 		}
 
 		public override IEnumerable GetElementsIterator(object collection)

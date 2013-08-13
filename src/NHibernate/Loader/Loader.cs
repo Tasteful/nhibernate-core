@@ -413,7 +413,7 @@ namespace NHibernate.Loader
 
 				List<object> hydratedObjects = entitySpan == 0 ? null : new List<object>(entitySpan*10);
 
-				IDbCommand st = PrepareQueryCommand(queryParameters, false, session);
+				IDbCommand st = await PrepareQueryCommand(queryParameters, false, session);
 
 				IDataReader rs = await GetResultSet(st, queryParameters.HasAutoDiscoverScalarTypes, queryParameters.Callable, selection,
 											  session);
@@ -1126,7 +1126,7 @@ namespace NHibernate.Loader
 		/// <param name="scroll">TODO: find out where this is used...</param>
 		/// <param name="session">The SessionImpl this Command is being prepared in.</param>
 		/// <returns>A CommandWrapper wrapping an IDbCommand that is ready to be executed.</returns>
-		protected internal virtual IDbCommand PrepareQueryCommand(QueryParameters queryParameters, bool scroll, ISessionImplementor session)
+		protected internal virtual async Task<IDbCommand> PrepareQueryCommand(QueryParameters queryParameters, bool scroll, ISessionImplementor session)
 		{
 			ISqlCommand sqlCommand = CreateSqlCommand(queryParameters, session);
 			SqlString sqlString = sqlCommand.Query;
@@ -1142,7 +1142,7 @@ namespace NHibernate.Loader
 					command.CommandTimeout = selection.Timeout;
 				}
 
-				sqlCommand.Bind(command, session);
+				await sqlCommand.Bind(command, session);
 
 				IDriver driver = _factory.ConnectionProvider.Driver;
 				driver.RemoveUnusedCommandParameters(command, sqlString);

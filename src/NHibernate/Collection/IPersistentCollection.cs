@@ -223,7 +223,7 @@ namespace NHibernate.Collection
 		/// of the collection or if one of the elements in the collection is
 		/// dirty.
 		/// </returns>
-		bool EqualsSnapshot(ICollectionPersister persister);
+		Task<bool> EqualsSnapshot(ICollectionPersister persister);
 
 		/// <summary> Is the snapshot empty?</summary>
 		bool IsSnapshotEmpty(object snapshot);
@@ -269,17 +269,17 @@ namespace NHibernate.Collection
 		/// <summary>
 		/// Do we need to insert this element?
 		/// </summary>
-		bool NeedsInserting(object entry, int i, IType elemType);
+		Task<bool> NeedsInserting(object entry, int i, IType elemType);
 
 		/// <summary>
 		/// Do we need to update this element?
 		/// </summary>
-		bool NeedsUpdating(object entry, int i, IType elemType);
+		Task<bool> NeedsUpdating(object entry, int i, IType elemType);
 
 		/// <summary>
 		/// Get all the elements that need deleting
 		/// </summary>
-		IEnumerable GetDeletes(ICollectionPersister persister, bool indexIsFormula);
+		Task<IEnumerable> GetDeletes(ICollectionPersister persister, bool indexIsFormula);
 
 		/// <summary>
 		/// Is this the wrapper for the given underlying collection instance?

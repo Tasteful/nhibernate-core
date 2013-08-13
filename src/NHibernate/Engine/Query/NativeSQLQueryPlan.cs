@@ -91,7 +91,7 @@ namespace NHibernate.Engine.Query
 
 					foreach (IParameterSpecification parameterSpecification in parametersSpecifications)
 					{
-						parameterSpecification.Bind(ps, sqlParametersList, queryParameters, session);
+						await parameterSpecification.Bind(ps, sqlParametersList, queryParameters, session);
 					}
 					
 					result = await session.Batcher.ExecuteNonQuery(ps);

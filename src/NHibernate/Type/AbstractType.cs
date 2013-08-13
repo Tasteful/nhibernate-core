@@ -106,9 +106,9 @@ namespace NHibernate.Type
 		/// <param name="session">The <see cref="ISessionImplementor"/> is not used by this method.</param>
 		/// <returns>true if the field is dirty</returns>
 		/// <remarks>This method uses <c>IType.Equals(object, object)</c> to determine the value of IsDirty.</remarks>
-		public virtual bool IsDirty(object old, object current, ISessionImplementor session)
+		public virtual Task<bool> IsDirty(object old, object current, ISessionImplementor session)
 		{
-			return !IsSame(old, current, session.EntityMode);
+			return Task.FromResult(!IsSame(old, current, session.EntityMode));
 		}
 
 		/// <summary>
@@ -164,13 +164,13 @@ namespace NHibernate.Type
 		/// <summary>
 		/// Says whether the value has been modified
 		/// </summary>
-		public virtual bool IsModified(
+		public virtual async Task<bool> IsModified(
 			object old,
 			object current,
 			bool[] checkable,
 			ISessionImplementor session)
 		{
-			return IsDirty(old, current, session);
+			return await IsDirty(old, current, session);
 		}
 
 		public override bool Equals(object obj)
@@ -297,12 +297,12 @@ namespace NHibernate.Type
 		/// <include file='IType.cs.xmldoc' 
 		///		path='//members[@type="IType"]/member[@name="M:IType.NullSafeSet(settable)"]/*'
 		/// /> 
-		public abstract void NullSafeSet(IDbCommand st, object value, int index, bool[] settable, ISessionImplementor session);
+		public abstract Task NullSafeSet(IDbCommand st, object value, int index, bool[] settable, ISessionImplementor session);
 
 		/// <include file='IType.cs.xmldoc' 
 		///		path='//members[@type="IType"]/member[@name="M:IType.NullSafeSet"]/*'
 		/// /> 
-		public abstract void NullSafeSet(IDbCommand st, object value, int index, ISessionImplementor session);
+		public abstract Task NullSafeSet(IDbCommand st, object value, int index, ISessionImplementor session);
 
 		/// <include file='IType.cs.xmldoc' 
 		///		path='//members[@type="IType"]/member[@name="P:IType.ReturnedClass"]/*'
@@ -314,6 +314,6 @@ namespace NHibernate.Type
 		/// /> 
 		public abstract string ToLoggableString(object value, ISessionFactoryImplementor factory);
 
-		public abstract bool IsDirty(object old, object current, bool[] checkable, ISessionImplementor session);
+		public abstract Task<bool> IsDirty(object old, object current, bool[] checkable, ISessionImplementor session);
 	}
 }

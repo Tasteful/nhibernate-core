@@ -1,6 +1,7 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Threading.Tasks;
 using NHibernate.Type;
 using NUnit.Framework;
 using NHibernate.Engine;
@@ -32,7 +33,7 @@ namespace NHibernate.Test.TypesTest
 		}
 
 		[Test]
-		public void NullableWrapperDirty()
+		public async Task NullableWrapperDirty()
 		{
 			Int64Type type = (Int64Type)NHibernateUtil.Int64;
 
@@ -41,8 +42,8 @@ namespace NHibernate.Test.TypesTest
 			long? fiveAgain = 5;
 			using (ISession s = OpenSession())
 			{
-				Assert.IsTrue(type.IsDirty(nullLong, valueLong, (ISessionImplementor)s), "should be dirty - null to '5'");
-				Assert.IsFalse(type.IsDirty(valueLong, fiveAgain, (ISessionImplementor)s), "should not be dirty - 5 to 5");
+				Assert.IsTrue(await type.IsDirty(nullLong, valueLong, (ISessionImplementor)s), "should be dirty - null to '5'");
+				Assert.IsFalse(await type.IsDirty(valueLong, fiveAgain, (ISessionImplementor)s), "should not be dirty - 5 to 5");
 			}
 		}
 

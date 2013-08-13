@@ -71,7 +71,7 @@ namespace NHibernate.Collection
 			return GetOrphans(sn, list, entityName, Session);
 		}
 
-		public override bool EqualsSnapshot(ICollectionPersister persister)
+		public override async Task<bool> EqualsSnapshot(ICollectionPersister persister)
 		{
 			IType elementType = persister.ElementType;
 			IList sn = (IList) GetSnapshot();
@@ -81,7 +81,7 @@ namespace NHibernate.Collection
 			}
 			for (int i = 0; i < list.Count; i++)
 			{
-				if (elementType.IsDirty(list[i], sn[i], Session))
+				if (await elementType.IsDirty(list[i], sn[i], Session))
 				{
 					return false;
 				}
@@ -164,7 +164,7 @@ namespace NHibernate.Collection
 			return result;
 		}
 
-		public override IEnumerable GetDeletes(ICollectionPersister persister, bool indexIsFormula)
+		public override Task<IEnumerable> GetDeletes(ICollectionPersister persister, bool indexIsFormula)
 		{
 			IList deletes = new List<object>();
 			IList sn = (IList) GetSnapshot();
@@ -188,19 +188,19 @@ namespace NHibernate.Collection
 					deletes.Add(indexIsFormula ? sn[i] : i);
 				}
 			}
-			return deletes;
+			return Task.FromResult<IEnumerable>(deletes);
 		}
 
-		public override bool NeedsInserting(object entry, int i, IType elemType)
+		public override Task<bool> NeedsInserting(object entry, int i, IType elemType)
 		{
 			IList sn = (IList) GetSnapshot();
-			return list[i] != null && (i >= sn.Count || sn[i] == null);
+			return Task.FromResult(list[i] != null && (i >= sn.Count || sn[i] == null));
 		}
 
-		public override bool NeedsUpdating(object entry, int i, IType elemType)
+		public override async Task<bool> NeedsUpdating(object entry, int i, IType elemType)
 		{
 			IList sn = (IList) GetSnapshot();
-			return i < sn.Count && sn[i] != null && list[i] != null && elemType.IsDirty(list[i], sn[i], Session);
+			return i < sn.Count && sn[i] != null && list[i] != null && await elemType.IsDirty(list[i], sn[i], Session);
 		}
 
 		public override object GetIndex(object entry, int i, ICollectionPersister persister)
