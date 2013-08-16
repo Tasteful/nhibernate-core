@@ -93,12 +93,12 @@ namespace NHibernate.Test.ReadOnly
 				CheckProxyReadOnly(s, gavin.PreferredCourse, false);
 				Assert.That(NHibernateUtil.IsInitialized(gavin.PreferredCourse), Is.False);
 
-				NHibernateUtil.Initialize(gavin.PreferredCourse);
+				NHibernateUtil.Initialize(gavin.PreferredCourse).Wait();
 				Assert.That(NHibernateUtil.IsInitialized(gavin.PreferredCourse), Is.True);
 				CheckProxyReadOnly(s, gavin.PreferredCourse, false);
 				Assert.That(NHibernateUtil.IsInitialized(gavin.Enrolments), Is.False);
 
-				NHibernateUtil.Initialize(gavin.Enrolments);
+				NHibernateUtil.Initialize(gavin.Enrolments).Wait();
 				Assert.That(NHibernateUtil.IsInitialized(gavin.Enrolments), Is.True);
 				Assert.That(gavin.Enrolments.Count, Is.EqualTo(1));
 				IEnumerator<Enrolment> enrolments = gavin.Enrolments.GetEnumerator();
@@ -108,7 +108,7 @@ namespace NHibernate.Test.ReadOnly
 				Assert.That(NHibernateUtil.IsInitialized(enrolment.Course), Is.False);
 				CheckProxyReadOnly(s, enrolment.Course, false);
 
-				NHibernateUtil.Initialize(enrolment.Course);
+				NHibernateUtil.Initialize(enrolment.Course).Wait();
 				CheckProxyReadOnly(s, enrolment.Course, false);
 
 				s.Delete(gavin.PreferredCourse);
@@ -147,12 +147,12 @@ namespace NHibernate.Test.ReadOnly
 				CheckProxyReadOnly(s, gavin.PreferredCourse, true);
 				Assert.That(NHibernateUtil.IsInitialized(gavin.PreferredCourse), Is.False);
 
-				NHibernateUtil.Initialize(gavin.PreferredCourse);
+				NHibernateUtil.Initialize(gavin.PreferredCourse).Wait();
 				Assert.That(NHibernateUtil.IsInitialized(gavin.PreferredCourse), Is.True);
 				CheckProxyReadOnly(s, gavin.PreferredCourse, true);
 				Assert.That(NHibernateUtil.IsInitialized(gavin.Enrolments), Is.False);
 
-				NHibernateUtil.Initialize(gavin.Enrolments);
+				NHibernateUtil.Initialize(gavin.Enrolments).Wait();
 				Assert.That(NHibernateUtil.IsInitialized(gavin.Enrolments), Is.True);
 				Assert.That(gavin.Enrolments.Count, Is.EqualTo(1));
 				IEnumerator<Enrolment> enrolments = gavin.Enrolments.GetEnumerator();
@@ -200,12 +200,12 @@ namespace NHibernate.Test.ReadOnly
 				CheckProxyReadOnly(s, gavin.PreferredCourse, false);
 				Assert.That(NHibernateUtil.IsInitialized(gavin.PreferredCourse), Is.False);
 
-				NHibernateUtil.Initialize(gavin.PreferredCourse);
+				NHibernateUtil.Initialize(gavin.PreferredCourse).Wait();
 				Assert.That(NHibernateUtil.IsInitialized(gavin.PreferredCourse), Is.True);
 				CheckProxyReadOnly(s, gavin.PreferredCourse, false);
 				Assert.That(NHibernateUtil.IsInitialized(gavin.Enrolments), Is.False);
 
-				NHibernateUtil.Initialize(gavin.Enrolments);
+				NHibernateUtil.Initialize(gavin.Enrolments).Wait();
 				Assert.That(NHibernateUtil.IsInitialized(gavin.Enrolments), Is.True);
 				Assert.That(gavin.Enrolments.Count, Is.EqualTo(1));
 				IEnumerator<Enrolment> enrolments = gavin.Enrolments.GetEnumerator();
@@ -215,7 +215,7 @@ namespace NHibernate.Test.ReadOnly
 				Assert.That(NHibernateUtil.IsInitialized(enrolment.Course), Is.False);
 				CheckProxyReadOnly(s, enrolment.Course, false);
 
-				NHibernateUtil.Initialize(enrolment.Course);
+				NHibernateUtil.Initialize(enrolment.Course).Wait();
 				CheckProxyReadOnly(s, enrolment.Course, false);
 
 				s.Delete(gavin.PreferredCourse);
@@ -251,12 +251,12 @@ namespace NHibernate.Test.ReadOnly
 				CheckProxyReadOnly(s, gavin.PreferredCourse, true);
 				Assert.That(NHibernateUtil.IsInitialized(gavin.PreferredCourse), Is.False);
 
-				NHibernateUtil.Initialize(gavin.PreferredCourse);
+				NHibernateUtil.Initialize(gavin.PreferredCourse).Wait();
 				Assert.That(NHibernateUtil.IsInitialized(gavin.PreferredCourse), Is.True);
 				CheckProxyReadOnly(s, gavin.PreferredCourse, true);
 				Assert.That(NHibernateUtil.IsInitialized(gavin.Enrolments), Is.False);
 
-				NHibernateUtil.Initialize(gavin.Enrolments);
+				NHibernateUtil.Initialize(gavin.Enrolments).Wait();
 				Assert.That(NHibernateUtil.IsInitialized(gavin.Enrolments), Is.True);
 				Assert.That(gavin.Enrolments.Count, Is.EqualTo(1));
 				IEnumerator<Enrolment> enrolments = gavin.Enrolments.GetEnumerator();
@@ -266,7 +266,7 @@ namespace NHibernate.Test.ReadOnly
 				Assert.That(NHibernateUtil.IsInitialized(enrolment.Course), Is.False);
 				CheckProxyReadOnly(s, enrolment.Course, true);
 
-				NHibernateUtil.Initialize(enrolment.Course);
+				NHibernateUtil.Initialize(enrolment.Course).Wait();
 				CheckProxyReadOnly(s, enrolment.Course, true);
 
 				s.Delete(gavin.PreferredCourse);
@@ -306,12 +306,12 @@ namespace NHibernate.Test.ReadOnly
 				CheckProxyReadOnly(s, gavin.PreferredCourse, true);
 				Assert.That(NHibernateUtil.IsInitialized(gavin.PreferredCourse), Is.False);
 
-				NHibernateUtil.Initialize(gavin.PreferredCourse);
+				NHibernateUtil.Initialize(gavin.PreferredCourse).Wait();
 				Assert.That(NHibernateUtil.IsInitialized(gavin.PreferredCourse), Is.True);
 				CheckProxyReadOnly(s, gavin.PreferredCourse, true);
 				Assert.That(NHibernateUtil.IsInitialized(gavin.Enrolments), Is.False);
 
-				NHibernateUtil.Initialize(gavin.Enrolments);
+				NHibernateUtil.Initialize(gavin.Enrolments).Wait();
 				Assert.That(NHibernateUtil.IsInitialized(gavin.Enrolments), Is.True);
 				Assert.That(gavin.Enrolments.Count, Is.EqualTo(1));
 				IEnumerator<Enrolment> enrolments = gavin.Enrolments.GetEnumerator();
@@ -321,7 +321,7 @@ namespace NHibernate.Test.ReadOnly
 				Assert.That(NHibernateUtil.IsInitialized(enrolment.Course), Is.False);
 				CheckProxyReadOnly(s, enrolment.Course, true);
 
-				NHibernateUtil.Initialize(enrolment.Course);
+				NHibernateUtil.Initialize(enrolment.Course).Wait();
 				CheckProxyReadOnly(s, enrolment.Course, true);
 
 				s.Delete(gavin.PreferredCourse);
@@ -361,12 +361,12 @@ namespace NHibernate.Test.ReadOnly
 				CheckProxyReadOnly(s, gavin.PreferredCourse, false);
 				Assert.That(NHibernateUtil.IsInitialized(gavin.PreferredCourse), Is.False);
 
-				NHibernateUtil.Initialize(gavin.PreferredCourse);
+				NHibernateUtil.Initialize(gavin.PreferredCourse).Wait();
 				Assert.That(NHibernateUtil.IsInitialized(gavin.PreferredCourse), Is.True);
 				CheckProxyReadOnly(s, gavin.PreferredCourse, false);
 				Assert.That(NHibernateUtil.IsInitialized(gavin.Enrolments), Is.False);
 
-				NHibernateUtil.Initialize(gavin.Enrolments);
+				NHibernateUtil.Initialize(gavin.Enrolments).Wait();
 				Assert.That(NHibernateUtil.IsInitialized(gavin.Enrolments), Is.True);
 				Assert.That(gavin.Enrolments.Count, Is.EqualTo(1));
 				IEnumerator<Enrolment> enrolments = gavin.Enrolments.GetEnumerator();
@@ -376,7 +376,7 @@ namespace NHibernate.Test.ReadOnly
 				Assert.That(NHibernateUtil.IsInitialized(enrolment.Course), Is.False);
 				CheckProxyReadOnly(s, enrolment.Course, true);
 
-				NHibernateUtil.Initialize(enrolment.Course);
+				NHibernateUtil.Initialize(enrolment.Course).Wait();
 				CheckProxyReadOnly(s, enrolment.Course, true);
 
 				s.Delete(gavin.PreferredCourse);
@@ -444,7 +444,7 @@ namespace NHibernate.Test.ReadOnly
 				Assert.That(s.IsReadOnly(gavin), Is.True);
 				Assert.That(NHibernateUtil.IsInitialized(gavin.Enrolments), Is.False);
 
-				NHibernateUtil.Initialize(gavin.Enrolments);
+				NHibernateUtil.Initialize(gavin.Enrolments).Wait();
 				Assert.That(NHibernateUtil.IsInitialized(gavin.Enrolments), Is.True);
 				Assert.That(gavin.Enrolments.Count, Is.EqualTo(1));
 				IEnumerator<Enrolment> enrolments = gavin.Enrolments.GetEnumerator();
@@ -454,7 +454,7 @@ namespace NHibernate.Test.ReadOnly
 				Assert.That(NHibernateUtil.IsInitialized(enrolment.Course), Is.False);
 				CheckProxyReadOnly(s, enrolment.Course, false);
 
-				NHibernateUtil.Initialize(enrolment.Course);
+				NHibernateUtil.Initialize(enrolment.Course).Wait();
 				CheckProxyReadOnly(s, enrolment.Course, false);
 
 				s.Delete(gavin.PreferredCourse);
@@ -523,12 +523,12 @@ namespace NHibernate.Test.ReadOnly
 				Assert.That(s.IsReadOnly(gavin), Is.True);
 				Assert.That(NHibernateUtil.IsInitialized(coursePreferred), Is.False);
 				CheckProxyReadOnly(s, coursePreferred, false);
-				
-				NHibernateUtil.Initialize(coursePreferred);
+
+				NHibernateUtil.Initialize(coursePreferred).Wait();
 				CheckProxyReadOnly(s, coursePreferred, false);
 				Assert.That(NHibernateUtil.IsInitialized(gavin.Enrolments), Is.False);
 
-				NHibernateUtil.Initialize(gavin.Enrolments);
+				NHibernateUtil.Initialize(gavin.Enrolments).Wait();
 				Assert.That(NHibernateUtil.IsInitialized(gavin.Enrolments), Is.True);
 				Assert.That(gavin.Enrolments.Count, Is.EqualTo(1));
 				IEnumerator<Enrolment> enrolments = gavin.Enrolments.GetEnumerator();
@@ -538,7 +538,7 @@ namespace NHibernate.Test.ReadOnly
 				Assert.That(NHibernateUtil.IsInitialized(enrolment.Course), Is.False);
 				CheckProxyReadOnly(s, enrolment.Course, false);
 
-				NHibernateUtil.Initialize(enrolment.Course);
+				NHibernateUtil.Initialize(enrolment.Course).Wait();
 				CheckProxyReadOnly(s, enrolment.Course, false);
 
 				s.Delete(gavin.PreferredCourse);
@@ -595,8 +595,8 @@ namespace NHibernate.Test.ReadOnly
 				coursePreferred = s.Load<Course>(coursePreferred.CourseCode);
 				Assert.That(NHibernateUtil.IsInitialized(coursePreferred), Is.False);
 				CheckProxyReadOnly(s, coursePreferred, false);
-				
-				NHibernateUtil.Initialize(coursePreferred);
+
+				NHibernateUtil.Initialize(coursePreferred).Wait();
 				CheckProxyReadOnly(s, coursePreferred, false);
 				
 				ICriteria criteria = s.CreateCriteria<Student>().SetReadOnly(true);
@@ -610,12 +610,12 @@ namespace NHibernate.Test.ReadOnly
 				Assert.That(s.IsReadOnly(gavin), Is.True);
 				Assert.That(NHibernateUtil.IsInitialized(coursePreferred), Is.True);
 				CheckProxyReadOnly(s, coursePreferred, false);
-				
-				NHibernateUtil.Initialize(coursePreferred);
+
+				NHibernateUtil.Initialize(coursePreferred).Wait();
 				CheckProxyReadOnly(s, coursePreferred, false);
 				Assert.That(NHibernateUtil.IsInitialized(gavin.Enrolments), Is.False);
 
-				NHibernateUtil.Initialize(gavin.Enrolments);
+				NHibernateUtil.Initialize(gavin.Enrolments).Wait();
 				Assert.That(NHibernateUtil.IsInitialized(gavin.Enrolments), Is.True);
 				Assert.That(gavin.Enrolments.Count, Is.EqualTo(1));
 				IEnumerator<Enrolment> enrolments = gavin.Enrolments.GetEnumerator();
@@ -625,7 +625,7 @@ namespace NHibernate.Test.ReadOnly
 				Assert.That(NHibernateUtil.IsInitialized(enrolment.Course), Is.False);
 				CheckProxyReadOnly(s, enrolment.Course, false);
 
-				NHibernateUtil.Initialize(enrolment.Course);
+				NHibernateUtil.Initialize(enrolment.Course).Wait();
 				CheckProxyReadOnly(s, enrolment.Course, false);
 
 				s.Delete(gavin.PreferredCourse);
@@ -694,8 +694,8 @@ namespace NHibernate.Test.ReadOnly
 				Assert.That(s.IsReadOnly(gavin), Is.False);
 				Assert.That(s.IsReadOnly(coursePreferred), Is.True);
 				Assert.That(NHibernateUtil.IsInitialized(gavin.Enrolments), Is.False);
-				
-				NHibernateUtil.Initialize(gavin.Enrolments);
+
+				NHibernateUtil.Initialize(gavin.Enrolments).Wait();
 				Assert.That(NHibernateUtil.IsInitialized(gavin.Enrolments), Is.True);
 				Assert.That(gavin.Enrolments.Count, Is.EqualTo(1));
 				IEnumerator<Enrolment> enrolments = gavin.Enrolments.GetEnumerator();
@@ -705,7 +705,7 @@ namespace NHibernate.Test.ReadOnly
 				Assert.That(NHibernateUtil.IsInitialized(enrolment.Course), Is.False);
 				CheckProxyReadOnly(s, enrolment.Course, false);
 
-				NHibernateUtil.Initialize(enrolment.Course);
+				NHibernateUtil.Initialize(enrolment.Course).Wait();
 				CheckProxyReadOnly(s, enrolment.Course, false);
 
 				s.Delete(gavin.PreferredCourse);
@@ -776,12 +776,12 @@ namespace NHibernate.Test.ReadOnly
 				Assert.That(s.IsReadOnly(gavin), Is.False);
 				Assert.That(NHibernateUtil.IsInitialized(coursePreferred), Is.False);
 				CheckProxyReadOnly(s, coursePreferred, true);
-				
-				NHibernateUtil.Initialize(coursePreferred);
+
+				NHibernateUtil.Initialize(coursePreferred).Wait();
 				CheckProxyReadOnly(s, coursePreferred, true);
 				Assert.That(NHibernateUtil.IsInitialized(gavin.Enrolments), Is.False);
-				
-				NHibernateUtil.Initialize(gavin.Enrolments);
+
+				NHibernateUtil.Initialize(gavin.Enrolments).Wait();
 				Assert.That(NHibernateUtil.IsInitialized(gavin.Enrolments), Is.True);
 				Assert.That(gavin.Enrolments.Count, Is.EqualTo(1));
 				IEnumerator<Enrolment> enrolments = gavin.Enrolments.GetEnumerator();
@@ -791,7 +791,7 @@ namespace NHibernate.Test.ReadOnly
 				Assert.That(NHibernateUtil.IsInitialized(enrolment.Course), Is.False);
 				CheckProxyReadOnly(s, enrolment.Course, false);
 
-				NHibernateUtil.Initialize(enrolment.Course);
+				NHibernateUtil.Initialize(enrolment.Course).Wait();
 				CheckProxyReadOnly(s, enrolment.Course, false);
 
 				s.Delete(gavin.PreferredCourse);
@@ -848,8 +848,8 @@ namespace NHibernate.Test.ReadOnly
 				coursePreferred = s.Load<Course>(coursePreferred.CourseCode);
 				Assert.That(NHibernateUtil.IsInitialized(coursePreferred), Is.False);
 				CheckProxyReadOnly(s, coursePreferred, false);
-				
-				NHibernateUtil.Initialize(coursePreferred);
+
+				NHibernateUtil.Initialize(coursePreferred).Wait();
 				CheckProxyReadOnly(s, coursePreferred, false);
 				s.SetReadOnly(coursePreferred, true);
 				CheckProxyReadOnly(s, coursePreferred, true);
@@ -866,8 +866,8 @@ namespace NHibernate.Test.ReadOnly
 				Assert.That(NHibernateUtil.IsInitialized(coursePreferred), Is.True);
 				CheckProxyReadOnly(s, coursePreferred, true);
 				Assert.That(NHibernateUtil.IsInitialized(gavin.Enrolments), Is.False);
-				
-				NHibernateUtil.Initialize(gavin.Enrolments);
+
+				NHibernateUtil.Initialize(gavin.Enrolments).Wait();
 				Assert.That(NHibernateUtil.IsInitialized(gavin.Enrolments), Is.True);
 				Assert.That(gavin.Enrolments.Count, Is.EqualTo(1));
 				IEnumerator<Enrolment> enrolments = gavin.Enrolments.GetEnumerator();
@@ -877,7 +877,7 @@ namespace NHibernate.Test.ReadOnly
 				Assert.That(NHibernateUtil.IsInitialized(enrolment.Course), Is.False);
 				CheckProxyReadOnly(s, enrolment.Course, false);
 
-				NHibernateUtil.Initialize(enrolment.Course);
+				NHibernateUtil.Initialize(enrolment.Course).Wait();
 				CheckProxyReadOnly(s, enrolment.Course, false);
 
 				s.Delete(gavin.PreferredCourse);
@@ -944,13 +944,13 @@ namespace NHibernate.Test.ReadOnly
 				Assert.That(NHibernateUtil.IsInitialized(gavin.PreferredCourse), Is.False);
 				CheckProxyReadOnly(s, gavin.PreferredCourse, true);
 				Assert.That(NHibernateUtil.IsInitialized(gavin.PreferredCourse), Is.False);
-				
-				NHibernateUtil.Initialize(gavin.PreferredCourse);
+
+				NHibernateUtil.Initialize(gavin.PreferredCourse).Wait();
 				Assert.That(NHibernateUtil.IsInitialized(gavin.PreferredCourse), Is.True);
 				CheckProxyReadOnly(s, gavin.PreferredCourse, true);
 				Assert.That(NHibernateUtil.IsInitialized(gavin.Enrolments), Is.False);
-				
-				NHibernateUtil.Initialize(gavin.Enrolments);
+
+				NHibernateUtil.Initialize(gavin.Enrolments).Wait();
 				Assert.That(NHibernateUtil.IsInitialized(gavin.Enrolments), Is.True);
 				Assert.That(gavin.Enrolments.Count, Is.EqualTo(1));
 				IEnumerator<Enrolment> enrolments = gavin.Enrolments.GetEnumerator();
@@ -959,8 +959,8 @@ namespace NHibernate.Test.ReadOnly
 				Assert.That(s.IsReadOnly(enrolment), Is.False);
 				Assert.That(NHibernateUtil.IsInitialized(enrolment.Course), Is.False);
 				CheckProxyReadOnly(s, enrolment.Course, false);
-				
-				NHibernateUtil.Initialize(enrolment.Course);
+
+				NHibernateUtil.Initialize(enrolment.Course).Wait();
 				CheckProxyReadOnly(s, enrolment.Course, false);
 				
 				t.Commit();
@@ -981,20 +981,20 @@ namespace NHibernate.Test.ReadOnly
 				Assert.That(s.IsReadOnly(enrolment), Is.True);
 				Assert.That(NHibernateUtil.IsInitialized(enrolment.Course), Is.False);
 				CheckProxyReadOnly(s, enrolment.Course, true);
-				
-				NHibernateUtil.Initialize(enrolment.Course);
+
+				NHibernateUtil.Initialize(enrolment.Course).Wait();
 				Assert.That(NHibernateUtil.IsInitialized(enrolment.Course), Is.True);
 				CheckProxyReadOnly(s, enrolment.Course, true);
 				Assert.That(NHibernateUtil.IsInitialized(enrolment.Student), Is.False);
 				CheckProxyReadOnly(s, enrolment.Student, true);
-				
-				NHibernateUtil.Initialize(enrolment.Student);
+
+				NHibernateUtil.Initialize(enrolment.Student).Wait();
 				Assert.That(NHibernateUtil.IsInitialized(enrolment.Student), Is.True);
 				CheckProxyReadOnly(s, enrolment.Student, true);
 				Assert.That(NHibernateUtil.IsInitialized(enrolment.Student.PreferredCourse), Is.False);
 				CheckProxyReadOnly(s, enrolment.Student.PreferredCourse, false);
-				
-				NHibernateUtil.Initialize(enrolment.Student.PreferredCourse);
+
+				NHibernateUtil.Initialize(enrolment.Student.PreferredCourse).Wait();
 				Assert.That(NHibernateUtil.IsInitialized(enrolment.Student.PreferredCourse), Is.True);
 				CheckProxyReadOnly(s, enrolment.Student.PreferredCourse, false);
 			
@@ -1018,20 +1018,20 @@ namespace NHibernate.Test.ReadOnly
 				Assert.That(s.IsReadOnly(enrolment), Is.True);
 				Assert.That(NHibernateUtil.IsInitialized(enrolment.Course), Is.False);
 				CheckProxyReadOnly(s, enrolment.Course, true);
-				
-				NHibernateUtil.Initialize(enrolment.Course);
+
+				NHibernateUtil.Initialize(enrolment.Course).Wait();
 				Assert.That(NHibernateUtil.IsInitialized(enrolment.Course), Is.True);
 				CheckProxyReadOnly(s, enrolment.Course, true);
 				Assert.That(NHibernateUtil.IsInitialized(enrolment.Student), Is.False);
 				CheckProxyReadOnly(s, enrolment.Student, true);
-				
-				NHibernateUtil.Initialize(enrolment.Student);
+
+				NHibernateUtil.Initialize(enrolment.Student).Wait();
 				Assert.That(NHibernateUtil.IsInitialized(enrolment.Student), Is.True);
 				CheckProxyReadOnly(s, enrolment.Student, true);
 				Assert.That(NHibernateUtil.IsInitialized(enrolment.Student.PreferredCourse), Is.False);
 				CheckProxyReadOnly(s, enrolment.Student.PreferredCourse, false);
-				
-				NHibernateUtil.Initialize(enrolment.Student.PreferredCourse);
+
+				NHibernateUtil.Initialize(enrolment.Student.PreferredCourse).Wait();
 				Assert.That(NHibernateUtil.IsInitialized(enrolment.Student.PreferredCourse), Is.True);
 				CheckProxyReadOnly(s, enrolment.Student.PreferredCourse, false);
 			

@@ -1,4 +1,5 @@
 
+using System.Threading.Tasks;
 using NHibernate.Collection;
 using NHibernate.Engine;
 using NHibernate.Impl;
@@ -17,7 +18,7 @@ namespace NHibernate.Event.Default
 
 		public EvictVisitor(IEventSource session) : base(session) { }
 
-		internal override object ProcessCollection(object collection, CollectionType type)
+		internal override Task<object> ProcessCollection(object collection, CollectionType type)
 		{
 
 			if (collection != null)

@@ -928,7 +928,7 @@ namespace NHibernate.Test.Legacy
 			using (ISession s = OpenSession())
 			{
 				baz = (Baz) s.Get(typeof(Baz), baz.Code);
-				NHibernateUtil.Initialize(baz.Fees);
+				NHibernateUtil.Initialize(baz.Fees).Wait();
 			}
 
 			Assert.AreEqual(2, baz.Fees.Count);

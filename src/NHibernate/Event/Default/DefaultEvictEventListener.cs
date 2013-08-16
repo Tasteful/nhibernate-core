@@ -57,7 +57,7 @@ namespace NHibernate.Event.Default
 			}
 		}
 
-		protected virtual Task DoEvict(object obj, EntityKey key, IEntityPersister persister, IEventSource session)
+		protected virtual async Task DoEvict(object obj, EntityKey key, IEntityPersister persister, IEventSource session)
 		{
 
 			if (log.IsDebugEnabled)
@@ -68,10 +68,10 @@ namespace NHibernate.Event.Default
 			// remove all collections for the entity from the session-level cache
 			if (persister.HasCollections)
 			{
-				new EvictVisitor(session).Process(obj, persister);
+				await new EvictVisitor(session).Process(obj, persister);
 			}
 
-			return new Cascade(CascadingAction.Evict, CascadePoint.AfterEvict, session).CascadeOn(persister, obj);
+			await new Cascade(CascadingAction.Evict, CascadePoint.AfterEvict, session).CascadeOn(persister, obj);
 		}
 	}
 }

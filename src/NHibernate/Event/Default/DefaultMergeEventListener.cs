@@ -164,7 +164,7 @@ namespace NHibernate.Event.Default
 							await EntityIsPersistent(@event, copyCache);
 							break;
 						case EntityState.Transient:
-							EntityIsTransient(@event, copyCache);
+							await EntityIsTransient(@event, copyCache);
 							break;
 						case EntityState.Detached:
 							await EntityIsDetached(@event, copyCache);
@@ -194,7 +194,7 @@ namespace NHibernate.Event.Default
 			@event.Result = entity;
 		}
 
-		protected virtual void EntityIsTransient(MergeEvent @event, IDictionary copyCache)
+		protected virtual async Task EntityIsTransient(MergeEvent @event, IDictionary copyCache)
 		{
 			log.Info("merging transient instance");
 
@@ -204,7 +204,7 @@ namespace NHibernate.Event.Default
 			IEntityPersister persister = source.GetEntityPersister(@event.EntityName, entity);
 			string entityName = persister.EntityName;
 			
-			@event.Result = this.MergeTransientEntity(entity, entityName, @event.RequestedId, source, copyCache);
+			@event.Result = await this.MergeTransientEntity(entity, entityName, @event.RequestedId, source, copyCache);
 		}
 	
 		private async Task<object> MergeTransientEntity(object entity, string entityName, object requestedId, IEventSource source, IDictionary copyCache)
@@ -321,7 +321,7 @@ namespace NHibernate.Event.Default
 
 			//we must clone embedded composite identifiers, or
 			//we will get back the same instance that we pass in
-			object clonedIdentifier = persister.IdentifierType.DeepCopy(id, source.EntityMode, source.Factory);
+			object clonedIdentifier = await persister.IdentifierType.DeepCopy(id, source.EntityMode, source.Factory);
 			object result = source.Get(persister.EntityName, clonedIdentifier);
 
 			source.FetchProfile = previousFetchProfile;
@@ -335,7 +335,7 @@ namespace NHibernate.Event.Default
 				// we got here because we assumed that an instance
 				// with an assigned id was detached, when it was
 				// really persistent
-				EntityIsTransient(@event, copyCache);
+				await EntityIsTransient(@event, copyCache);
 			}
 			else
 			{

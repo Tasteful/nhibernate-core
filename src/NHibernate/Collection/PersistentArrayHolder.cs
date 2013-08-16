@@ -142,10 +142,10 @@ namespace NHibernate.Collection
 			get { return false; }
 		}
 
-		public override object ReadFrom(IDataReader rs, ICollectionPersister role, ICollectionAliases descriptor, object owner)
+		public override async Task<object> ReadFrom(IDataReader rs, ICollectionPersister role, ICollectionAliases descriptor, object owner)
 		{
-			object element = role.ReadElement(rs, owner, descriptor.SuffixedElementAliases, Session);
-			int index = (int) role.ReadIndex(rs, descriptor.SuffixedIndexAliases, Session);
+			object element = await role.ReadElement(rs, owner, descriptor.SuffixedElementAliases, Session);
+			int index = (int) await role.ReadIndex(rs, descriptor.SuffixedIndexAliases, Session);
 			for (int i = tempList.Count; i <= index; i++)
 			{
 				tempList.Add(null);
@@ -199,7 +199,7 @@ namespace NHibernate.Collection
 		/// <param name="persister">The CollectionPersister to use to reassemble the Array.</param>
 		/// <param name="disassembled">The disassembled Array.</param>
 		/// <param name="owner">The owner object.</param>
-		public override void InitializeFromCache(ICollectionPersister persister, object disassembled, object owner)
+		public override async Task InitializeFromCache(ICollectionPersister persister, object disassembled, object owner)
 		{
 			object[] cached = (object[]) disassembled;
 
@@ -207,17 +207,17 @@ namespace NHibernate.Collection
 
 			for (int i = 0; i < cached.Length; i++)
 			{
-				array.SetValue(persister.ElementType.Assemble(cached[i], Session, owner), i);
+				array.SetValue(await persister.ElementType.Assemble(cached[i], Session, owner), i);
 			}
 		}
 
-		public override object Disassemble(ICollectionPersister persister)
+		public override async Task<object> Disassemble(ICollectionPersister persister)
 		{
 			int length = array.Length;
 			object[] result = new object[length];
 			for (int i = 0; i < length; i++)
 			{
-				result[i] = persister.ElementType.Disassemble(array.GetValue(i), Session, null);
+				result[i] = await persister.ElementType.Disassemble(array.GetValue(i), Session, null);
 			}
 			return result;
 		}

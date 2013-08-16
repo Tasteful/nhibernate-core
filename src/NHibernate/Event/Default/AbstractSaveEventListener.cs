@@ -233,11 +233,11 @@ namespace NHibernate.Event.Default
 			object[] values = persister.GetPropertyValuesToInsert(entity, GetMergeMap(anything), source);
 			IType[] types = persister.PropertyTypes;
 
-			bool substitute = SubstituteValuesIfNecessary(entity, id, values, persister, source);
+			bool substitute = await SubstituteValuesIfNecessary(entity, id, values, persister, source);
 
 			if (persister.HasCollections)
 			{
-				substitute = substitute || VisitCollectionsBeforeSave(entity, id, values, types, source);
+				substitute = substitute || await VisitCollectionsBeforeSave(entity, id, values, types, source);
 			}
 
 			if (substitute)
@@ -311,11 +311,11 @@ namespace NHibernate.Event.Default
 			return null;
 		}
 
-		protected virtual bool VisitCollectionsBeforeSave(object entity, object id, object[] values, IType[] types, IEventSource source)
+		protected virtual async Task<bool> VisitCollectionsBeforeSave(object entity, object id, object[] values, IType[] types, IEventSource source)
 		{
 			WrapVisitor visitor = new WrapVisitor(source);
 			// substitutes into values by side-effect
-			visitor.ProcessEntityPropertyValues(values, types);
+			await visitor.ProcessEntityPropertyValues(values, types);
 			return visitor.SubstitutionRequired;
 		}
 
@@ -332,7 +332,7 @@ namespace NHibernate.Event.Default
 		/// True if the snapshot state changed such that
 		/// reinjection of the values into the entity is required.
 		/// </returns>
-		protected virtual bool SubstituteValuesIfNecessary(object entity, object id, object[] values, IEntityPersister persister, ISessionImplementor source)
+		protected virtual async Task<bool> SubstituteValuesIfNecessary(object entity, object id, object[] values, IEntityPersister persister, ISessionImplementor source)
 		{
 			bool substitute = source.Interceptor.OnSave(entity, id, values, persister.PropertyNames, persister.PropertyTypes);
 
@@ -341,7 +341,7 @@ namespace NHibernate.Event.Default
 			{
 				// NH Specific feature (H3.2 use null value for versionProperty; NH ask to persister to know if a valueType mean unversioned)
 				object versionValue = values[persister.VersionProperty];
-				substitute |= Versioning.SeedVersion(values, persister.VersionProperty, persister.VersionType, persister.IsUnsavedVersion(versionValue), source);
+				substitute |= await Versioning.SeedVersion(values, persister.VersionProperty, persister.VersionType, persister.IsUnsavedVersion(versionValue), source);
 			}
 			return substitute;
 		}

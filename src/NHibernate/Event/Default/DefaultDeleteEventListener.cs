@@ -69,7 +69,7 @@ namespace NHibernate.Event.Default
 
 				persistenceContext.CheckUniqueness(key, entity);
 
-				new OnUpdateVisitor(source, id, entity).Process(entity, persister);
+				await new OnUpdateVisitor(source, id, entity).Process(entity, persister);
 
 				version = persister.GetVersion(entity, source.EntityMode);
 

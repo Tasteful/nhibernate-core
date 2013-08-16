@@ -1,6 +1,7 @@
 using System.Linq;
 using System;
 using System.Data;
+using System.Threading.Tasks;
 using NHibernate.SqlTypes;
 using NHibernate.UserTypes;
 using NHibernate.Type;
@@ -19,19 +20,19 @@ namespace NHibernate.Test.NHSpecificTest.NH3237
 			get { return new[] { new SqlType(DbType.Int32) }; }
 		}
 
-		public object NullSafeGet(IDataReader dr, string[] names, object owner)
+		public Task<object> NullSafeGet(IDataReader dr, string[] names, object owner)
 		{
 			var name = names[0];
 			int index = dr.GetOrdinal(name);
 
 			if (dr.IsDBNull(index))
 			{
-				return null;
+				return Task.FromResult<object>(null);
 			}
 
 			try
 			{
-				return Enum.Parse(typeof(TestEnum), dr.GetValue(index).ToString());
+				return Task.FromResult(Enum.Parse(typeof(TestEnum), dr.GetValue(index).ToString()));
 			}
 			catch (InvalidCastException ice)
 			{

@@ -6,10 +6,12 @@
 
 #endregion
 
+using System.Threading.Tasks;
+
 namespace NHibernate.Proxy.DynamicProxy
 {
 	public interface IInterceptor
 	{
-		object Intercept(InvocationInfo info);
+		Task<object> Intercept(InvocationInfo info);
 	}
 }

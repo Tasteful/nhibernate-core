@@ -333,9 +333,7 @@ namespace NHibernate.Impl
 			name = settings.SessionFactoryName;
 			try
 			{
-				Task<object> generate = UuidGenerator.Generate(null, null);
-				generate.Wait();
-				uuid = (string)generate.Result;
+				uuid = (string)UuidGenerator.Generate(null, null).WaitAndUnwrapException();
 			}
 			catch (Exception)
 			{

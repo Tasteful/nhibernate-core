@@ -3,6 +3,7 @@ using System.Collections;
 using System.Collections.Generic;
 using System.IO;
 using System.Runtime.Serialization.Formatters.Binary;
+using System.Threading.Tasks;
 using NHibernate.Dialect;
 using NHibernate.DomainModel;
 using NHibernate.Engine;
@@ -1072,7 +1073,7 @@ namespace NHibernate.Test.Legacy
 
 			s = OpenSession();
 			c = (Category) s.Load(typeof(Category), id);
-			NHibernateUtil.Initialize(c.Subcategories);
+			NHibernateUtil.Initialize(c.Subcategories).Wait();
 
 			ISession ss = OpenSession();
 			Category c2 = (Category) ss.Load(typeof(Category), id);

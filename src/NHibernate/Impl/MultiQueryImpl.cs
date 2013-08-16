@@ -394,7 +394,7 @@ namespace NHibernate.Impl
 		/// </summary>
 		public IList List()
 		{
-			return AsyncHelper.RunSync(ListAsync);
+			return ListAsync().WaitAndUnwrapException();
 		}
 		public async Task<IList> ListAsync()
 		{
@@ -566,7 +566,7 @@ namespace NHibernate.Impl
 							}
 
 							rowCount++;
-							object result = translator.Loader.GetRowFromResultSet(
+							object result = await translator.Loader.GetRowFromResultSet(
 								reader, session, parameter, lockModeArray, optionalObjectKey, hydratedObjects[i], keys, true);
 							tempResults.Add(result);
 
@@ -653,7 +653,7 @@ namespace NHibernate.Impl
 
 		public object GetResult(string key)
 		{
-			return AsyncHelper.RunSync(() => GetResultAsync(key));
+			return GetResultAsync(key).WaitAndUnwrapException();
 		}
 		public async Task<object> GetResultAsync(string key)
 		{
@@ -710,13 +710,13 @@ namespace NHibernate.Impl
 				.SetFirstRows(firstRows)
 				.SetMaxRows(maxRows);
 
-			IList result = assembler.GetResultFromQueryCache(session, combinedParameters, querySpaces, queryCache, key);
+			IList result = await assembler.GetResultFromQueryCache(session, combinedParameters, querySpaces, queryCache, key);
 
 			if (result == null)
 			{
 				log.Debug("Cache miss for multi query");
 				var list = await DoList();
-				queryCache.Put(key, new ICacheAssembler[] { assembler }, new object[] { list }, false, session);
+				await queryCache.Put(key, new ICacheAssembler[] { assembler }, new object[] { list }, false, session);
 				result = list;
 			}
 

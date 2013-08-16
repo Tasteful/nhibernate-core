@@ -1,3 +1,4 @@
+using System.Threading.Tasks;
 using NHibernate.Collection;
 using NHibernate.Persister.Collection;
 using NHibernate.Type;
@@ -21,7 +22,7 @@ namespace NHibernate.Event.Default
 			this.isUpdate = isUpdate;
 		}
 
-		internal override object ProcessCollection(object collection, CollectionType type)
+		internal override async Task<object> ProcessCollection(object collection, CollectionType type)
 		{
 			if (collection == CollectionType.UnfetchedCollection)
 			{
@@ -41,11 +42,11 @@ namespace NHibernate.Event.Default
 				wrapper.SetCurrentSession(session);
 				if (wrapper.WasInitialized)
 				{
-					session.PersistenceContext.AddNewCollection(persister, wrapper);
+					await session.PersistenceContext.AddNewCollection(persister, wrapper);
 				}
 				else
 				{
-					ReattachCollection(wrapper, type);
+					await ReattachCollection(wrapper, type);
 				}
 			}
 			else

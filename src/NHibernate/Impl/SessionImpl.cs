@@ -482,7 +482,7 @@ namespace NHibernate.Impl
 		/// <returns></returns>
 		public object Save(object obj)
 		{
-			return AsyncHelper.RunSync(() => SaveAsync(obj));
+			return SaveAsync(obj).WaitAndUnwrapException();
 		}
 		public async Task<object> SaveAsync(object obj)
 		{
@@ -494,7 +494,7 @@ namespace NHibernate.Impl
 
 		public object Save(string entityName, object obj)
 		{
-			return AsyncHelper.RunSync(() => SaveAsync(entityName, obj));
+			return SaveAsync(entityName, obj).WaitAndUnwrapException();
 		}
 		public async Task<object> SaveAsync(string entityName, object obj)
 		{
@@ -506,7 +506,7 @@ namespace NHibernate.Impl
 
 		public void Save(string entityName, object obj, object id)
 		{
-			AsyncHelper.RunSync(() => SaveAsync(entityName, obj, id));
+			SaveAsync(entityName, obj, id).WaitAndUnwrapException();
 		}
 		public async Task SaveAsync(string entityName, object obj, object id)
 		{
@@ -523,7 +523,7 @@ namespace NHibernate.Impl
 		/// <param name="id"></param>
 		public void Save(object obj, object id)
 		{
-			AsyncHelper.RunSync(() => SaveAsync(obj, id));
+			SaveAsync(obj, id).WaitAndUnwrapException();
 		}
 		public async Task SaveAsync(object obj, object id)
 		{
@@ -539,7 +539,7 @@ namespace NHibernate.Impl
 		/// <param name="obj"></param>
 		public void Delete(object obj)
 		{
-			AsyncHelper.RunSync(() => DeleteAsync(obj));
+			DeleteAsync(obj).WaitAndUnwrapException();
 		}
 		public async Task DeleteAsync(object obj)
 		{
@@ -552,7 +552,7 @@ namespace NHibernate.Impl
 		/// <summary> Delete a persistent object (by explicit entity name)</summary>
 		public void Delete(string entityName, object obj)
 		{
-			AsyncHelper.RunSync(() => DeleteAsync(entityName, obj));
+			DeleteAsync(entityName, obj).WaitAndUnwrapException();
 		}
 		public async Task DeleteAsync(string entityName, object obj)
 		{
@@ -564,19 +564,32 @@ namespace NHibernate.Impl
 
 		public void Update(object obj)
 		{
-			AsyncHelper.RunSync(() => UpdateAsync(obj));
+			try
+			{
+				UpdateAsync(obj).WaitAndUnwrapException();
+			}
+			catch (Exception ex)
+			{
+				throw;
+			}
 		}
 		public async Task UpdateAsync(object obj)
 		{
+			try{
 			using (new SessionIdLoggingContext(SessionId))
 			{
 				await FireUpdate(new SaveOrUpdateEvent(null, obj, this));
+			}
+			}
+			catch (Exception ex)
+			{
+				throw;
 			}
 		}
 
 		public void Update(string entityName, object obj)
 		{
-			AsyncHelper.RunSync(() => UpdateAsync(entityName, obj));
+			UpdateAsync(entityName, obj).WaitAndUnwrapException();
 		}
 		public async Task UpdateAsync(string entityName, object obj)
 		{
@@ -588,7 +601,7 @@ namespace NHibernate.Impl
 
 		public void Update(string entityName, object obj, object id)
 		{
-			AsyncHelper.RunSync(() => UpdateAsync(entityName, obj, id));
+			UpdateAsync(entityName, obj, id).WaitAndUnwrapException();
 		}
 		public async Task UpdateAsync(string entityName, object obj, object id)
 		{
@@ -600,7 +613,7 @@ namespace NHibernate.Impl
 
 		public void SaveOrUpdate(object obj)
 		{
-			AsyncHelper.RunSync(() => SaveOrUpdateAsync(obj));
+			SaveOrUpdateAsync(obj).WaitAndUnwrapException();
 		}
 		public async Task SaveOrUpdateAsync(object obj)
 		{
@@ -612,7 +625,7 @@ namespace NHibernate.Impl
 
 		public void SaveOrUpdate(string entityName, object obj)
 		{
-			AsyncHelper.RunSync(() => SaveOrUpdateAsync(entityName, obj));
+			SaveOrUpdateAsync(entityName, obj).WaitAndUnwrapException();
 		}
 		public async Task SaveOrUpdateAsync(string entityName, object obj)
 		{
@@ -624,7 +637,7 @@ namespace NHibernate.Impl
 
 		public void SaveOrUpdate(string entityName, object obj, object id)
 		{
-			AsyncHelper.RunSync(() => SaveOrUpdateAsync(entityName, obj, id));
+			SaveOrUpdateAsync(entityName, obj, id).WaitAndUnwrapException();
 		}
 		public async Task SaveOrUpdateAsync(string entityName, object obj, object id)
 		{
@@ -636,7 +649,7 @@ namespace NHibernate.Impl
 
 		public void Update(object obj, object id)
 		{
-			AsyncHelper.RunSync(() => UpdateAsync(obj, id));
+			UpdateAsync(obj, id).WaitAndUnwrapException();
 		}
 		public async Task UpdateAsync(object obj, object id)
 		{
@@ -797,7 +810,7 @@ namespace NHibernate.Impl
 
 		public void Lock(object obj, LockMode lockMode)
 		{
-			AsyncHelper.RunSync(() => LockAsync(obj, lockMode));
+			LockAsync(obj, lockMode).WaitAndUnwrapException();
 		}
 		public async Task LockAsync(object obj, LockMode lockMode)
 		{
@@ -809,7 +822,7 @@ namespace NHibernate.Impl
 
 		public void Lock(string entityName, object obj, LockMode lockMode)
 		{
-			AsyncHelper.RunSync(() => LockAsync(entityName, obj, lockMode));
+			LockAsync(entityName, obj, lockMode).WaitAndUnwrapException();
 		}
 		public async Task LockAsync(string entityName, object obj, LockMode lockMode)
 		{
@@ -964,7 +977,7 @@ namespace NHibernate.Impl
 		/// <summary> Cascade merge an entity instance</summary>
 		public void Merge(string entityName, object obj, IDictionary copiedAlready)
 		{
-			AsyncHelper.RunSync(() => MergeAsync(entityName, obj, copiedAlready));
+			MergeAsync(entityName, obj, copiedAlready).WaitAndUnwrapException();
 		}
 		public async Task MergeAsync(string entityName, object obj, IDictionary copiedAlready)
 		{
@@ -977,7 +990,7 @@ namespace NHibernate.Impl
 		/// <summary> Cascade persist an entity instance</summary>
 		public void Persist(string entityName, object obj, IDictionary createdAlready)
 		{
-			AsyncHelper.RunSync(() => PersistAsync(entityName, obj, createdAlready));
+			PersistAsync(entityName, obj, createdAlready).WaitAndUnwrapException();
 		}
 		public async Task PersistAsync(string entityName, object obj, IDictionary createdAlready)
 		{
@@ -990,7 +1003,7 @@ namespace NHibernate.Impl
 		/// <summary> Cascade persist an entity instance during the flush process</summary>
 		public void PersistOnFlush(string entityName, object obj, IDictionary copiedAlready)
 		{
-			AsyncHelper.RunSync(() => PersistOnFlushAsync(entityName, obj, copiedAlready));
+			PersistOnFlushAsync(entityName, obj, copiedAlready).WaitAndUnwrapException();
 		}
 		public async Task PersistOnFlushAsync(string entityName, object obj, IDictionary copiedAlready)
 		{
@@ -1003,7 +1016,7 @@ namespace NHibernate.Impl
 		/// <summary> Cascade refresh an entity instance</summary>
 		public void Refresh(object obj, IDictionary refreshedAlready)
 		{
-			AsyncHelper.RunSync(() => RefreshAsync(obj, refreshedAlready));
+			RefreshAsync(obj, refreshedAlready).WaitAndUnwrapException();
 		}
 		public async Task RefreshAsync(object obj, IDictionary refreshedAlready)
 		{
@@ -1016,7 +1029,7 @@ namespace NHibernate.Impl
 		/// <summary> Cascade delete an entity instance</summary>
 		public void Delete(string entityName, object child, bool isCascadeDeleteEnabled, ISet<object> transientEntities)
 		{
-			AsyncHelper.RunSync(() => DeleteAsync(entityName, child, isCascadeDeleteEnabled, transientEntities));
+			DeleteAsync(entityName, child, isCascadeDeleteEnabled, transientEntities).WaitAndUnwrapException();
 		}
 		public async Task DeleteAsync(string entityName, object child, bool isCascadeDeleteEnabled, ISet<object> transientEntities)
 		{
@@ -1030,7 +1043,7 @@ namespace NHibernate.Impl
 
 		public object Merge(string entityName, object obj)
 		{
-			return AsyncHelper.RunSync(() => MergeAsync(entityName, obj));
+			return MergeAsync(entityName, obj).WaitAndUnwrapException();
 		}
 		public async Task<object> MergeAsync(string entityName, object obj)
 		{
@@ -1042,7 +1055,7 @@ namespace NHibernate.Impl
 
 		public T Merge<T>(T entity) where T : class
 		{
-			return AsyncHelper.RunSync(() => MergeAsync(entity));
+			return MergeAsync(entity).WaitAndUnwrapException();
 		}
 		public async Task<T> MergeAsync<T>(T entity) where T : class
 		{
@@ -1051,7 +1064,7 @@ namespace NHibernate.Impl
 
 		public T Merge<T>(string entityName, T entity) where T : class
 		{
-			return AsyncHelper.RunSync(() => MergeAsync(entityName, entity));
+			return MergeAsync(entityName, entity).WaitAndUnwrapException();
 		}
 		public async Task<T> MergeAsync<T>(string entityName, T entity) where T : class
 		{
@@ -1060,7 +1073,7 @@ namespace NHibernate.Impl
 
 		public object Merge(object obj)
 		{
-			return AsyncHelper.RunSync(() => MergeAsync(obj));
+			return MergeAsync(obj).WaitAndUnwrapException();
 		}
 		public async Task<object> MergeAsync(object obj)
 		{
@@ -1072,7 +1085,7 @@ namespace NHibernate.Impl
 
 		public void Persist(string entityName, object obj)
 		{
-			AsyncHelper.RunSync(() => PersistAsync(entityName, obj));
+			PersistAsync(entityName, obj).WaitAndUnwrapException();
 		}
 		public async Task PersistAsync(string entityName, object obj)
 		{
@@ -1084,7 +1097,7 @@ namespace NHibernate.Impl
 
 		public void Persist(object obj)
 		{
-			AsyncHelper.RunSync(() => PersistAsync(obj));
+			PersistAsync(obj).WaitAndUnwrapException();
 		}
 		public async Task PersistAsync(object obj)
 		{
@@ -1096,7 +1109,7 @@ namespace NHibernate.Impl
 
 		public void PersistOnFlush(string entityName, object obj)
 		{
-			AsyncHelper.RunSync(() => PersistOnFlushAsync(entityName, obj));
+			PersistOnFlushAsync(entityName, obj).WaitAndUnwrapException();
 		}
 		public async Task PersistOnFlushAsync(string entityName, object obj)
 		{
@@ -1108,7 +1121,7 @@ namespace NHibernate.Impl
 
 		public void PersistOnFlush(object obj)
 		{
-			AsyncHelper.RunSync(() => PersistOnFlushAsync(obj));
+			PersistOnFlushAsync(obj).WaitAndUnwrapException();
 		}
 		public async Task PersistOnFlushAsync(object obj)
 		{
@@ -1251,7 +1264,7 @@ namespace NHibernate.Impl
 
 		public void Load(object obj, object id)
 		{
-			AsyncHelper.RunSync(() => LoadAsync(obj, id));
+			LoadAsync(obj, id).WaitAndUnwrapException();
 		}
 		public async Task LoadAsync(object obj, object id)
 		{
@@ -1264,7 +1277,7 @@ namespace NHibernate.Impl
 
 		public T Load<T>(object id)
 		{
-			return AsyncHelper.RunSync(() => LoadAsync<T>(id));
+			return LoadAsync<T>(id).WaitAndUnwrapException();
 		}
 		public async Task<T> LoadAsync<T>(object id)
 		{
@@ -1276,7 +1289,7 @@ namespace NHibernate.Impl
 
 		public T Load<T>(object id, LockMode lockMode)
 		{
-			return AsyncHelper.RunSync(() => LoadAsync<T>(id, lockMode));
+			return LoadAsync<T>(id, lockMode).WaitAndUnwrapException();
 		}
 		public async Task<T> LoadAsync<T>(object id, LockMode lockMode)
 		{
@@ -1302,7 +1315,7 @@ namespace NHibernate.Impl
 		/// </exception>
 		public object Load(System.Type entityClass, object id, LockMode lockMode)
 		{
-			return AsyncHelper.RunSync(() => LoadAsync(entityClass, id, lockMode));
+			return LoadAsync(entityClass, id, lockMode).WaitAndUnwrapException();
 		}
 		public async Task<object> LoadAsync(System.Type entityClass, object id, LockMode lockMode)
 		{
@@ -1314,7 +1327,7 @@ namespace NHibernate.Impl
 
 		public object Load(string entityName, object id)
 		{
-			return AsyncHelper.RunSync(() => LoadAsync(entityName, id));
+			return LoadAsync(entityName, id).WaitAndUnwrapException();
 		}
 		public async Task<object> LoadAsync(string entityName, object id)
 		{
@@ -1346,7 +1359,7 @@ namespace NHibernate.Impl
 
 		public object Load(string entityName, object id, LockMode lockMode)
 		{
-			return AsyncHelper.RunSync(() => LoadAsync(entityName, id, lockMode));
+			return LoadAsync(entityName, id, lockMode).WaitAndUnwrapException();
 		}
 		public async Task<object> LoadAsync(string entityName, object id, LockMode lockMode)
 		{
@@ -1360,7 +1373,7 @@ namespace NHibernate.Impl
 
 		public object Load(System.Type entityClass, object id)
 		{
-			return AsyncHelper.RunSync(() => LoadAsync(entityClass, id));
+			return LoadAsync(entityClass, id).WaitAndUnwrapException();
 		}
 		public async Task<object> LoadAsync(System.Type entityClass, object id)
 		{
@@ -1372,7 +1385,7 @@ namespace NHibernate.Impl
 
 		public T Get<T>(object id)
 		{
-			return AsyncHelper.RunSync(() => GetAsync<T>(id));
+			return GetAsync<T>(id).WaitAndUnwrapException();
 		}
 		public async Task<T> GetAsync<T>(object id)
 		{
@@ -1384,7 +1397,7 @@ namespace NHibernate.Impl
 
 		public T Get<T>(object id, LockMode lockMode)
 		{
-			return AsyncHelper.RunSync(() => GetAsync<T>(id, lockMode));
+			return GetAsync<T>(id, lockMode).WaitAndUnwrapException();
 		}
 		public async Task<T> GetAsync<T>(object id, LockMode lockMode)
 		{
@@ -1396,7 +1409,7 @@ namespace NHibernate.Impl
 
 		public object Get(System.Type entityClass, object id)
 		{
-			return AsyncHelper.RunSync(() => GetAsync(entityClass, id));
+			return GetAsync(entityClass, id).WaitAndUnwrapException();
 		}
 		public async Task<object> GetAsync(System.Type entityClass, object id)
 		{
@@ -1419,7 +1432,7 @@ namespace NHibernate.Impl
 		/// <returns></returns>
 		public object Get(System.Type clazz, object id, LockMode lockMode)
 		{
-			return AsyncHelper.RunSync(() => GetAsync(clazz, id, lockMode));
+			return GetAsync(clazz, id, lockMode).WaitAndUnwrapException();
 		}
 		public async Task<object> GetAsync(System.Type clazz, object id, LockMode lockMode)
 		{
@@ -1463,7 +1476,7 @@ namespace NHibernate.Impl
 
 		public object Get(string entityName, object id)
 		{
-			return AsyncHelper.RunSync(() => GetAsync(entityName, id));
+			return GetAsync(entityName, id).WaitAndUnwrapException();
 		}
 		public async Task<object> GetAsync(string entityName, object id)
 		{
@@ -1532,7 +1545,7 @@ namespace NHibernate.Impl
 
 		public void Refresh(object obj)
 		{
-			AsyncHelper.RunSync(() => RefreshAsync(obj));
+			RefreshAsync(obj).WaitAndUnwrapException();
 		}
 		public async Task RefreshAsync(object obj)
 		{
@@ -1544,7 +1557,7 @@ namespace NHibernate.Impl
 
 		public void Refresh(object obj, LockMode lockMode)
 		{
-			AsyncHelper.RunSync(() => RefreshAsync(obj, lockMode));
+			RefreshAsync(obj, lockMode).WaitAndUnwrapException();
 		}
 		public async Task RefreshAsync(object obj, LockMode lockMode)
 		{
@@ -1612,7 +1625,7 @@ namespace NHibernate.Impl
 		/// holding. If they had a nonpersistable collection, substitute a persistable one
 		/// </para>
 		/// </remarks>
-		public override void Flush()
+		public override async Task FlushAsync()
 		{
 			using (new SessionIdLoggingContext(SessionId))
 			{
@@ -1624,7 +1637,7 @@ namespace NHibernate.Impl
 				IFlushEventListener[] flushEventListener = listeners.FlushEventListeners;
 				for (int i = 0; i < flushEventListener.Length; i++)
 				{
-					flushEventListener[i].OnFlush(new FlushEvent(this));
+					await flushEventListener[i].OnFlush(new FlushEvent(this));
 				}
 			}
 		}
@@ -1734,7 +1747,7 @@ namespace NHibernate.Impl
 		/// </summary>
 		/// <param name="collection"></param>
 		/// <param name="writing"></param>
-		public override void InitializeCollection(IPersistentCollection collection, bool writing)
+		public override async Task InitializeCollection(IPersistentCollection collection, bool writing)
 		{
 			using (new SessionIdLoggingContext(SessionId))
 			{
@@ -1742,7 +1755,7 @@ namespace NHibernate.Impl
 				IInitializeCollectionEventListener[] listener = listeners.InitializeCollectionEventListeners;
 				for (int i = 0; i < listener.Length; i++)
 				{
-					listener[i].OnInitializeCollection(new InitializeCollectionEvent(collection, this));
+					await listener[i].OnInitializeCollection(new InitializeCollectionEvent(collection, this));
 				}
 			}
 		}
@@ -2129,7 +2142,7 @@ namespace NHibernate.Impl
 		/// <param name="obj"></param>
 		public void Evict(object obj)
 		{
-			AsyncHelper.RunSync(() => EvictAsync(obj));
+			EvictAsync(obj).WaitAndUnwrapException();
 		}
 		public async Task EvictAsync(object obj)
 		{
@@ -2185,7 +2198,7 @@ namespace NHibernate.Impl
 
 		public void Replicate(object obj, ReplicationMode replicationMode)
 		{
-			AsyncHelper.RunSync(() => ReplicateAsync(obj, replicationMode));
+			ReplicateAsync(obj, replicationMode).WaitAndUnwrapException();
 		}
 		public async Task ReplicateAsync(object obj, ReplicationMode replicationMode)
 		{
@@ -2197,7 +2210,7 @@ namespace NHibernate.Impl
 
 		public void Replicate(string entityName, object obj, ReplicationMode replicationMode)
 		{
-			AsyncHelper.RunSync(() => ReplicateAsync(entityName, obj, replicationMode));
+			ReplicateAsync(entityName, obj, replicationMode).WaitAndUnwrapException();
 		}
 		public async Task ReplicateAsync(string entityName, object obj, ReplicationMode replicationMode)
 		{

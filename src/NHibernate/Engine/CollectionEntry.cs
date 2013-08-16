@@ -1,6 +1,7 @@
 using System;
 using System.Collections;
 using System.Threading.Tasks;
+using NHibernate.Cfg.Loquacious;
 using NHibernate.Collection;
 using NHibernate.Impl;
 using NHibernate.Persister.Collection;
@@ -107,22 +108,33 @@ namespace NHibernate.Engine
 
 		[NonSerialized] private object currentKey;
 
+		private CollectionEntry()
+		{
+		}
+
 		/// <summary>
 		/// Initializes a new instance of <see cref="CollectionEntry"/>.
 		/// </summary>
 		/// <remarks> 
 		/// For newly wrapped collections, or dereferenced collection wrappers
 		/// </remarks>
-		public CollectionEntry(ICollectionPersister persister, IPersistentCollection collection)
+		public static async Task<CollectionEntry> Create(ICollectionPersister persister, IPersistentCollection collection)
 		{
-			// new collections that get found + wrapped
-			// during flush shouldn't be ignored
-			ignore = false;
+			//// new collections that get found + wrapped
+			//// during flush shouldn't be ignored
+			//ignore = false;
 
 			collection.ClearDirty(); //a newly wrapped collection is NOT dirty (or we get unnecessary version updates)
 
-			snapshot = persister.IsMutable ? collection.GetSnapshot(persister) : null;
-			collection.SetSnapshot(loadedKey, role, snapshot);
+			var snapshot = persister.IsMutable ? await collection.GetSnapshot(persister) : null;
+			//collection.SetSnapshot(loadedKey, role, snapshot);
+			collection.SetSnapshot(null, null, snapshot);
+
+			return new CollectionEntry
+			{
+				ignore = false,
+				snapshot = snapshot
+			};
 		}
 
 		/// <summary> For collections just loaded from the database</summary>
@@ -298,9 +310,9 @@ namespace NHibernate.Engine
 		/// has been initialized.
 		/// </summary>
 		/// <param name="collection">The initialized <see cref="AbstractPersistentCollection"/> that this Entry is for.</param>
-		public void PostInitialize(IPersistentCollection collection)
+		public async Task PostInitialize(IPersistentCollection collection)
 		{
-			snapshot = LoadedPersister.IsMutable ? collection.GetSnapshot(LoadedPersister) : null;
+			snapshot = LoadedPersister.IsMutable ? await collection.GetSnapshot(LoadedPersister) : null;
 			collection.SetSnapshot(loadedKey, role, snapshot);
 		}
 

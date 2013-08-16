@@ -50,7 +50,7 @@ namespace NHibernate.Test.NHSpecificTest.NH2065
             using (s.BeginTransaction())
             {
                 person = s.Get<Person>(1);
-                NHibernateUtil.Initialize(person.Children);
+				NHibernateUtil.Initialize(person.Children).Wait();
                 s.Transaction.Commit();
             }
 

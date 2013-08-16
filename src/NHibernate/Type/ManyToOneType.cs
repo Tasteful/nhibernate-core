@@ -76,12 +76,12 @@ namespace NHibernate.Type
 		/// <returns>
 		/// An instantiated object that used as the identifier of the type.
 		/// </returns>
-		public override object Hydrate(IDataReader rs, string[] names, ISessionImplementor session, object owner)
+		public override async Task<object> Hydrate(IDataReader rs, string[] names, ISessionImplementor session, object owner)
 		{
 			// return the (fully resolved) identifier value, but do not resolve
 			// to the actual referenced entity instance
 			// NOTE: the owner of the association is not really the owner of the id!
-			object id = GetIdentifierOrUniqueKeyType(session.Factory)
+			object id = await GetIdentifierOrUniqueKeyType(session.Factory)
 				.NullSafeGet(rs, names, session, owner);
 			ScheduleBatchLoadIfNeeded(id, session);
 			return id;
@@ -120,11 +120,11 @@ namespace NHibernate.Type
 			return await GetIdentifierOrUniqueKeyType(session.Factory).IsDirty(old, await GetIdentifier(current, session), session);
 		}
 
-		public override object Disassemble(object value, ISessionImplementor session, object owner)
+		public override async Task<object> Disassemble(object value, ISessionImplementor session, object owner)
 		{
 			if (IsNotEmbedded(session))
 			{
-				return GetIdentifierType(session).Disassemble(value, session, owner);
+				return await GetIdentifierType(session).Disassemble(value, session, owner);
 			}
 
 			if (value == null)
@@ -135,21 +135,21 @@ namespace NHibernate.Type
 			{
 				// cache the actual id of the object, not the value of the
 				// property-ref, which might not be initialized
-				object id = ForeignKeys.GetEntityIdentifierIfNotUnsaved(GetAssociatedEntityName(), value, session);
+				object id = await ForeignKeys.GetEntityIdentifierIfNotUnsaved(GetAssociatedEntityName(), value, session);
 				if (id == null)
 				{
 					throw new AssertionFailure("cannot cache a reference to an object with a null id: " + GetAssociatedEntityName());
 				}
-				return GetIdentifierType(session).Disassemble(id, session, owner);
+				return await GetIdentifierType(session).Disassemble(id, session, owner);
 			}
 		}
 
-		public override object Assemble(object oid, ISessionImplementor session, object owner)
+		public override async Task<object> Assemble(object oid, ISessionImplementor session, object owner)
 		{
 			//TODO: currently broken for unique-key references (does not detect
 			//      change to unique key property of the associated object)
 
-			object id = AssembleId(oid, session);
+			object id = await AssembleId(oid, session);
 
 			if (IsNotEmbedded(session))
 			{
@@ -166,12 +166,12 @@ namespace NHibernate.Type
 			}
 		}
 
-		public override void BeforeAssemble(object oid, ISessionImplementor session)
+		public override async Task BeforeAssemble(object oid, ISessionImplementor session)
 		{
-			ScheduleBatchLoadIfNeeded(AssembleId(oid, session), session);
+			ScheduleBatchLoadIfNeeded(await AssembleId(oid, session), session);
 		}
 
-		private object AssembleId(object oid, ISessionImplementor session)
+		private Task<object> AssembleId(object oid, ISessionImplementor session)
 		{
 			//the owner of the association is not the owner of the id
 			return GetIdentifierType(session).Assemble(oid, session, null);

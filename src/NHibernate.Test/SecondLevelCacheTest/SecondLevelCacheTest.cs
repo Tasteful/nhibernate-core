@@ -118,7 +118,7 @@ namespace NHibernate.Test.SecondLevelCacheTests
 				Assert.AreEqual(3, item.Children.Count);
 				foreach (Item child in item.Children)
 				{
-					NHibernateUtil.Initialize(child);
+					NHibernateUtil.Initialize(child).Wait();
 					Assert.IsFalse(child.Id == childId);
 				}
 			}

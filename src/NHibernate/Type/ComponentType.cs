@@ -201,9 +201,9 @@ namespace NHibernate.Type
 			return false;
 		}
 
-		public override object NullSafeGet(IDataReader rs, string[] names, ISessionImplementor session, object owner)
+		public override async Task<object> NullSafeGet(IDataReader rs, string[] names, ISessionImplementor session, object owner)
 		{
-			return ResolveIdentifier(Hydrate(rs, names, session, owner), session, owner);
+			return await ResolveIdentifier(await Hydrate(rs, names, session, owner), session, owner);
 		}
 
 		/// <summary>
@@ -267,7 +267,7 @@ namespace NHibernate.Type
 			}
 		}
 
-		public override object NullSafeGet(IDataReader rs, string name, ISessionImplementor session, object owner)
+		public override Task<object> NullSafeGet(IDataReader rs, string name, ISessionImplementor session, object owner)
 		{
 			return NullSafeGet(rs, new string[] {name}, session, owner);
 		}
@@ -277,9 +277,9 @@ namespace NHibernate.Type
 			return tuplizerMapping.GetTuplizer(entityMode).GetPropertyValue(component, i);
 		}
 
-		public object GetPropertyValue(object component, int i, ISessionImplementor session)
+		public Task<object> GetPropertyValue(object component, int i, ISessionImplementor session)
 		{
-			return GetPropertyValue(component, i, session.EntityMode);
+			return Task.FromResult(GetPropertyValue(component, i, session.EntityMode));
 		}
 
 		public object[] GetPropertyValues(object component, EntityMode entityMode)
@@ -287,9 +287,9 @@ namespace NHibernate.Type
 			return tuplizerMapping.GetTuplizer(entityMode).GetPropertyValues(component);
 		}
 
-		public object[] GetPropertyValues(object component, ISessionImplementor session)
+		public Task<object[]> GetPropertyValues(object component, ISessionImplementor session)
 		{
-			return GetPropertyValues(component, session.EntityMode);
+			return Task.FromResult(GetPropertyValues(component, session.EntityMode));
 		}
 
 		public virtual void SetPropertyValues(object component, object[] values, EntityMode entityMode)
@@ -341,7 +341,7 @@ namespace NHibernate.Type
 			get { return propertyNames; }
 		}
 
-		public override Task<object> DeepCopy(object component, EntityMode entityMode, ISessionFactoryImplementor factory)
+		public override async Task<object> DeepCopy(object component, EntityMode entityMode, ISessionFactoryImplementor factory)
 		{
 			if (component == null)
 			{
@@ -351,7 +351,7 @@ namespace NHibernate.Type
 			object[] values = GetPropertyValues(component, entityMode);
 			for (int i = 0; i < propertySpan; i++)
 			{
-				values[i] = propertyTypes[i].DeepCopy(values[i], entityMode, factory);
+				values[i] = await propertyTypes[i].DeepCopy(values[i], entityMode, factory);
 			}
 
 			object result = Instantiate(entityMode);
@@ -365,7 +365,7 @@ namespace NHibernate.Type
 				ct.SetParent(result, ct.GetParent(component), factory);
 			}
 
-			return Task.FromResult(result);
+			return result;
 		}
 
 		public override async Task<object> Replace(object original, object target, ISessionImplementor session, object owner,
@@ -432,7 +432,7 @@ namespace NHibernate.Type
 			get { return true; }
 		}
 
-		public override object Disassemble(object value, ISessionImplementor session, object owner)
+		public override async Task<object> Disassemble(object value, ISessionImplementor session, object owner)
 		{
 			if (value == null)
 			{
@@ -443,13 +443,13 @@ namespace NHibernate.Type
 				object[] values = GetPropertyValues(value, session.EntityMode);
 				for (int i = 0; i < propertyTypes.Length; i++)
 				{
-					values[i] = propertyTypes[i].Disassemble(values[i], session, owner);
+					values[i] = await propertyTypes[i].Disassemble(values[i], session, owner);
 				}
 				return values;
 			}
 		}
 
-		public override object Assemble(object obj, ISessionImplementor session, object owner)
+		public override async Task<object> Assemble(object obj, ISessionImplementor session, object owner)
 		{
 			if (obj == null)
 			{
@@ -461,7 +461,7 @@ namespace NHibernate.Type
 				object[] assembled = new object[values.Length];
 				for (int i = 0; i < propertyTypes.Length; i++)
 				{
-					assembled[i] = propertyTypes[i].Assemble(values[i], session, owner);
+					assembled[i] = await propertyTypes[i].Assemble(values[i], session, owner);
 				}
 				object result = Instantiate(owner, session);
 				SetPropertyValues(result, assembled, session.EntityMode);
@@ -479,7 +479,7 @@ namespace NHibernate.Type
 			get { return false; }
 		}
 
-		public override object Hydrate(IDataReader rs, string[] names, ISessionImplementor session, object owner)
+		public override async Task<object> Hydrate(IDataReader rs, string[] names, ISessionImplementor session, object owner)
 		{
 			int begin = 0;
 			bool notNull = false;
@@ -488,7 +488,7 @@ namespace NHibernate.Type
 			{
 				int length = propertyTypes[i].GetColumnSpan(session.Factory);
 				string[] range = ArrayHelper.Slice(names, begin, length); //cache this
-				object val = propertyTypes[i].Hydrate(rs, range, session, owner);
+				object val = await propertyTypes[i].Hydrate(rs, range, session, owner);
 				if (val == null)
 				{
 					if (isKey)
@@ -510,7 +510,7 @@ namespace NHibernate.Type
 				return notNull ? values : null;
 		}
 
-		public override object ResolveIdentifier(object value, ISessionImplementor session, object owner)
+		public override async Task<object> ResolveIdentifier(object value, ISessionImplementor session, object owner)
 		{
 			if (value != null)
 			{
@@ -519,7 +519,7 @@ namespace NHibernate.Type
 				object[] resolvedValues = new object[values.Length]; //only really need new array during semiresolve!
 				for (int i = 0; i < values.Length; i++)
 				{
-					resolvedValues[i] = propertyTypes[i].ResolveIdentifier(values[i], session, owner);
+					resolvedValues[i] = await propertyTypes[i].ResolveIdentifier(values[i], session, owner);
 				}
 				SetPropertyValues(result, resolvedValues, session.EntityMode);
 				return result;
@@ -547,7 +547,7 @@ namespace NHibernate.Type
 			{
 				return current != null;
 			}
-			object[] currentValues = GetPropertyValues(current, session);
+			object[] currentValues = await GetPropertyValues(current, session);
 			object[] oldValues = (Object[]) old;
 			int loc = 0;
 			for (int i = 0; i < currentValues.Length; i++)

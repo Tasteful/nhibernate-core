@@ -85,10 +85,10 @@ namespace NHibernate.Test.Stats
 			Assert.AreEqual(0, sessionStats.CollectionCount);
 
 			europe = s.Get<Continent>(europe.Id);
-			NHibernateUtil.Initialize(europe.Countries);
+			NHibernateUtil.Initialize(europe.Countries).Wait();
 			IEnumerator itr = europe.Countries.GetEnumerator();
 			itr.MoveNext();
-			NHibernateUtil.Initialize(itr.Current);
+			NHibernateUtil.Initialize(itr.Current).Wait();
 			Assert.AreEqual(2, sessionStats.EntityKeys.Count);
 			Assert.AreEqual(2, sessionStats.EntityCount);
 			Assert.AreEqual(1, sessionStats.CollectionKeys.Count);

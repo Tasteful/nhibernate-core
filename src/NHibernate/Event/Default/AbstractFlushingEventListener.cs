@@ -57,8 +57,8 @@ namespace NHibernate.Event.Default
 			persistenceContext.Flushing = true;
 			try
 			{
-				FlushEntities(@event);
-				FlushCollections(session);
+				await FlushEntities(@event);
+				await FlushCollections(session);
 			}
 			finally
 			{
@@ -84,7 +84,7 @@ namespace NHibernate.Event.Default
 			}
 		}
 
-		protected virtual void FlushCollections(IEventSource session)
+		protected virtual async Task FlushCollections(IEventSource session)
 		{
 			log.Debug("Processing unreferenced collections");
 
@@ -94,7 +94,7 @@ namespace NHibernate.Event.Default
 				CollectionEntry ce = (CollectionEntry) me.Value;
 				if (!ce.IsReached && !ce.IsIgnore)
 				{
-					Collections.ProcessUnreachableCollection((IPersistentCollection) me.Key, session);
+					await Collections.ProcessUnreachableCollection((IPersistentCollection) me.Key, session);
 				}
 			}
 
@@ -133,7 +133,7 @@ namespace NHibernate.Event.Default
 		// 1. detect any dirty entities
 		// 2. schedule any entity updates
 		// 3. search out any reachable collections
-		protected virtual void FlushEntities(FlushEvent @event)
+		protected virtual async Task FlushEntities(FlushEvent @event)
 		{
 			log.Debug("Flushing entities and processing referenced collections");
 
@@ -158,7 +158,7 @@ namespace NHibernate.Event.Default
 					IFlushEntityEventListener[] listeners = source.Listeners.FlushEntityEventListeners;
 					foreach (IFlushEntityEventListener listener in listeners)
 					{
-						listener.OnFlushEntity(entityEvent);
+						await listener.OnFlushEntity(entityEvent);
 					}
 				}
 			}

@@ -25,7 +25,7 @@ namespace NHibernate.Param
 		public async Task Bind(IDbCommand command, IList<Parameter> sqlQueryParametersList, QueryParameters queryParameters, ISessionImplementor session)
 		{
 			int position = sqlQueryParametersList.GetEffectiveParameterLocations(IdBackTrack).Single(); // version parameter can't appear more than once
-			await type.NullSafeSet(command, type.Seed(session), position, session);
+			await type.NullSafeSet(command, await type.Seed(session), position, session);
 		}
 
 		public Task Bind(IDbCommand command, IList<Parameter> multiSqlQueryParametersList, int singleSqlParametersOffset, IList<Parameter> sqlQueryParametersList, QueryParameters queryParameters, ISessionImplementor session)

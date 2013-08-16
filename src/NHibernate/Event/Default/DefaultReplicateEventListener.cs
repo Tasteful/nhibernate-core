@@ -55,7 +55,7 @@ namespace NHibernate.Event.Default
 			else
 			{
 				//what is the version on the database?
-				oldVersion = persister.GetCurrentVersion(id, source);
+				oldVersion = await persister.GetCurrentVersion(id, source);
 			}
 
 			if (oldVersion != null)
@@ -108,7 +108,7 @@ namespace NHibernate.Event.Default
 				log.Debug("replicating changes to " + MessageHelper.InfoString(persister, id, source.Factory));
 			}
 
-			new OnReplicateVisitor(source, id, entity, true).Process(entity, persister);
+			await new OnReplicateVisitor(source, id, entity, true).Process(entity, persister);
 
 			source.PersistenceContext.AddEntity(
 				entity, 
@@ -148,17 +148,17 @@ namespace NHibernate.Event.Default
 			get { return CascadingAction.Replicate; }
 		}
 
-		protected override bool SubstituteValuesIfNecessary(object entity, object id, object[] values, IEntityPersister persister, ISessionImplementor source)
+		protected override Task<bool> SubstituteValuesIfNecessary(object entity, object id, object[] values, IEntityPersister persister, ISessionImplementor source)
 		{
-			return false;
+			return Task.FromResult(false);
 		}
 
-		protected override bool VisitCollectionsBeforeSave(object entity, object id, object[] values, Type.IType[] types, IEventSource source)
+		protected override async Task<bool> VisitCollectionsBeforeSave(object entity, object id, object[] values, Type.IType[] types, IEventSource source)
 		{
 			//TODO: we use two visitors here, inefficient!
 			OnReplicateVisitor visitor = new OnReplicateVisitor(source, id, entity, false);
-			visitor.ProcessEntityPropertyValues(values, types);
-			return base.VisitCollectionsBeforeSave(entity, id, values, types, source);
+			await visitor.ProcessEntityPropertyValues(values, types);
+			return await base.VisitCollectionsBeforeSave(entity, id, values, types, source);
 		}
 	}
 }

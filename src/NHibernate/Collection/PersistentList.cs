@@ -115,10 +115,10 @@ namespace NHibernate.Collection
 			return StringHelper.CollectionToString(list);
 		}
 
-		public override object ReadFrom(IDataReader rs, ICollectionPersister role, ICollectionAliases descriptor, object owner)
+		public override async Task<object> ReadFrom(IDataReader rs, ICollectionPersister role, ICollectionAliases descriptor, object owner)
 		{
-			object element = role.ReadElement(rs, owner, descriptor.SuffixedElementAliases, Session);
-			int index = (int) role.ReadIndex(rs, descriptor.SuffixedIndexAliases, Session);
+			object element = await role.ReadElement(rs, owner, descriptor.SuffixedElementAliases, Session);
+			int index = (int) await role.ReadIndex(rs, descriptor.SuffixedIndexAliases, Session);
 
 			//pad with nulls from the current last element up to the new index
 			for (int i = list.Count; i <= index; i++)
@@ -141,25 +141,25 @@ namespace NHibernate.Collection
 		/// <param name="persister">The CollectionPersister to use to reassemble the PersistentList.</param>
 		/// <param name="disassembled">The disassembled PersistentList.</param>
 		/// <param name="owner">The owner object.</param>
-		public override void InitializeFromCache(ICollectionPersister persister, object disassembled, object owner)
+		public override async Task InitializeFromCache(ICollectionPersister persister, object disassembled, object owner)
 		{
 			object[] array = (object[]) disassembled;
 			int size = array.Length;
 			BeforeInitialize(persister, size);
 			for (int i = 0; i < size; i++)
 			{
-				object element = persister.ElementType.Assemble(array[i], Session, owner);
+				object element = await persister.ElementType.Assemble(array[i], Session, owner);
 				list.Add(element ?? DefaultForType);
 			}
 		}
 
-		public override object Disassemble(ICollectionPersister persister)
+		public override async Task<object> Disassemble(ICollectionPersister persister)
 		{
 			int length = list.Count;
 			object[] result = new object[length];
 			for (int i = 0; i < length; i++)
 			{
-				result[i] = persister.ElementType.Disassemble(list[i], Session, null);
+				result[i] = await persister.ElementType.Disassemble(list[i], Session, null);
 			}
 			return result;
 		}
@@ -262,10 +262,7 @@ namespace NHibernate.Collection
 
 		public bool Contains(object value)
 		{
-			// TODO Async
-			Task<bool?> task = ReadElementExistence(value);
-			task.Wait();
-			bool? exists = task.Result;
+			bool? exists = ReadElementExistence(value).WaitAndUnwrapException();
 			return !exists.HasValue ? list.Contains(value) : exists.Value;
 		}
 
@@ -277,7 +274,7 @@ namespace NHibernate.Collection
 			}
 			else
 			{
-				Initialize(true);
+				Initialize(true).WaitAndUnwrapException();
 				if (!(list.Count == 0))
 				{
 					list.Clear();
@@ -311,17 +308,10 @@ namespace NHibernate.Collection
 
 		public void Remove(object value)
 		{
-			// TODO Async
-			Task<bool?> task = null;
-			if (PutQueueEnabled)
-			{
-				task = ReadElementExistence(value);
-				task.Wait();
-			}
-			bool? exists = PutQueueEnabled ? task.Result : null;
+			bool? exists = PutQueueEnabled ? ReadElementExistence(value).WaitAndUnwrapException() : null;
 			if (!exists.HasValue)
 			{
-				Initialize(true);
+				Initialize(true).WaitAndUnwrapException();
 				// NH: Different implementation: we use the count to know if the value was removed (better performance)
 				int contained = list.Count;
 				list.Remove(value);
@@ -342,7 +332,7 @@ namespace NHibernate.Collection
 			{
 				throw new IndexOutOfRangeException("negative index");
 			}
-			object old = PutQueueEnabled ? ReadElementByIndex(index) : Unknown;
+			object old = PutQueueEnabled ? ReadElementByIndex(index).WaitAndUnwrapException() : Unknown;
 			if (old == Unknown)
 			{
 				Write();
@@ -362,7 +352,7 @@ namespace NHibernate.Collection
 				{
 					throw new IndexOutOfRangeException("negative index");
 				}
-				object result = ReadElementByIndex(index);
+				object result = ReadElementByIndex(index).WaitAndUnwrapException();
 				if (result == Unknown)
 				{
 					return list[index];
@@ -387,7 +377,7 @@ namespace NHibernate.Collection
 				object old;
 				if (PutQueueEnabled)
 				{
-					old = ReadElementByIndex(index);
+					old = ReadElementByIndex(index).WaitAndUnwrapException();
 					if(old == NotFound)
 					{
 						old = null;
@@ -435,9 +425,7 @@ namespace NHibernate.Collection
 		{
 			get
 			{
-				Task<bool> readSize = ReadSize();
-				readSize.Wait();
-				return readSize.Result ? CachedSize : list.Count;
+				return ReadSize().WaitAndUnwrapException() ? CachedSize : list.Count;
 			}
 		}
 

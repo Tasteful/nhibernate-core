@@ -1,4 +1,5 @@
 using System;
+using System.Threading.Tasks;
 using NHibernate.Type;
 using NUnit.Framework;
 
@@ -11,11 +12,11 @@ namespace NHibernate.Test.TypesTest
 	public class TimeAsTimeSpanTypeFixture
 	{
 		[Test]
-		public void Next()
+		public async Task Next()
 		{
 			var type = (TimeAsTimeSpanType) NHibernateUtil.TimeAsTimeSpan;
 			object current = new TimeSpan(DateTime.Now.Ticks - 5);
-			object next = type.Next(current, null);
+			object next = await type.Next(current, null);
 
 			Assert.IsTrue(next is TimeSpan, "Next should be TimeSpan");
 			Assert.IsTrue((TimeSpan) next > (TimeSpan) current,
@@ -23,10 +24,10 @@ namespace NHibernate.Test.TypesTest
 		}
 
 		[Test]
-		public void Seed()
+		public async Task Seed()
 		{
 			var type = (TimeAsTimeSpanType) NHibernateUtil.TimeAsTimeSpan;
-			Assert.IsTrue(type.Seed(null) is TimeSpan, "seed should be TimeSpan");
+			Assert.IsTrue(await type.Seed(null) is TimeSpan, "seed should be TimeSpan");
 		}
 	}
 

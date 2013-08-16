@@ -162,7 +162,7 @@ namespace NHibernate.Engine
 
 		private async Task CascadeComponent(object parent, object child, IAbstractComponentType componentType, object anything)
 		{
-			object[] children = componentType.GetPropertyValues(child, eventSource);
+			object[] children = await componentType.GetPropertyValues(child, eventSource);
 			IType[] types = componentType.Subtypes;
 			for (int i = 0; i < types.Length; i++)
 			{

@@ -105,10 +105,10 @@ namespace NHibernate.Collection
 			return StringHelper.CollectionToString(map);
 		}
 
-		public override object ReadFrom(IDataReader rs, ICollectionPersister role, ICollectionAliases descriptor, object owner)
+		public override async Task<object> ReadFrom(IDataReader rs, ICollectionPersister role, ICollectionAliases descriptor, object owner)
 		{
-			object element = role.ReadElement(rs, owner, descriptor.SuffixedElementAliases, Session);
-			object index = role.ReadIndex(rs, descriptor.SuffixedIndexAliases, Session);
+			object element = await role.ReadElement(rs, owner, descriptor.SuffixedElementAliases, Session);
+			object index = await role.ReadIndex(rs, descriptor.SuffixedIndexAliases, Session);
 
 			AddDuringInitialize(index, element);
 			return element;
@@ -130,26 +130,26 @@ namespace NHibernate.Collection
 		/// <param name="persister">The CollectionPersister to use to reassemble the PersistentMap.</param>
 		/// <param name="disassembled">The disassembled PersistentMap.</param>
 		/// <param name="owner">The owner object.</param>
-		public override void InitializeFromCache(ICollectionPersister persister, object disassembled, object owner)
+		public override async Task InitializeFromCache(ICollectionPersister persister, object disassembled, object owner)
 		{
 			object[] array = (object[]) disassembled;
 			int size = array.Length;
 			BeforeInitialize(persister, size);
 			for (int i = 0; i < size; i += 2)
 			{
-				map[persister.IndexType.Assemble(array[i], Session, owner)] =
-					persister.ElementType.Assemble(array[i + 1], Session, owner);
+				map[await persister.IndexType.Assemble(array[i], Session, owner)] =
+					await persister.ElementType.Assemble(array[i + 1], Session, owner);
 			}
 		}
 
-		public override object Disassemble(ICollectionPersister persister)
+		public override async Task<object> Disassemble(ICollectionPersister persister)
 		{
 			object[] result = new object[map.Count * 2];
 			int i = 0;
 			foreach (DictionaryEntry e in map)
 			{
-				result[i++] = persister.IndexType.Disassemble(e.Key, Session, null);
-				result[i++] = persister.ElementType.Disassemble(e.Value, Session, null);
+				result[i++] = await persister.IndexType.Disassemble(e.Key, Session, null);
+				result[i++] = await persister.ElementType.Disassemble(e.Value, Session, null);
 			}
 			return result;
 		}
@@ -228,10 +228,7 @@ namespace NHibernate.Collection
 
 		public bool Contains(object key)
 		{
-			// TODO Async
-			Task<bool?> task = ReadIndexExistence(key);
-			task.Wait();
-			bool? exists = task.Result;
+			bool? exists = ReadIndexExistence(key).WaitAndUnwrapException();
 			return !exists.HasValue ? map.Contains(key) : exists.Value;
 		}
 
@@ -243,14 +240,14 @@ namespace NHibernate.Collection
 			}
 			if (PutQueueEnabled)
 			{
-				object old = ReadElementByIndex(key);
+				object old = ReadElementByIndex(key).WaitAndUnwrapException();
 				if (old != Unknown)
 				{
 					QueueOperation(new PutDelayedOperation(this, key, value, old == NotFound ? null : old));
 					return;
 				}
 			}
-			Initialize(true);
+			Initialize(true).WaitAndUnwrapException();
 			// NH Different behavior: we are using same NET behavior where Add is different than put method in JAVA
 			map.Add(key, value);
 			Dirty();
@@ -264,7 +261,7 @@ namespace NHibernate.Collection
 			}
 			else
 			{
-				Initialize(true);
+				Initialize(true).WaitAndUnwrapException();
 				if (map.Count != 0)
 				{
 					Dirty();
@@ -281,10 +278,10 @@ namespace NHibernate.Collection
 
 		public void Remove(object key)
 		{
-			object old = PutQueueEnabled ? ReadElementByIndex(key) : Unknown;
+			object old = PutQueueEnabled ? ReadElementByIndex(key).WaitAndUnwrapException() : Unknown;
 			if (old == Unknown) // queue is not enabled for 'puts', or element not found
 			{
-				Initialize(true);
+				Initialize(true).WaitAndUnwrapException();
 				// NH: Different implementation: we use the count to know if the value was removed (better performance)
 				int contained = map.Count;
 				map.Remove(key);
@@ -303,7 +300,7 @@ namespace NHibernate.Collection
 		{
 			get
 			{
-				object result = ReadElementByIndex(key);
+				object result = ReadElementByIndex(key).WaitAndUnwrapException();
 				return result == Unknown ? map[key] : (result == NotFound ? null : result);
 			}
 			set
@@ -311,14 +308,14 @@ namespace NHibernate.Collection
 				// NH Note: the assignment in NET work like the put method in JAVA (mean assign or add)
 				if (PutQueueEnabled)
 				{
-					object old = ReadElementByIndex(key);
+					object old = ReadElementByIndex(key).WaitAndUnwrapException();
 					if (old != Unknown && old != NotFound)
 					{
 						QueueOperation(new PutDelayedOperation(this, key, value, old));
 						return;
 					}
 				}
-				Initialize(true);
+				Initialize(true).WaitAndUnwrapException();
 				object tempObject = map[key];
 				map[key] = value;
 				object old2 = tempObject;
@@ -391,10 +388,7 @@ namespace NHibernate.Collection
 		{
 			get
 			{
-				// TODO Async
-				Task<bool> task = ReadSize();
-				task.Wait();
-				return task.Result ? CachedSize : map.Count;
+				return ReadSize().WaitAndUnwrapException() ? CachedSize : map.Count;
 			}
 		}
 

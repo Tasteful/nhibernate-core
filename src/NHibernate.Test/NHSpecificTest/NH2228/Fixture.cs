@@ -55,7 +55,7 @@ namespace NHibernate.Test.NHSpecificTest.NH2228
                 using (var client1 = OpenSession())
                 {
                     var parentFromClient1 = client1.Get<Parent>(scenario.ParentId);
-                    NHibernateUtil.Initialize(parentFromClient1.Children);
+					NHibernateUtil.Initialize(parentFromClient1.Children).Wait();
                     var firstChildId = parentFromClient1.Children[0].Id;
 
                     DeleteChildUsingAnotherSession(firstChildId);

@@ -162,7 +162,7 @@ namespace NHibernate.Tuple.Entity
 				if (prop == persistentClass.Version)
 				{
 					tempVersionProperty = i;
-					properties[i] = PropertyFactory.BuildVersionProperty(prop, islazyProperty);
+					properties[i] = PropertyFactory.BuildVersionProperty(prop, islazyProperty).WaitAndUnwrapException();
 				}
 				else
 				{

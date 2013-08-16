@@ -851,9 +851,9 @@ namespace NHibernate.Engine
 		/// </summary>
 		/// <param name="collection">The collection to be associated with the persistence context </param>
 		/// <param name="persister"></param>
-		public void AddNewCollection(ICollectionPersister persister, IPersistentCollection collection)
+		public async Task AddNewCollection(ICollectionPersister persister, IPersistentCollection collection)
 		{
-			AddCollection(collection, persister);
+			await AddCollection(collection, persister);
 		}
 
 		/// <summary> Add an collection to the cache, with a given collection entry. </summary>
@@ -885,9 +885,9 @@ namespace NHibernate.Engine
 		/// <summary> Add a collection to the cache, creating a new collection entry for it </summary>
 		/// <param name="collection">The collection for which we are adding an entry. </param>
 		/// <param name="persister">The collection persister </param>
-		private void AddCollection(IPersistentCollection collection, ICollectionPersister persister)
+		private async Task AddCollection(IPersistentCollection collection, ICollectionPersister persister)
 		{
-			CollectionEntry ce = new CollectionEntry(persister, collection);
+			CollectionEntry ce = await CollectionEntry.Create(persister, collection);
 			collectionEntries[collection] = ce;
 		}
 
@@ -895,12 +895,12 @@ namespace NHibernate.Engine
 		/// add an (initialized) collection that was created by another session and passed
 		/// into update() (ie. one with a snapshot and existing state on the database)
 		/// </summary>
-		public void AddInitializedDetachedCollection(ICollectionPersister collectionPersister, IPersistentCollection collection)
+		public async Task AddInitializedDetachedCollection(ICollectionPersister collectionPersister, IPersistentCollection collection)
 		{
 			if (collection.IsUnreferenced)
 			{
 				//treat it just like a new collection
-				AddCollection(collection, collectionPersister);
+				await AddCollection(collection, collectionPersister);
 			}
 			else
 			{
@@ -910,11 +910,11 @@ namespace NHibernate.Engine
 		}
 
 		/// <summary> add a collection we just pulled out of the cache (does not need initializing)</summary>
-		public CollectionEntry AddInitializedCollection(ICollectionPersister persister, IPersistentCollection collection,
+		public async Task<CollectionEntry> AddInitializedCollection(ICollectionPersister persister, IPersistentCollection collection,
 																										object id)
 		{
 			CollectionEntry ce = new CollectionEntry(collection, persister, id, flushing);
-			ce.PostInitialize(collection);
+			await ce.PostInitialize(collection);
 			AddCollection(collection, ce, id);
 			return ce;
 		}
@@ -942,7 +942,7 @@ namespace NHibernate.Engine
 		/// the current two-phase load (actually, this is a no-op, unless this
 		/// is the "outermost" load)
 		/// </summary>
-		public void InitializeNonLazyCollections()
+		public async Task InitializeNonLazyCollections()
 		{
 			if (loadCounter == 0)
 			{
@@ -956,7 +956,7 @@ namespace NHibernate.Engine
 						//note that each iteration of the loop may add new elements
 						IPersistentCollection tempObject = nonlazyCollections[nonlazyCollections.Count - 1];
 						nonlazyCollections.RemoveAt(nonlazyCollections.Count - 1);
-						tempObject.ForceInitialization();
+						await tempObject.ForceInitialization();
 					}
 				}
 				finally

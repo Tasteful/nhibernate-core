@@ -76,7 +76,7 @@ namespace NHibernate.Loader.Criteria
 			return List(session, translator.GetQueryParameters(), querySpaces, resultTypes);
 		}
 
-		protected override object GetResultColumnOrRow(object[] row, IResultTransformer customResultTransformer, IDataReader rs,
+		protected override async Task<object> GetResultColumnOrRow(object[] row, IResultTransformer customResultTransformer, IDataReader rs,
 													   ISessionImplementor session)
 		{
 			object[] result;
@@ -94,11 +94,11 @@ namespace NHibernate.Loader.Criteria
 					if ( numColumns > 1 ) 
 					{
 						string[] typeColumnAliases = ArrayHelper.Slice(columnAliases, position, numColumns);
-						result[i] = types[i].NullSafeGet(rs, typeColumnAliases, session, null);
+						result[i] = await types[i].NullSafeGet(rs, typeColumnAliases, session, null);
 					}
 					else
 					{
-						result[i] = types[i].NullSafeGet(rs, columnAliases[position], session, null);
+						result[i] = await types[i].NullSafeGet(rs, columnAliases[position], session, null);
 					}
 					position += numColumns;
 				}

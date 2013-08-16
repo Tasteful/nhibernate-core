@@ -1,5 +1,6 @@
 using System;
 using System.Reflection;
+using System.Threading.Tasks;
 using NHibernate.Engine;
 using NHibernate.Proxy.DynamicProxy;
 using NHibernate.Proxy.Poco;
@@ -21,7 +22,7 @@ namespace NHibernate.Proxy
 
 		#region Implementation of IInterceptor
 
-		public object Intercept(InvocationInfo info)
+		public Task<object> Intercept(InvocationInfo info)
 		{
 			object returnValue;
 			try
@@ -31,7 +32,7 @@ namespace NHibernate.Proxy
 				// Avoid invoking the actual implementation, if possible
 				if (returnValue != InvokeImplementation)
 				{
-					return returnValue;
+					return Task.FromResult(returnValue);
 				}
 
 				returnValue = info.TargetMethod.Invoke(GetImplementation(), info.Arguments);
@@ -42,7 +43,7 @@ namespace NHibernate.Proxy
 				throw ex.InnerException;
 			}
 
-			return returnValue;
+			return Task.FromResult(returnValue);
 		}
 
 		#endregion

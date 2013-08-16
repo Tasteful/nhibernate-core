@@ -61,7 +61,7 @@ namespace NHibernate.Id.Insert
 					IDataReader rs = await session.Batcher.ExecuteReader(idSelect);
 					try
 					{
-						return GetResult(session, rs, binder.Entity);
+						return await GetResult(session, rs, binder.Entity);
 					}
 					finally
 					{
@@ -92,7 +92,7 @@ namespace NHibernate.Id.Insert
 		/// <param name="rs">The result set containing the generated primay key values. </param>
 		/// <param name="entity">The entity being saved. </param>
 		/// <returns> The generated identifier </returns>
-		protected internal abstract object GetResult(ISessionImplementor session, IDataReader rs, object entity);
+		protected internal abstract Task<object> GetResult(ISessionImplementor session, IDataReader rs, object entity);
 
 		/// <summary> Bind any required parameter values into the SQL command <see cref="SelectSQL"/>. </summary>
 		/// <param name="session">The session </param>

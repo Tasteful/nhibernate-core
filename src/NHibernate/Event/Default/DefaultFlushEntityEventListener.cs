@@ -38,7 +38,7 @@ namespace NHibernate.Event.Default
 			@event.PropertyValues = values;
 
 			//TODO: avoid this for non-new instances where mightBeDirty==false
-			bool substitute = WrapCollections(session, persister, types, values);
+			bool substitute = await WrapCollections(session, persister, types, values);
 
 			if (await IsUpdateNecessary(@event, mightBeDirty))
 			{
@@ -55,7 +55,7 @@ namespace NHibernate.Event.Default
 				// We don't want to touch collections reachable from a deleted object
 				if (persister.HasCollections)
 				{
-					new FlushVisitor(session, entity).ProcessEntityPropertyValues(values, types);
+					await new FlushVisitor(session, entity).ProcessEntityPropertyValues(values, types);
 				}
 			}
 		}
@@ -155,7 +155,7 @@ namespace NHibernate.Event.Default
 			}
 		}
 
-		private bool WrapCollections(IEventSource session, IEntityPersister persister, IType[] types, object[] values)
+		private async Task<bool> WrapCollections(IEventSource session, IEntityPersister persister, IType[] types, object[] values)
 		{
 			if (persister.HasCollections)
 			{
@@ -169,7 +169,7 @@ namespace NHibernate.Event.Default
 
 				WrapVisitor visitor = new WrapVisitor(session);
 				// substitutes into values by side-effect
-				visitor.ProcessEntityPropertyValues(values, types);
+				await visitor.ProcessEntityPropertyValues(values, types);
 				return visitor.SubstitutionRequired;
 			}
 			else
@@ -185,7 +185,7 @@ namespace NHibernate.Event.Default
 			{
 				// compare to cached state (ignoring collections unless versioned)
 				await DirtyCheck(@event);
-				if (IsUpdateNecessary(@event))
+				if (await IsUpdateNecessary(@event))
 				{
 					return true;
 				}
@@ -198,7 +198,7 @@ namespace NHibernate.Event.Default
 			}
 			else
 			{
-				return HasDirtyCollections(@event, @event.EntityEntry.Persister, status);
+				return await HasDirtyCollections(@event, @event.EntityEntry.Persister, status);
 			}
 		}
 
@@ -251,7 +251,7 @@ namespace NHibernate.Event.Default
 			Validate(entity, persister, status, entityMode);
 
 			// increment the version number (if necessary)
-			object nextVersion = GetNextVersion(@event);
+			object nextVersion = await GetNextVersion(@event);
 
 			// if it was dirtied by a collection only
 			int[] dirtyProperties = @event.DirtyProperties;
@@ -329,7 +329,7 @@ namespace NHibernate.Event.Default
 			return session.Interceptor.OnFlushDirty(entity, entry.Id, values, entry.LoadedState, persister.PropertyNames, persister.PropertyTypes);
 		}
 
-		private object GetNextVersion(FlushEntityEvent @event)
+		private async Task<object> GetNextVersion(FlushEntityEvent @event)
 		{
 			// Convience method to retrieve an entities next version value
 			EntityEntry entry = @event.EntityEntry;
@@ -349,7 +349,7 @@ namespace NHibernate.Event.Default
 					bool isVersionIncrementRequired = IsVersionIncrementRequired(@event, entry, persister, dirtyProperties);
 
 					object nextVersion = isVersionIncrementRequired ?
-						Versioning.Increment(entry.Version, persister.VersionType, @event.Session) :
+						await Versioning.Increment(entry.Version, persister.VersionType, @event.Session) :
 						entry.Version; //use the current version
 
 					Versioning.SetVersion(values, nextVersion, persister);
@@ -381,7 +381,7 @@ namespace NHibernate.Event.Default
 		/// to synchronize its state to the database. Modifies the event by side-effect!
 		/// Note: this method is quite slow, avoid calling if possible!
 		/// </summary>
-		protected bool IsUpdateNecessary(FlushEntityEvent @event)
+		protected async Task<bool> IsUpdateNecessary(FlushEntityEvent @event)
 		{
 			IEntityPersister persister = @event.EntityEntry.Persister;
 			Status status = @event.EntityEntry.Status;
@@ -400,17 +400,17 @@ namespace NHibernate.Event.Default
 				}
 				else
 				{
-					return HasDirtyCollections(@event, persister, status);
+					return await HasDirtyCollections(@event, persister, status);
 				}
 			}
 		}
 
-		private bool HasDirtyCollections(FlushEntityEvent @event, IEntityPersister persister, Status status)
+		private async Task<bool> HasDirtyCollections(FlushEntityEvent @event, IEntityPersister persister, Status status)
 		{
 			if (IsCollectionDirtyCheckNecessary(persister, status))
 			{
 				DirtyCollectionSearchVisitor visitor = new DirtyCollectionSearchVisitor(@event.Session, persister.PropertyVersionability);
-				visitor.ProcessEntityPropertyValues(@event.PropertyValues, persister.PropertyTypes);
+				await visitor.ProcessEntityPropertyValues(@event.PropertyValues, persister.PropertyTypes);
 				bool hasDirtyCollections = visitor.WasDirtyCollectionFound;
 				@event.HasDirtyCollection = hasDirtyCollections;
 				return hasDirtyCollections;

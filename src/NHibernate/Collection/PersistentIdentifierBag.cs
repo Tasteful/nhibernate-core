@@ -106,15 +106,15 @@ namespace NHibernate.Collection
 		/// <param name="persister">The CollectionPersister to use to reassemble the PersistentIdentifierBag.</param>
 		/// <param name="disassembled">The disassembled PersistentIdentifierBag.</param>
 		/// <param name="owner">The owner object.</param>
-		public override void InitializeFromCache(ICollectionPersister persister, object disassembled, object owner)
+		public override async Task InitializeFromCache(ICollectionPersister persister, object disassembled, object owner)
 		{
 			object[] array = (object[]) disassembled;
 			int size = array.Length;
 			BeforeInitialize(persister, size);
 			for (int i = 0; i < size; i += 2)
 			{
-				identifiers[i / 2] = persister.IdentifierType.Assemble(array[i], Session, owner);
-				values.Add(persister.ElementType.Assemble(array[i + 1], Session, owner));
+				identifiers[i / 2] = await persister.IdentifierType.Assemble(array[i], Session, owner);
+				values.Add(await persister.ElementType.Assemble(array[i + 1], Session, owner));
 			}
 		}
 
@@ -142,7 +142,7 @@ namespace NHibernate.Collection
 			values = anticipatedSize <= 0 ? new List<object>() : new List<object>(anticipatedSize);
 		}
 
-		public override object Disassemble(ICollectionPersister persister)
+		public override async Task<object> Disassemble(ICollectionPersister persister)
 		{
 			object[] result = new object[values.Count * 2];
 
@@ -150,8 +150,8 @@ namespace NHibernate.Collection
 			for (int j = 0; j < values.Count; j++)
 			{
 				object val = values[j];
-				result[i++] = persister.IdentifierType.Disassemble(identifiers[j], Session, null);
-				result[i++] = persister.ElementType.Disassemble(val, Session, null);
+				result[i++] = await persister.IdentifierType.Disassemble(identifiers[j], Session, null);
+				result[i++] = await persister.ElementType.Disassemble(val, Session, null);
 			}
 
 			return result;
@@ -257,10 +257,10 @@ namespace NHibernate.Collection
 			return old != null && await elemType.IsDirty(old, entry, Session);
 		}
 
-		public override object ReadFrom(IDataReader reader, ICollectionPersister persister, ICollectionAliases descriptor, object owner)
+		public override async Task<object> ReadFrom(IDataReader reader, ICollectionPersister persister, ICollectionAliases descriptor, object owner)
 		{
-			object element = persister.ReadElement(reader, owner, descriptor.SuffixedElementAliases, Session);
-			object id = persister.ReadIdentifier(reader, descriptor.SuffixedIdentifierAlias, Session);
+			object element = await persister.ReadElement(reader, owner, descriptor.SuffixedElementAliases, Session);
+			object id = await persister.ReadIdentifier(reader, descriptor.SuffixedIdentifierAlias, Session);
 			
 			// eliminate duplication if loaded in a cartesian product
 			if (!identifiers.ContainsValue(id))
@@ -293,7 +293,7 @@ namespace NHibernate.Collection
 			return GetOrphans(sn.Select(x=> x.Value).ToArray(), values, entityName, Session);
 		}
 
-		public override void PreInsert(ICollectionPersister persister)
+		public override async Task PreInsert(ICollectionPersister persister)
 		{
 			if ((persister.IdentifierGenerator as IPostInsertIdentifierGenerator) != null)
 			{
@@ -308,7 +308,7 @@ namespace NHibernate.Collection
 					int loc = i++;
 					if (!identifiers.ContainsKey(loc)) // TODO: native ids
 					{
-						object id = persister.IdentifierGenerator.Generate(Session, entry);
+						object id = await persister.IdentifierGenerator.Generate(Session, entry);
 						identifiers[loc] = id;
 					}
 				}
@@ -369,7 +369,7 @@ namespace NHibernate.Collection
 
 		public void Clear()
 		{
-			Initialize(true);
+			Initialize(true).WaitAndUnwrapException();
 			if (values.Count > 0 || identifiers.Count > 0)
 			{
 				values.Clear();
@@ -414,7 +414,7 @@ namespace NHibernate.Collection
 
 		public void Remove(object value)
 		{
-			Initialize(true);
+			Initialize(true).WaitAndUnwrapException();
 			int index = values.IndexOf(value);
 			if (index >= 0)
 			{
@@ -454,10 +454,7 @@ namespace NHibernate.Collection
 		{
 			get
 			{
-				// TODO Async
-				Task<bool> readSize = ReadSize();
-				readSize.Wait();
-				return readSize.Result ? CachedSize : values.Count;
+				return ReadSize().WaitAndUnwrapException() ? CachedSize : values.Count;
 			}
 		}
 

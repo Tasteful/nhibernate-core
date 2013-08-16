@@ -192,9 +192,9 @@ namespace NHibernate.Type
 		/// It only takes the first name from the string[] names parameter - that is a 
 		/// safe thing to do because a Nullable Type only has one field.
 		/// </remarks>
-		public override sealed object NullSafeGet(IDataReader rs, string[] names, ISessionImplementor session, object owner)
+		public override sealed Task<object> NullSafeGet(IDataReader rs, string[] names, ISessionImplementor session, object owner)
 		{
-			return NullSafeGet(rs, names[0]);
+			return Task.FromResult(NullSafeGet(rs, names[0]));
 		}
 
 		/// <summary>
@@ -284,9 +284,9 @@ namespace NHibernate.Type
 		/// should be in <see cref="NullSafeGet(IDataReader, String)" />.
 		/// </para>
 		/// </remarks>
-		public override sealed object NullSafeGet(IDataReader rs, string name, ISessionImplementor session, object owner)
+		public override sealed Task<object> NullSafeGet(IDataReader rs, string name, ISessionImplementor session, object owner)
 		{
-			return NullSafeGet(rs, name);
+			return Task.FromResult(NullSafeGet(rs, name));
 		}
 
 		/// <summary>

@@ -2,7 +2,7 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
-
+using System.Threading.Tasks;
 using NUnit.Framework;
 using SharpTestsEx;
 
@@ -739,7 +739,7 @@ namespace NHibernate.Test.Criteria.Lambda
 		}
 
 		[Test]
-		public void MultiCriteria()
+		public async Task MultiCriteria()
 		{
 			var driver = sessions.ConnectionProvider.Driver;
 			if (!driver.SupportsMultipleQueries)
@@ -761,8 +761,8 @@ namespace NHibernate.Test.Criteria.Lambda
 						.Add("page", query)
 						.Add<int>("count", query.ToRowCountQuery());
 
-				var pageResults = (IList<Person>) multiCriteria.GetResult("page");
-				var countResults = (IList<int>) multiCriteria.GetResult("count");
+				var pageResults = (IList<Person>) await multiCriteria.GetResult("page");
+				var countResults = (IList<int>) await multiCriteria.GetResult("count");
 
 				Assert.That(pageResults.Count, Is.EqualTo(1));
 				Assert.That(pageResults[0].Name, Is.EqualTo("Name 3"));
@@ -784,8 +784,8 @@ namespace NHibernate.Test.Criteria.Lambda
 						.Add("page", query)
 						.Add<int>("count", query.ToRowCountQuery());
 
-				var pageResults = (IList<Person>) multiCriteria.GetResult("page");
-				var countResults = (IList<int>) multiCriteria.GetResult("count");
+				var pageResults = (IList<Person>) await multiCriteria.GetResult("page");
+				var countResults = (IList<int>) await multiCriteria.GetResult("count");
 
 				Assert.That(pageResults.Count, Is.EqualTo(1));
 				Assert.That(pageResults[0].Name, Is.EqualTo("Name 3"));

@@ -1215,7 +1215,7 @@ namespace NHibernate.Persister.Entity
 					if (!cacheEntry.AreLazyPropertiesUnfetched)
 					{
 						//note early exit here:
-						return Task.FromResult(InitializeLazyPropertiesFromCache(fieldName, entity, session, entry, cacheEntry));
+						return InitializeLazyPropertiesFromCache(fieldName, entity, session, entry, cacheEntry);
 					}
 				}
 			}
@@ -1252,8 +1252,8 @@ namespace NHibernate.Persister.Entity
 					object[] snapshot = entry.LoadedState;
 					for (int j = 0; j < lazyPropertyNames.Length; j++)
 					{
-						object propValue = lazyPropertyTypes[j].NullSafeGet(rs, lazyPropertyColumnAliases[j], session, entity);
-						if (InitializeLazyProperty(fieldName, entity, session, snapshot, j, propValue))
+						object propValue = await lazyPropertyTypes[j].NullSafeGet(rs, lazyPropertyColumnAliases[j], session, entity);
+						if (await InitializeLazyProperty(fieldName, entity, session, snapshot, j, propValue))
 						{
 							result = propValue;
 						}
@@ -1283,7 +1283,7 @@ namespace NHibernate.Persister.Entity
 			}
 		}
 
-		private object InitializeLazyPropertiesFromCache(string fieldName, object entity, ISessionImplementor session, EntityEntry entry, CacheEntry cacheEntry)
+		private async Task<object> InitializeLazyPropertiesFromCache(string fieldName, object entity, ISessionImplementor session, EntityEntry entry, CacheEntry cacheEntry)
 		{
 			log.Debug("initializing lazy properties from second-level cache");
 
@@ -1292,8 +1292,8 @@ namespace NHibernate.Persister.Entity
 			object[] snapshot = entry.LoadedState;
 			for (int j = 0; j < lazyPropertyNames.Length; j++)
 			{
-				object propValue = lazyPropertyTypes[j].Assemble(disassembledValues[lazyPropertyNumbers[j]], session, entity);
-				if (InitializeLazyProperty(fieldName, entity, session, snapshot, j, propValue))
+				object propValue = await lazyPropertyTypes[j].Assemble(disassembledValues[lazyPropertyNumbers[j]], session, entity);
+				if (await InitializeLazyProperty(fieldName, entity, session, snapshot, j, propValue))
 				{
 					result = propValue;
 				}
@@ -1304,13 +1304,13 @@ namespace NHibernate.Persister.Entity
 			return result;
 		}
 
-		private bool InitializeLazyProperty(string fieldName, object entity, ISessionImplementor session, object[] snapshot, int j, object propValue)
+		private async Task<bool> InitializeLazyProperty(string fieldName, object entity, ISessionImplementor session, object[] snapshot, int j, object propValue)
 		{
 			SetPropertyValue(entity, lazyPropertyNumbers[j], propValue, session.EntityMode);
 			if (snapshot != null)
 			{
 				// object have been loaded with setReadOnly(true); HHH-2236
-				snapshot[lazyPropertyNumbers[j]] = lazyPropertyTypes[j].DeepCopy(propValue, session.EntityMode, factory);
+				snapshot[lazyPropertyNumbers[j]] = await lazyPropertyTypes[j].DeepCopy(propValue, session.EntityMode, factory);
 			}
 			return fieldName.Equals(lazyPropertyNames[j]);
 		}
@@ -1431,7 +1431,7 @@ namespace NHibernate.Persister.Entity
 					{
 						if (includeProperty[i])
 						{
-							values[i] = types[i].Hydrate(rs, GetPropertyAliases(string.Empty, i), session, null); //null owner ok??
+							values[i] = await types[i].Hydrate(rs, GetPropertyAliases(string.Empty, i), session, null); //null owner ok??
 						}
 					}
 					return values;
@@ -1679,7 +1679,7 @@ namespace NHibernate.Persister.Entity
 					{
 						return this;
 					}
-					return VersionType.NullSafeGet(rs, VersionColumnName, session, null);
+					return await VersionType.NullSafeGet(rs, VersionColumnName, session, null);
 				}
 				finally
 				{
@@ -2043,7 +2043,7 @@ namespace NHibernate.Persister.Entity
 			}
 		}
 
-		public object LoadByUniqueKey(string propertyName, object uniqueKey, ISessionImplementor session)
+		public Task<object> LoadByUniqueKey(string propertyName, object uniqueKey, ISessionImplementor session)
 		{
 			return GetAppropriateUniqueKeyLoader(propertyName, session.EnabledFilters).LoadByUniqueKey(session, uniqueKey);
 		}
@@ -2513,7 +2513,7 @@ namespace NHibernate.Persister.Entity
 						{
 							IDataReader propertyResultSet = propertyIsDeferred ? sequentialResultSet : rs;
 							string[] cols = propertyIsDeferred ? propertyColumnAliases[i] : suffixedPropertyColumns[i];
-							values[i] = types[i].Hydrate(propertyResultSet, cols, session, obj);
+							values[i] = await types[i].Hydrate(propertyResultSet, cols, session, obj);
 						}
 					}
 					else
@@ -2559,7 +2559,7 @@ namespace NHibernate.Persister.Entity
 		/// <remarks>
 		/// This form is used for PostInsertIdentifierGenerator-style ids (IDENTITY, select, etc).
 		/// </remarks>
-		protected async Task<object> Insert(object[] fields, bool[] notNull, SqlCommandInfo sql, object obj, ISessionImplementor session)
+		protected Task<object> Insert(object[] fields, bool[] notNull, SqlCommandInfo sql, object obj, ISessionImplementor session)
 		{
 			if (log.IsDebugEnabled)
 			{
@@ -2570,7 +2570,7 @@ namespace NHibernate.Persister.Entity
 				}
 			}
 			IBinder binder = new GeneratedIdentifierBinder(fields, notNull, session, obj, this);
-			return await identityDelegate.PerformInsert(sql, session, binder);
+			return identityDelegate.PerformInsert(sql, session, binder);
 		}
 
 		public virtual SqlString GetSelectByUniqueKeyString(string propertyName)
@@ -4001,8 +4001,8 @@ namespace NHibernate.Persister.Entity
 					{
 						if (includeds[i] != ValueInclusion.None)
 						{
-							object hydratedState = PropertyTypes[i].Hydrate(rs, GetPropertyAliases(string.Empty, i), session, entity);
-							state[i] = PropertyTypes[i].ResolveIdentifier(hydratedState, session, entity);
+							object hydratedState = await PropertyTypes[i].Hydrate(rs, GetPropertyAliases(string.Empty, i), session, entity);
+							state[i] = await PropertyTypes[i].ResolveIdentifier(hydratedState, session, entity);
 							SetPropertyValue(entity, i, state[i], session.EntityMode);
 						}
 					}
@@ -4090,10 +4090,10 @@ namespace NHibernate.Persister.Entity
 					for (int i = 0; i < naturalIdPropertyCount; i++)
 					{
 						snapshot[i] =
-							extractionTypes[i].Hydrate(rs, GetPropertyAliases(string.Empty, naturalIdPropertyIndexes[i]), session, null);
+							await extractionTypes[i].Hydrate(rs, GetPropertyAliases(string.Empty, naturalIdPropertyIndexes[i]), session, null);
 						if (extractionTypes[i].IsEntityType)
 						{
-							snapshot[i] = extractionTypes[i].ResolveIdentifier(snapshot[i], session, null);
+							snapshot[i] = await extractionTypes[i].ResolveIdentifier(snapshot[i], session, null);
 						}
 					}
 					return snapshot;

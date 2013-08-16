@@ -686,14 +686,14 @@ namespace NHibernate.Persister.Collection
 		/// the id of the Element.
 		/// </summary>
 		/// <remarks>See ReadElementIdentifier for an explanation of why this method will be depreciated.</remarks>
-		public object ReadElement(IDataReader rs, object owner, string[] aliases, ISessionImplementor session)
+		public Task<object> ReadElement(IDataReader rs, object owner, string[] aliases, ISessionImplementor session)
 		{
 			return ElementType.NullSafeGet(rs, aliases, session, owner);
 		}
 
-		public object ReadIndex(IDataReader rs, string[] aliases, ISessionImplementor session)
+		public async Task<object> ReadIndex(IDataReader rs, string[] aliases, ISessionImplementor session)
 		{
-			object index = IndexType.NullSafeGet(rs, aliases, session, null);
+			object index = await IndexType.NullSafeGet(rs, aliases, session, null);
 			if (index == null)
 			{
 				throw new HibernateException("null index column for collection: " + role);
@@ -712,9 +712,9 @@ namespace NHibernate.Persister.Collection
 			return index;
 		}
 
-		public object ReadIdentifier(IDataReader rs, string alias, ISessionImplementor session)
+		public async Task<object> ReadIdentifier(IDataReader rs, string alias, ISessionImplementor session)
 		{
-			object id = IdentifierType.NullSafeGet(rs, alias, session, null);
+			object id = await IdentifierType.NullSafeGet(rs, alias, session, null);
 			if (id == null)
 			{
 				throw new HibernateException("null identifier column for collection: " + role);
@@ -723,7 +723,7 @@ namespace NHibernate.Persister.Collection
 			return id;
 		}
 
-		public object ReadKey(IDataReader dr, string[] aliases, ISessionImplementor session)
+		public Task<object> ReadKey(IDataReader dr, string[] aliases, ISessionImplementor session)
 		{
 			return KeyType.NullSafeGet(dr, aliases, session, null);
 		}
@@ -1094,7 +1094,7 @@ namespace NHibernate.Persister.Collection
 						if (count == 0)
 						{
 							expectation = Expectations.AppropriateExpectation(insertCheckStyle);
-							collection.PreInsert(this);
+							await collection.PreInsert(this);
 							//bool callable = InsertCallable;
 							useBatch = expectation.CanBeBatched;
 						}
@@ -1255,7 +1255,7 @@ namespace NHibernate.Persister.Collection
 				try
 				{
 					// insert all the new entries
-					collection.PreInsert(this);
+					await collection.PreInsert(this);
 					IExpectation expectation = Expectations.AppropriateExpectation(insertCheckStyle);
 					//bool callable = InsertCallable;
 					bool useBatch = expectation.CanBeBatched;
@@ -1609,7 +1609,7 @@ namespace NHibernate.Persister.Collection
 					{
 						if (rs.Read())
 						{
-							return ElementType.NullSafeGet(rs, elementColumnAliases, session, owner);
+							return await ElementType.NullSafeGet(rs, elementColumnAliases, session, owner);
 						}
 						else
 						{

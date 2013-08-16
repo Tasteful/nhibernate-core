@@ -1,4 +1,5 @@
 
+using System.Threading.Tasks;
 using NHibernate.Persister.Entity;
 using NHibernate.Type;
 
@@ -26,9 +27,9 @@ namespace NHibernate.Engine
 		/// <param name="versionType">The <see cref="IVersionType"/> of the versioned property.</param>
 		/// <param name="session">The current <see cref="ISession" />.</param>
 		/// <returns>Returns the next value for the version.</returns>
-		public static object Increment(object version, IVersionType versionType, ISessionImplementor session)
+		public static async Task<object> Increment(object version, IVersionType versionType, ISessionImplementor session)
 		{
-			object next = versionType.Next(version, session);
+			object next = await versionType.Next(version, session);
 			if (log.IsDebugEnabled)
 			{
 				log.Debug(
@@ -44,9 +45,9 @@ namespace NHibernate.Engine
 		/// <param name="versionType">The <see cref="IVersionType"/> of the versioned property.</param>
 		/// <param name="session">The current <see cref="ISession" />.</param>
 		/// <returns>A seed value to initialize the versioned property with.</returns>
-		public static object Seed(IVersionType versionType, ISessionImplementor session)
+		public static async Task<object> Seed(IVersionType versionType, ISessionImplementor session)
 		{
-			object seed = versionType.Seed(session);
+			object seed = await versionType.Seed(session);
 			if (log.IsDebugEnabled)
 			{
 				log.Debug("Seeding: " + seed);
@@ -63,13 +64,13 @@ namespace NHibernate.Engine
 		/// <param name="force">Force the version to initialize</param>
 		/// <param name="session">The current session, if any.</param>
 		/// <returns><see langword="true" /> if the version property needs to be seeded with an initial value.</returns>
-		public static bool SeedVersion(object[] fields, int versionProperty, IVersionType versionType, bool? force,
+		public static async Task<bool> SeedVersion(object[] fields, int versionProperty, IVersionType versionType, bool? force,
 																	 ISessionImplementor session)
 		{
 			object initialVersion = fields[versionProperty];
 			if (initialVersion == null || !force.HasValue || force.Value)
 			{
-				fields[versionProperty] = Seed(versionType, session);
+				fields[versionProperty] = await Seed(versionType, session);
 				return true;
 			}
 			else

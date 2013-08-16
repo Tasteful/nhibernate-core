@@ -79,12 +79,12 @@ namespace NHibernate.Type
 		/// <include file='IType.cs.xmldoc' 
 		///		path='//members[@type="IType"]/member[@name="M:IType.NullSafeGet(IDataReader, String[], ISessionImplementor, Object)"]/*'
 		/// /> 
-		object NullSafeGet(IDataReader rs, string[] names, ISessionImplementor session, object owner);
+		Task<object> NullSafeGet(IDataReader rs, string[] names, ISessionImplementor session, object owner);
 
 		/// <include file='IType.cs.xmldoc' 
 		///		path='//members[@type="IType"]/member[@name="M:IType.NullSafeGet(IDataReader, String, ISessionImplementor, Object)"]/*'
 		/// /> 
-		object NullSafeGet(IDataReader rs, string name, ISessionImplementor session, object owner);
+		Task<object> NullSafeGet(IDataReader rs, string name, ISessionImplementor session, object owner);
 
 		/// <include file='IType.cs.xmldoc' 
 		///		path='//members[@type="IType"]/member[@name="M:IType.NullSafeSet(settable)"]/*'
@@ -109,12 +109,12 @@ namespace NHibernate.Type
 		/// <include file='IType.cs.xmldoc' 
 		///		path='//members[@type="IType"]/member[@name="M:IType.Hydrate"]/*'
 		/// /> 
-		object Hydrate(IDataReader rs, string[] names, ISessionImplementor session, object owner);
+		Task<object> Hydrate(IDataReader rs, string[] names, ISessionImplementor session, object owner);
 
 		/// <include file='IType.cs.xmldoc' 
 		///		path='//members[@type="IType"]/member[@name="M:IType.ResolveIdentifier"]/*'
 		/// /> 
-		object ResolveIdentifier(object value, ISessionImplementor session, object owner);
+		Task<object> ResolveIdentifier(object value, ISessionImplementor session, object owner);
 
 		/// <summary>
 		/// Given a hydrated, but unresolved value, return a value that may be used to

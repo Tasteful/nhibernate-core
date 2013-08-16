@@ -1,5 +1,6 @@
 using System;
 using System.Data;
+using System.Threading.Tasks;
 using NHibernate.SqlTypes;
 using NHibernate.UserTypes;
 
@@ -35,7 +36,7 @@ namespace NHibernate.Test.SqlTest
 			return object.Equals(x, y);
 		}
 
-		public object NullSafeGet(IDataReader resultSet,
+		public Task<object> NullSafeGet(IDataReader resultSet,
 		                          string[] names,
 		                          object owner)
 		{
@@ -47,7 +48,7 @@ namespace NHibernate.Test.SqlTest
 			}
 			decimal value = resultSet.GetDecimal(index0);
 			string cur = resultSet.GetString(index1);
-			return new MonetaryAmount(value, cur);
+			return Task.FromResult<object>(new MonetaryAmount(value, cur));
 		}
 
 		public void NullSafeSet(IDbCommand statement,

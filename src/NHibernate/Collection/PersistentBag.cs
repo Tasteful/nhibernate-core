@@ -62,12 +62,12 @@ namespace NHibernate.Collection
 			return bag;
 		}
 
-		public override object ReadFrom(IDataReader reader, ICollectionPersister role, ICollectionAliases descriptor,
+		public override async Task<object> ReadFrom(IDataReader reader, ICollectionPersister role, ICollectionAliases descriptor,
 		                                object owner)
 		{
 			// note that if we load this collection from a cartesian product
 			// the multiplicity would be broken ... so use an idbag instead
-			object element = role.ReadElement(reader, owner, descriptor.SuffixedElementAliases, Session);
+			object element = await role.ReadElement(reader, owner, descriptor.SuffixedElementAliases, Session);
 			// NH Different behavior : we don't check for null
 			// The NH-750 test show how checking for null we are ignoring the not-found tag and
 			// the DB may have some records ignored by NH. This issue may need some more deep consideration.
@@ -150,14 +150,14 @@ namespace NHibernate.Collection
 			return GetOrphans(sn, bag, entityName, Session);
 		}
 
-		public override object Disassemble(ICollectionPersister persister)
+		public override async Task<object> Disassemble(ICollectionPersister persister)
 		{
 			int length = bag.Count;
 			object[] result = new object[length];
 
 			for (int i = 0; i < length; i++)
 			{
-				result[i] = persister.ElementType.Disassemble(bag[i], Session, null);
+				result[i] = await persister.ElementType.Disassemble(bag[i], Session, null);
 			}
 
 			return result;
@@ -169,14 +169,14 @@ namespace NHibernate.Collection
 		/// <param name="persister">The CollectionPersister to use to reassemble the PersistentBag.</param>
 		/// <param name="disassembled">The disassembled PersistentBag.</param>
 		/// <param name="owner">The owner object.</param>
-		public override void InitializeFromCache(ICollectionPersister persister, object disassembled, object owner)
+		public override async Task InitializeFromCache(ICollectionPersister persister, object disassembled, object owner)
 		{
 			object[] array = (object[]) disassembled;
 			int size = array.Length;
 			BeforeInitialize(persister, size);
 			for (int i = 0; i < size; i++)
 			{
-				object element = persister.ElementType.Assemble(array[i], Session, owner);
+				object element = await persister.ElementType.Assemble(array[i], Session, owner);
 				if (element != null)
 				{
 					bag.Add(element);
@@ -333,7 +333,7 @@ namespace NHibernate.Collection
 
 		public void Remove(object value)
 		{
-			Initialize(true);
+			Initialize(true).WaitAndUnwrapException(); 
 			// NH: Different implementation: we use the count to know if the value was removed (better performance)
 			int contained = bag.Count;
 			bag.Remove(value);
@@ -345,10 +345,7 @@ namespace NHibernate.Collection
 
 		public bool Contains(object value)
 		{
-			// TODO Async
-			Task<bool?> task = ReadElementExistence(value);
-			task.Wait();
-			bool? exists = task.Result;
+			bool? exists = ReadElementExistence(value).WaitAndUnwrapException();
 			return !exists.HasValue ? bag.Contains(value) : exists.Value;
 		}
 
@@ -360,7 +357,7 @@ namespace NHibernate.Collection
 			}
 			else
 			{
-				Initialize(true);
+				Initialize(true).WaitAndUnwrapException();
 				if (!(bag.Count == 0))
 				{
 					bag.Clear();
@@ -411,10 +408,7 @@ namespace NHibernate.Collection
 		{
 			get
 			{
-				// TODO Async
-				Task<bool> task = ReadSize();
-				task.Wait();
-				return task.Result ? CachedSize : bag.Count;
+				return ReadSize().WaitAndUnwrapException() ? CachedSize : bag.Count;
 			}
 		}
 

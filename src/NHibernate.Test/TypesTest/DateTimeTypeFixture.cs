@@ -1,4 +1,5 @@
 using System;
+using System.Threading.Tasks;
 using NHibernate.Type;
 using NUnit.Framework;
 using SharpTestsEx;
@@ -12,11 +13,11 @@ namespace NHibernate.Test.TypesTest
 	public class DateTimeTypeFixture
 	{
 		[Test]
-		public void Next()
+		public async Task Next()
 		{
 			DateTimeType type = (DateTimeType) NHibernateUtil.DateTime;
 			object current = DateTime.Parse("2004-01-01");
-			object next = type.Next(current, null);
+			object next = await type.Next(current, null);
 
 			Assert.IsTrue(next is DateTime, "Next should be DateTime");
 			Assert.IsTrue((DateTime) next > (DateTime) current,
@@ -24,19 +25,19 @@ namespace NHibernate.Test.TypesTest
 		}
 
 		[Test]
-		public void Seed()
+		public async Task Seed()
 		{
 			DateTimeType type = (DateTimeType) NHibernateUtil.DateTime;
-			Assert.IsTrue(type.Seed(null) is DateTime, "seed should be DateTime");
+			Assert.IsTrue(await type.Seed(null) is DateTime, "seed should be DateTime");
 		}
 
 		[Test]
-		public void DeepCopyNotNull()
+		public async Task DeepCopyNotNull()
 		{
 			NullableType type = NHibernateUtil.DateTime;
 
 			object value1 = DateTime.Now;
-			object value2 = type.DeepCopy(value1, EntityMode.Poco, null);
+			object value2 = await type.DeepCopy(value1, EntityMode.Poco, null);
 
 			Assert.AreEqual(value1, value2, "Copies should be the same.");
 

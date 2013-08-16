@@ -72,9 +72,9 @@ namespace NHibernate.Type
 			get { return userType.PropertyNames; }
 		}
 
-		public virtual object[] GetPropertyValues(object component, ISessionImplementor session)
+		public virtual Task<object[]> GetPropertyValues(object component, ISessionImplementor session)
 		{
-			return GetPropertyValues(component, session.EntityMode);
+			return Task.FromResult(GetPropertyValues(component, session.EntityMode));
 		}
 
 		public virtual object[] GetPropertyValues(object component, EntityMode entityMode)
@@ -94,9 +94,9 @@ namespace NHibernate.Type
 				userType.SetPropertyValue(component, i, values[i]);
 		}
 
-		public virtual object GetPropertyValue(object component, int i, ISessionImplementor session)
+		public virtual Task<object> GetPropertyValue(object component, int i, ISessionImplementor session)
 		{
-			return GetPropertyValue(component, i);
+			return Task.FromResult(GetPropertyValue(component, i));
 		}
 
 		public object GetPropertyValue(object component, int i)
@@ -124,9 +124,9 @@ namespace NHibernate.Type
 			get { return true; }
 		}
 
-		public override object Assemble(object cached, ISessionImplementor session, object owner)
+		public override Task<object> Assemble(object cached, ISessionImplementor session, object owner)
 		{
-			return userType.Assemble(cached, session, owner);
+			return Task.FromResult(userType.Assemble(cached, session, owner));
 		}
 
 		public override Task<object> DeepCopy(object value, EntityMode entityMode, ISessionFactoryImplementor factory)
@@ -134,7 +134,7 @@ namespace NHibernate.Type
 			return Task.FromResult(userType.DeepCopy(value));
 		}
 
-		public override object Disassemble(object value, ISessionImplementor session, object owner)
+		public override Task<object> Disassemble(object value, ISessionImplementor session, object owner)
 		{
 			return userType.Disassemble(value, session);
 		}
@@ -165,27 +165,25 @@ namespace NHibernate.Type
 			get { return userType.IsMutable; }
 		}
 
-		public override object NullSafeGet(IDataReader rs, string name, ISessionImplementor session, object owner)
+		public override Task<object> NullSafeGet(IDataReader rs, string name, ISessionImplementor session, object owner)
 		{
 			return userType.NullSafeGet(rs, new string[] {name}, session, owner);
 		}
 
-		public override object NullSafeGet(IDataReader rs, string[] names, ISessionImplementor session, object owner)
+		public override Task<object> NullSafeGet(IDataReader rs, string[] names, ISessionImplementor session, object owner)
 		{
 			return userType.NullSafeGet(rs, names, session, owner);
 		}
 
-		public override Task NullSafeSet(IDbCommand st, object value, int index, bool[] settable, ISessionImplementor session)
+		public override async Task NullSafeSet(IDbCommand st, object value, int index, bool[] settable, ISessionImplementor session)
 		{
-			userType.NullSafeSet(st, value, index, settable, session);
-			return Task.FromResult(0);
+			await userType.NullSafeSet(st, value, index, settable, session);
 		}
 
-		public override Task NullSafeSet(IDbCommand cmd, object value, int index, ISessionImplementor session)
+		public override async Task NullSafeSet(IDbCommand cmd, object value, int index, ISessionImplementor session)
 		{
 			bool[] settable = Enumerable.Repeat(true, GetColumnSpan(session.Factory)).ToArray();
-			userType.NullSafeSet(cmd, value, index, settable, session);
-			return Task.FromResult(0);
+			await userType.NullSafeSet(cmd, value, index, settable, session);
 		}
 
 		public override SqlType[] SqlTypes(IMapping mapping)
@@ -236,7 +234,7 @@ namespace NHibernate.Type
 
 		public override Task<object> Replace(object original, object current, ISessionImplementor session, object owner, IDictionary copiedAlready)
 		{
-			return Task.FromResult(userType.Replace(original, current, session, owner));
+			return userType.Replace(original, current, session, owner);
 		}
 
 		public override object FromXMLNode(XmlNode xml, IMapping factory)

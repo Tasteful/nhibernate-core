@@ -32,9 +32,9 @@ namespace NHibernate.Test.NHSpecificTest.NH1323
 				using (session.BeginTransaction())
 				{
 					entity = session.Get<MyClass>(savedId);
-					NHibernateUtil.Initialize(entity.Children);
-					NHibernateUtil.Initialize(entity.Components);
-					NHibernateUtil.Initialize(entity.Elements);
+					NHibernateUtil.Initialize(entity.Children).Wait();
+					NHibernateUtil.Initialize(entity.Components).Wait();
+					NHibernateUtil.Initialize(entity.Elements).Wait();
 					session.Transaction.Commit();
 				}
 			}

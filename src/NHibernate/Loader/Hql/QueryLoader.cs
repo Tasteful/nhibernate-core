@@ -320,7 +320,7 @@ namespace NHibernate.Loader.Hql
 			}
 		}
 
-		protected override object GetResultColumnOrRow(object[] row, IResultTransformer resultTransformer, IDataReader rs,
+		protected override async Task<object> GetResultColumnOrRow(object[] row, IResultTransformer resultTransformer, IDataReader rs,
 													   ISessionImplementor session)
 		{
 			row = ToResultRow(row);
@@ -333,14 +333,14 @@ namespace NHibernate.Loader.Hql
 
 				if (!hasTransform && queryCols == 1)
 				{
-					return _queryReturnTypes[0].NullSafeGet(rs, scalarColumns[0], session, null);
+					return await _queryReturnTypes[0].NullSafeGet(rs, scalarColumns[0], session, null);
 				}
 				else
 				{
 					row = new object[queryCols];
 					for (int i = 0; i < queryCols; i++)
 					{
-						row[i] = _queryReturnTypes[i].NullSafeGet(rs, scalarColumns[i], session, null);
+						row[i] = await _queryReturnTypes[i].NullSafeGet(rs, scalarColumns[i], session, null);
 					}
 					return row;
 				}

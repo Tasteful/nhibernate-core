@@ -97,12 +97,12 @@ namespace NHibernate.Type
 			get { return userType.ReturnedType; }
 		}
 
-		public override object NullSafeGet(IDataReader rs, string[] names, ISessionImplementor session, object owner)
+		public override Task<object> NullSafeGet(IDataReader rs, string[] names, ISessionImplementor session, object owner)
 		{
 			return userType.NullSafeGet(rs, names, owner);
 		}
 
-		public override object NullSafeGet(IDataReader rs, string name, ISessionImplementor session, object owner)
+		public override Task<object> NullSafeGet(IDataReader rs, string name, ISessionImplementor session, object owner)
 		{
 			return NullSafeGet(rs, new string[] {name}, session, owner);
 		}
@@ -218,14 +218,14 @@ namespace NHibernate.Type
 			return Task.FromResult(userType.Replace(original, current, owner));
 		}
 
-		public override object Assemble(object cached, ISessionImplementor session, object owner)
+		public override Task<object> Assemble(object cached, ISessionImplementor session, object owner)
 		{
-			return userType.Assemble(cached, owner);
+			return Task.FromResult(userType.Assemble(cached, owner));
 		}
 
-		public override object Disassemble(object value, ISessionImplementor session, object owner)
+		public override Task<object> Disassemble(object value, ISessionImplementor session, object owner)
 		{
-			return userType.Disassemble(value);
+			return Task.FromResult(userType.Disassemble(value));
 		}
 
 		public override object FromXMLNode(XmlNode xml, IMapping factory)

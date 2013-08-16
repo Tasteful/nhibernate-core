@@ -111,7 +111,7 @@ namespace NHibernate.Id
 				await uniqueKeyType.NullSafeSet(ps, uniqueKeyValue, 0, session);
 			}
 
-			protected internal override object GetResult(ISessionImplementor session, IDataReader rs, object entity)
+			protected internal override Task<object> GetResult(ISessionImplementor session, IDataReader rs, object entity)
 			{
 				if (!rs.Read())
 				{

@@ -2,7 +2,7 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Data;
 using System.Diagnostics;
-
+using System.Threading.Tasks;
 using NHibernate.Cache;
 using NHibernate.Cache.Entry;
 using NHibernate.Collection;
@@ -144,7 +144,7 @@ namespace NHibernate.Engine.Loading
 		/// complete. 
 		/// </summary>
 		/// <param name="persister">The persister for which to complete loading. </param>
-		public void EndLoadingCollections(ICollectionPersister persister)
+		public async Task EndLoadingCollections(ICollectionPersister persister)
 		{
 			if (!loadContexts.HasLoadingCollectionEntries && (localLoadingCollectionKeys.Count == 0))
 			{
@@ -188,7 +188,7 @@ namespace NHibernate.Engine.Loading
 			}
 			localLoadingCollectionKeys.ExceptWith(toRemove);
 
-			EndLoadingCollections(persister, matches);
+			await EndLoadingCollections(persister, matches);
 			if ((localLoadingCollectionKeys.Count == 0))
 			{
 				// todo : hack!!!
@@ -201,7 +201,7 @@ namespace NHibernate.Engine.Loading
 			}
 		}
 
-		private void EndLoadingCollections(ICollectionPersister persister, IList<LoadingCollectionEntry> matchedCollectionEntries)
+		private async Task EndLoadingCollections(ICollectionPersister persister, IList<LoadingCollectionEntry> matchedCollectionEntries)
 		{
 			if (matchedCollectionEntries == null || matchedCollectionEntries.Count == 0)
 			{
@@ -220,7 +220,7 @@ namespace NHibernate.Engine.Loading
 
 			for (int i = 0; i < count; i++)
 			{
-				EndLoadingCollection(matchedCollectionEntries[i], persister);
+				await EndLoadingCollection(matchedCollectionEntries[i], persister);
 			}
 
 			if (log.IsDebugEnabled)
@@ -229,7 +229,7 @@ namespace NHibernate.Engine.Loading
 			}
 		}
 
-		private void EndLoadingCollection(LoadingCollectionEntry lce, ICollectionPersister persister)
+		private async Task EndLoadingCollection(LoadingCollectionEntry lce, ICollectionPersister persister)
 		{
 			if (log.IsDebugEnabled)
 			{
@@ -255,11 +255,11 @@ namespace NHibernate.Engine.Loading
 			CollectionEntry ce = LoadContext.PersistenceContext.GetCollectionEntry(lce.Collection);
 			if (ce == null)
 			{
-				ce = LoadContext.PersistenceContext.AddInitializedCollection(persister, lce.Collection, lce.Key);
+				ce = await LoadContext.PersistenceContext.AddInitializedCollection(persister, lce.Collection, lce.Key);
 			}
 			else
 			{
-				ce.PostInitialize(lce.Collection);
+				await ce.PostInitialize(lce.Collection);
 			}
 
 			bool addToCache = hasNoQueuedAdds && persister.HasCache && 
@@ -267,7 +267,7 @@ namespace NHibernate.Engine.Loading
 
 			if (addToCache)
 			{
-				AddCollectionToCache(lce, persister);
+				await AddCollectionToCache(lce, persister);
 			}
 
 			if (log.IsDebugEnabled)
@@ -285,7 +285,7 @@ namespace NHibernate.Engine.Loading
 		/// <summary> Add the collection to the second-level cache </summary>
 		/// <param name="lce">The entry representing the collection to add </param>
 		/// <param name="persister">The persister </param>
-		private void AddCollectionToCache(LoadingCollectionEntry lce, ICollectionPersister persister)
+		private async Task AddCollectionToCache(LoadingCollectionEntry lce, ICollectionPersister persister)
 		{
 			ISessionImplementor session = LoadContext.PersistenceContext.Session;
 			ISessionFactoryImplementor factory = session.Factory;
@@ -321,7 +321,7 @@ namespace NHibernate.Engine.Loading
 				versionComparator = null;
 			}
 
-			CollectionCacheEntry entry = new CollectionCacheEntry(lce.Collection, persister);
+			CollectionCacheEntry entry = await CollectionCacheEntry.Create(lce.Collection, persister);
 			CacheKey cacheKey = session.GenerateCacheKey(lce.Key, persister.KeyType, persister.Role);
 			bool put = persister.Cache.Put(cacheKey, persister.CacheEntryStructure.Structure(entry), 
 			                    session.Timestamp, version, versionComparator,

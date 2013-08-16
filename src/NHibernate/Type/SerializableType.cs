@@ -153,14 +153,14 @@ namespace NHibernate.Type
 			}
 		}
 
-		public override object Assemble(object cached, ISessionImplementor session, object owner)
+		public override Task<object> Assemble(object cached, ISessionImplementor session, object owner)
 		{
-			return (cached == null) ? null : FromBytes((byte[]) cached);
+			return (cached == null) ? null : Task.FromResult(FromBytes((byte[]) cached));
 		}
 
-		public override object Disassemble(object value, ISessionImplementor session, object owner)
+		public override Task<object> Disassemble(object value, ISessionImplementor session, object owner)
 		{
-			return (value == null) ? null : ToBytes(value);
+			return Task.FromResult<object>(value == null ? null : ToBytes(value));
 		}
 	}
 }

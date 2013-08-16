@@ -71,9 +71,9 @@ namespace NHibernate.Type
 			return Get(rs, rs.GetOrdinal(name));
 		}
 
-		public async Task<object> Next(object current, ISessionImplementor session)
+		public Task<object> Next(object current, ISessionImplementor session)
 		{
-			return await Seed(session);
+			return Seed(session);
 		}
 
 		public Task<object> Seed(ISessionImplementor session)

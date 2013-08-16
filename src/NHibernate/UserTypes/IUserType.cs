@@ -1,4 +1,5 @@
 using System.Data;
+using System.Threading.Tasks;
 using NHibernate.SqlTypes;
 
 namespace NHibernate.UserTypes
@@ -61,7 +62,7 @@ namespace NHibernate.UserTypes
 		/// <returns></returns>
 		/// <exception cref="HibernateException">HibernateException</exception>
 //		/// <exception cref="SQLException">SQLException</exception>
-		object NullSafeGet(IDataReader rs, string[] names, object owner);
+		Task<object> NullSafeGet(IDataReader rs, string[] names, object owner);
 
 		/// <summary>
 		/// Write an instance of the mapped class to a prepared statement.

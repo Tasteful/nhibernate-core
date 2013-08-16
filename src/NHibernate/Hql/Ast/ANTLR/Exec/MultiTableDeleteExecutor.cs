@@ -135,7 +135,7 @@ namespace NHibernate.Hql.Ast.ANTLR.Exec
 			}
 			finally
 			{
-				AsyncHelper.RunSync(() => DropTemporaryTableIfNecessary(persister, session));
+				DropTemporaryTableIfNecessary(persister, session).WaitAndUnwrapException();
 			}
 		}
 

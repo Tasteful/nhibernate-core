@@ -1,4 +1,5 @@
 using System;
+using System.Threading.Tasks;
 using NHibernate.Proxy.DynamicProxy;
 
 namespace NHibernate.Test.DynamicProxyTests
@@ -12,9 +13,9 @@ namespace NHibernate.Test.DynamicProxyTests
 			this.targetInstance = targetInstance;
 		}
 
-		public object Intercept(InvocationInfo info)
+		public Task<object> Intercept(InvocationInfo info)
 		{
-			return info.TargetMethod.Invoke(targetInstance, info.Arguments);
+			return Task.FromResult(info.TargetMethod.Invoke(targetInstance, info.Arguments));
 		}
 	}
 }

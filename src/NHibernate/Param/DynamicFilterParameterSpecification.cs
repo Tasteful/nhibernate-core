@@ -106,18 +106,19 @@ namespace NHibernate.Param
 				this.valueSpan = valueSpan;
 			}
 
-			public object Disassemble(object value, ISessionImplementor session, object owner)
+			public Task<object> Disassemble(object value, ISessionImplementor session, object owner)
 			{
 				throw new InvalidOperationException();
 			}
 
-			public object Assemble(object cached, ISessionImplementor session, object owner)
+			public Task<object> Assemble(object cached, ISessionImplementor session, object owner)
 			{
 				throw new InvalidOperationException();
 			}
 
-			public void BeforeAssemble(object cached, ISessionImplementor session)
+			public Task BeforeAssemble(object cached, ISessionImplementor session)
 			{
+				return Task.FromResult(0);
 			}
 
 			public string Name
@@ -195,12 +196,12 @@ namespace NHibernate.Param
 				return Task.FromResult(false);
 			}
 
-			public object NullSafeGet(IDataReader rs, string[] names, ISessionImplementor session, object owner)
+			public Task<object> NullSafeGet(IDataReader rs, string[] names, ISessionImplementor session, object owner)
 			{
 				throw new InvalidOperationException();
 			}
 
-			public object NullSafeGet(IDataReader rs, string name, ISessionImplementor session, object owner)
+			public Task<object> NullSafeGet(IDataReader rs, string name, ISessionImplementor session, object owner)
 			{
 				throw new InvalidOperationException();
 			}
@@ -234,12 +235,12 @@ namespace NHibernate.Param
 				throw new InvalidOperationException();
 			}
 
-			public object Hydrate(IDataReader rs, string[] names, ISessionImplementor session, object owner)
+			public Task<object> Hydrate(IDataReader rs, string[] names, ISessionImplementor session, object owner)
 			{
 				throw new InvalidOperationException();
 			}
 
-			public object ResolveIdentifier(object value, ISessionImplementor session, object owner)
+			public Task<object> ResolveIdentifier(object value, ISessionImplementor session, object owner)
 			{
 				throw new InvalidOperationException();
 			}

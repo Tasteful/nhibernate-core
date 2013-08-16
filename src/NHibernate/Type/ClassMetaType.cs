@@ -31,12 +31,12 @@ namespace NHibernate.Type
 			get { return typeof (string); }
 		}
 
-		public override object NullSafeGet(IDataReader rs, string[] names, ISessionImplementor session, object owner)
+		public override Task<object> NullSafeGet(IDataReader rs, string[] names, ISessionImplementor session, object owner)
 		{
 			return NullSafeGet(rs, names[0], session, owner);
 		}
 
-		public override object NullSafeGet(IDataReader rs,string name,ISessionImplementor session,object owner)
+		public override Task<object> NullSafeGet(IDataReader rs,string name,ISessionImplementor session,object owner)
 		{
 			int index = rs.GetOrdinal(name);
 
@@ -47,7 +47,7 @@ namespace NHibernate.Type
 			else
 			{
 				string str = (string) NHibernateUtil.String.Get(rs, index);
-				return string.IsNullOrEmpty(str) ? null : str;
+				return Task.FromResult<object>(string.IsNullOrEmpty(str) ? null : str);
 			}
 		}
 

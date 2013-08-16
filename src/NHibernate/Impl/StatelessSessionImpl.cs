@@ -52,7 +52,7 @@ namespace NHibernate.Impl
 			}
 		}
 
-		public override void InitializeCollection(IPersistentCollection collection, bool writing)
+		public override Task InitializeCollection(IPersistentCollection collection, bool writing)
 		{
 			if (temporaryPersistenceContext.IsLoadFinished)
 			{
@@ -63,6 +63,7 @@ namespace NHibernate.Impl
 			{
 				ce.LoadedPersister.Initialize(ce.LoadedKey, this);
 			}
+			return Task.FromResult(0);
 		}
 
 		public override Task<object> InternalLoadAsync(string entityName, object id, bool eager, bool isNullable)
@@ -371,12 +372,13 @@ namespace NHibernate.Impl
 			return this;
 		}
 
-		public override void Flush()
+		public override Task FlushAsync()
 		{
 			using (new SessionIdLoggingContext(SessionId))
 			{
 				ManagedFlush(); // NH Different behavior since ADOContext.Context is not implemented
 			}
+			return Task.FromResult(0);
 		}
 
 		public void ManagedFlush()
@@ -460,10 +462,14 @@ namespace NHibernate.Impl
 		/// <returns> the identifier of the instance </returns>
 		public object Insert(object entity)
 		{
+			return InsertAsync(entity).WaitAndUnwrapException();
+		}
+		public async Task<object> InsertAsync(object entity)
+		{
 			using (new SessionIdLoggingContext(SessionId))
 			{
 				CheckAndUpdateSessionStatus();
-				return Insert(null, entity);
+				return await Insert(null, entity);
 			}
 		}
 
@@ -471,18 +477,18 @@ namespace NHibernate.Impl
 		/// <param name="entityName">The entityName for the entity to be inserted </param>
 		/// <param name="entity">a new transient instance </param>
 		/// <returns> the identifier of the instance </returns>
-		public object Insert(string entityName, object entity)
+		public async Task<object> Insert(string entityName, object entity)
 		{
 			using (new SessionIdLoggingContext(SessionId))
 			{
 				CheckAndUpdateSessionStatus();
 				IEntityPersister persister = GetEntityPersister(entityName, entity);
-				object id = persister.IdentifierGenerator.Generate(this, entity);
+				object id = await persister.IdentifierGenerator.Generate(this, entity);
 				object[] state = persister.GetPropertyValues(entity, EntityMode.Poco);
 				if (persister.IsVersioned)
 				{
 					object versionValue = state[persister.VersionProperty];
-					bool substitute = Versioning.SeedVersion(state, persister.VersionProperty, persister.VersionType,
+					bool substitute = await Versioning.SeedVersion(state, persister.VersionProperty, persister.VersionType,
 															 persister.IsUnsavedVersion(versionValue), this);
 					if (substitute)
 					{
@@ -491,11 +497,11 @@ namespace NHibernate.Impl
 				}
 				if (id == IdentifierGeneratorFactory.PostInsertIndicator)
 				{
-					id = persister.Insert(state, entity, this);
+					id = await persister.Insert(state, entity, this);
 				}
 				else
 				{
-					persister.Insert(id, state, entity, this);
+					await persister.Insert(id, state, entity, this);
 				}
 				persister.SetIdentifier(entity, id, EntityMode.Poco);
 				return id;
@@ -528,7 +534,7 @@ namespace NHibernate.Impl
 				if (persister.IsVersioned)
 				{
 					oldVersion = persister.GetVersion(entity, EntityMode.Poco);
-					object newVersion = Versioning.Increment(oldVersion, persister.VersionType, this);
+					object newVersion = Versioning.Increment(oldVersion, persister.VersionType, this).WaitAndUnwrapException();
 					Versioning.SetVersion(state, newVersion, persister);
 					persister.SetPropertyValues(entity, state, EntityMode.Poco);
 				}
@@ -606,7 +612,7 @@ namespace NHibernate.Impl
 			using (new SessionIdLoggingContext(SessionId))
 			{
 				CheckAndUpdateSessionStatus();
-				object result = Factory.GetEntityPersister(entityName).Load(id, null, lockMode, this);
+				object result = Factory.GetEntityPersister(entityName).Load(id, null, lockMode, this).WaitAndUnwrapException();
 				if (temporaryPersistenceContext.IsLoadFinished)
 				{
 					temporaryPersistenceContext.Clear();
@@ -702,7 +708,7 @@ namespace NHibernate.Impl
 				try
 				{
 					FetchProfile = "refresh";
-					result = persister.Load(id, entity, lockMode, this);
+					result = persister.Load(id, entity, lockMode, this).WaitAndUnwrapException();
 				}
 				finally
 				{

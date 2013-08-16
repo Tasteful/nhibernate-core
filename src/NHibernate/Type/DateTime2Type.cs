@@ -53,9 +53,9 @@ namespace NHibernate.Type
 			return x.Equals(y);
 		}
 
-		public override async Task<object> Next(object current, Engine.ISessionImplementor session)
+		public override Task<object> Next(object current, Engine.ISessionImplementor session)
 		{
-			return await Seed(session);
+			return Seed(session);
 		}
 
 		public override Task<object> Seed(Engine.ISessionImplementor session)

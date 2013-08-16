@@ -1,5 +1,6 @@
 using System.Collections;
 using System.Collections.Generic;
+using System.Threading.Tasks;
 using NHibernate.Criterion;
 using NHibernate.Dialect;
 using NHibernate.DomainModel;
@@ -128,8 +129,8 @@ namespace NHibernate.Test.Legacy
 			foo = (FooProxy) s.Load(typeof(Foo), id);
 			foo2 = (FooProxy) s.Load(typeof(Foo), id2);
 			Assert.IsFalse(NHibernateUtil.IsInitialized(foo));
-			NHibernateUtil.Initialize(foo2);
-			NHibernateUtil.Initialize(foo);
+			NHibernateUtil.Initialize(foo2).Wait();
+			NHibernateUtil.Initialize(foo).Wait();
 			Assert.AreEqual(3, foo.Component.ImportantDates.Length);
 			Assert.AreEqual(3, foo2.Component.ImportantDates.Length);
 			t.Commit();

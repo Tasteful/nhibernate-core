@@ -95,10 +95,10 @@ namespace NHibernate.Loader.Entity
 			}
 		}
 
-		protected override object GetResultColumnOrRow(object[] row, IResultTransformer transformer, IDataReader rs,
+		protected override Task<object> GetResultColumnOrRow(object[] row, IResultTransformer transformer, IDataReader rs,
 		                                               ISessionImplementor session)
 		{
-			return row[row.Length - 1];
+			return Task.FromResult(row[row.Length - 1]);
 		}
 	}
 }

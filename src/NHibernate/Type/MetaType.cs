@@ -41,15 +41,15 @@ namespace NHibernate.Type
 			get { return typeof (string); }
 		}
 
-		public override object NullSafeGet(IDataReader rs, string[] names, ISessionImplementor session, object owner)
+		public override async Task<object> NullSafeGet(IDataReader rs, string[] names, ISessionImplementor session, object owner)
 		{
-			object key = baseType.NullSafeGet(rs, names, session, owner);
+			object key = await baseType.NullSafeGet(rs, names, session, owner);
 			return key == null ? null : values[key];
 		}
 
-		public override object NullSafeGet(IDataReader rs,string name,ISessionImplementor session,object owner)
+		public override async Task<object> NullSafeGet(IDataReader rs,string name,ISessionImplementor session,object owner)
 		{
-			object key = baseType.NullSafeGet(rs, name, session, owner);
+			object key = await baseType.NullSafeGet(rs, name, session, owner);
 			return key == null ? null : values[key];
 		}
 

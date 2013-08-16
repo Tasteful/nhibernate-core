@@ -43,13 +43,13 @@ namespace NHibernate.Type
 		/// <param name="row">The values</param>
 		/// <param name="types">The value types</param>
 		/// <param name="session">The originating session</param>
-		public static void BeforeAssemble(object[] row, ICacheAssembler[] types, ISessionImplementor session)
+		public static async Task BeforeAssemble(object[] row, ICacheAssembler[] types, ISessionImplementor session)
 		{
 			for (int i = 0; i < types.Length; i++)
 			{
 				if (!Equals(LazyPropertyInitializer.UnfetchedProperty, row[i]) && !Equals(BackrefPropertyAccessor.Unknown, row[i]))
 				{
-					types[i].BeforeAssemble(row[i], session);
+					await types[i].BeforeAssemble(row[i], session);
 				}
 			}
 		}
@@ -62,7 +62,7 @@ namespace NHibernate.Type
 		/// <param name="session">The originating session</param>
 		/// <param name="owner">The entity "owning" the values</param>
 		/// <returns></returns>
-		public static object[] Assemble(object[] row, ICacheAssembler[] types, ISessionImplementor session, object owner)
+		public static async Task<object[]> Assemble(object[] row, ICacheAssembler[] types, ISessionImplementor session, object owner)
 		{
 			var assembled = new object[row.Length];
 			for (int i = 0; i < row.Length; i++)
@@ -73,7 +73,7 @@ namespace NHibernate.Type
 				}
 				else
 				{
-					assembled[i] = types[i].Assemble(row[i], session, owner);
+					assembled[i] = await types[i].Assemble(row[i], session, owner);
 				}
 			}
 			return assembled;
@@ -86,7 +86,7 @@ namespace NHibernate.Type
 		/// <param name="session">The originating session</param>
 		/// <param name="owner">The entity "owning" the values</param>
 		/// <returns> The disassembled state</returns>
-		public static object[] Disassemble(object[] row, ICacheAssembler[] types, bool[] nonCacheable, ISessionImplementor session, object owner)
+		public static async Task<object[]> Disassemble(object[] row, ICacheAssembler[] types, bool[] nonCacheable, ISessionImplementor session, object owner)
 		{
 			object[] disassembled = new object[row.Length];
 			for (int i = 0; i < row.Length; i++)
@@ -101,7 +101,7 @@ namespace NHibernate.Type
 				}
 				else
 				{
-					disassembled[i] = types[i].Disassemble(row[i], session, owner);
+					disassembled[i] = await types[i].Disassemble(row[i], session, owner);
 				}
 			}
 			return disassembled;
@@ -194,8 +194,8 @@ namespace NHibernate.Type
 					// need to extract the component values and check for subtype replacements...
 					IAbstractComponentType componentType = (IAbstractComponentType)types[i];
 					IType[] subtypes = componentType.Subtypes;
-					object[] origComponentValues = original[i] == null ? new object[subtypes.Length] : componentType.GetPropertyValues(original[i], session);
-					object[] targetComponentValues = target[i] == null ? new object[subtypes.Length] : componentType.GetPropertyValues(target[i], session);
+					object[] origComponentValues = original[i] == null ? new object[subtypes.Length] : await componentType.GetPropertyValues(original[i], session);
+					object[] targetComponentValues = target[i] == null ? new object[subtypes.Length] : await componentType.GetPropertyValues(target[i], session);
 
 					object[] componentCopy = await ReplaceAssociations(origComponentValues, targetComponentValues, subtypes, session, null, copyCache, foreignKeyDirection);
 					

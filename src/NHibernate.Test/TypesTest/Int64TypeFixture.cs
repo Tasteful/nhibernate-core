@@ -15,21 +15,21 @@ namespace NHibernate.Test.TypesTest
 	public class Int64TypeFixture: TestCase
 	{
 		[Test]
-		public void Next()
+		public async Task Next()
 		{
 			Int64Type type = (Int64Type)NHibernateUtil.Int64;
 			object current = (long)1;
-			object next = type.Next(current, null);
+			object next = await type.Next(current, null);
 
 			Assert.IsTrue(next is Int64, "Next should be Int64");
 			Assert.AreEqual((long)2, (long)next, "current should have been incremented to 2");
 		}
 
 		[Test]
-		public void Seed()
+		public async Task Seed()
 		{
 			Int64Type type = (Int64Type)NHibernateUtil.Int64;
-			Assert.IsTrue(type.Seed(null) is Int64, "seed should be int64");
+			Assert.IsTrue(await type.Seed(null) is Int64, "seed should be int64");
 		}
 
 		[Test]

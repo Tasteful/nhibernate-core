@@ -92,7 +92,7 @@ namespace NHibernate.Id
 			}
 			if (lo > maxLo)
 			{
-				long hival = Convert.ToInt64(base.Generate(session, obj));
+				long hival = Convert.ToInt64(await base.Generate(session, obj));
 				lo = (hival == 0) ? 1 : 0;
 				hi = hival * (maxLo + 1);
 				log.Debug("New high value: " + hival);

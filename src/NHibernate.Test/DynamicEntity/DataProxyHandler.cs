@@ -1,4 +1,5 @@
 using System.Collections;
+using System.Threading.Tasks;
 using NHibernate.Proxy.DynamicProxy;
 
 namespace NHibernate.Test.DynamicEntity
@@ -26,12 +27,12 @@ namespace NHibernate.Test.DynamicEntity
 
 		#region IInterceptor Members
 
-		public object Intercept(InvocationInfo info)
+		public Task<object> Intercept(InvocationInfo info)
 		{
 			string methodName = info.TargetMethod.Name;
 			if ("get_DataHandler".Equals(methodName))
 			{
-				return this;
+				return Task.FromResult<object>(this);
 			}
 			else if (methodName.StartsWith("set_"))
 			{
@@ -41,15 +42,15 @@ namespace NHibernate.Test.DynamicEntity
 			else if (methodName.StartsWith("get_"))
 			{
 				string propertyName = methodName.Substring(4);
-				return data[propertyName];
+				return Task.FromResult<object>(data[propertyName]);
 			}
 			else if ("ToString".Equals(methodName))
 			{
-				return entityName + "#" + data["Id"];
+				return Task.FromResult<object>(entityName + "#" + data["Id"]);
 			}
 			else if ("GetHashCode".Equals(methodName))
 			{
-				return GetHashCode();
+				return Task.FromResult<object>(GetHashCode());
 			}
 			return null;
 		}

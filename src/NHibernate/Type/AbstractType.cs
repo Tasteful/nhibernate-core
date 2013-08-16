@@ -67,12 +67,12 @@ namespace NHibernate.Type
 		/// <remarks>
 		/// This method calls DeepCopy if the value is not null.
 		/// </remarks>
-		public virtual object Disassemble(object value, ISessionImplementor session, object owner)
+		public virtual async Task<object> Disassemble(object value, ISessionImplementor session, object owner)
 		{
 			if (value == null) 
 				return null;
 
-			return DeepCopy(value, session.EntityMode, session.Factory);
+			return await DeepCopy(value, session.EntityMode, session.Factory);
 		}
 
 		/// <summary>
@@ -85,7 +85,7 @@ namespace NHibernate.Type
 		/// <remarks>
 		/// This method calls DeepCopy if the value is not null.
 		/// </remarks>
-		public virtual object Assemble(object cached, ISessionImplementor session, object owner)
+		public virtual Task<object> Assemble(object cached, ISessionImplementor session, object owner)
 		{
 			if (cached == null)
 				return null;
@@ -93,8 +93,9 @@ namespace NHibernate.Type
 			return DeepCopy(cached, session.EntityMode, session.Factory);
 		}
 
-		public virtual void BeforeAssemble(object cached, ISessionImplementor session)
+		public virtual Task BeforeAssemble(object cached, ISessionImplementor session)
 		{
+			return Task.FromResult(0);
 		}
 
 		/// <summary>
@@ -127,7 +128,7 @@ namespace NHibernate.Type
 		/// This method uses the <c>IType.NullSafeGet(IDataReader, string[], ISessionImplementor, object)</c> method
 		/// to Hydrate this <see cref="AbstractType"/>.
 		/// </remarks>
-		public virtual object Hydrate(IDataReader rs, string[] names, ISessionImplementor session, object owner)
+		public virtual Task<object> Hydrate(IDataReader rs, string[] names, ISessionImplementor session, object owner)
 		{
 			return NullSafeGet(rs, names, session, owner);
 		}
@@ -142,9 +143,9 @@ namespace NHibernate.Type
 		/// <remarks>
 		/// There is nothing done in this method other than return the value parameter passed in.
 		/// </remarks>
-		public virtual object ResolveIdentifier(object value, ISessionImplementor session, object owner)
+		public virtual Task<object> ResolveIdentifier(object value, ISessionImplementor session, object owner)
 		{
-			return value;
+			return Task.FromResult(value);
 		}
 
 		public virtual object SemiResolve(object value, ISessionImplementor session, object owner)
@@ -287,12 +288,12 @@ namespace NHibernate.Type
 		/// <include file='IType.cs.xmldoc' 
 		///		path='//members[@type="IType"]/member[@name="M:IType.NullSafeGet(IDataReader, string[], ISessionImplementor, object)"]/*'
 		/// /> 
-		public abstract object NullSafeGet(IDataReader rs, string[] names, ISessionImplementor session, object owner);
+		public abstract Task<object> NullSafeGet(IDataReader rs, string[] names, ISessionImplementor session, object owner);
 
 		/// <include file='IType.cs.xmldoc' 
 		///		path='//members[@type="IType"]/member[@name="M:IType.NullSafeGet(IDataReader, string, ISessionImplementor, object)"]/*'
 		/// /> 
-		public abstract object NullSafeGet(IDataReader rs, string name, ISessionImplementor session, Object owner);
+		public abstract Task<object> NullSafeGet(IDataReader rs, string name, ISessionImplementor session, Object owner);
 
 		/// <include file='IType.cs.xmldoc' 
 		///		path='//members[@type="IType"]/member[@name="M:IType.NullSafeSet(settable)"]/*'

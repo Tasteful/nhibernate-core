@@ -1,3 +1,4 @@
+using System.Threading.Tasks;
 using NHibernate.Collection;
 using NHibernate.Engine;
 using NHibernate.Type;
@@ -49,7 +50,7 @@ namespace NHibernate.Event.Default
 			get { return dirty; }
 		}
 
-		internal override object ProcessCollection(object collection, CollectionType type)
+		internal override Task<object> ProcessCollection(object collection, CollectionType type)
 		{
 
 			if (collection != null)

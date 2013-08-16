@@ -1,5 +1,6 @@
 using System;
 using System.Reflection;
+using System.Threading.Tasks;
 using NHibernate.Properties;
 using NHibernate.Type;
 
@@ -83,7 +84,7 @@ namespace NHibernate.Engine
 			}
 		}
 
-		public static VersionValue GetUnsavedVersionValue(
+		public static async Task<VersionValue> GetUnsavedVersionValue(
 			String versionUnsavedValue,
 			IGetter versionGetter,
 			IVersionType versionType,
@@ -101,7 +102,7 @@ namespace NHibernate.Engine
 						// if the version of a newly instantiated object is not the same
 						// as the version seed value, use that as the unsaved-value
 						return
-							versionType.IsEqual(versionType.Seed(null), defaultValue)
+							versionType.IsEqual(await versionType.Seed(null), defaultValue)
 								? VersionValue.VersionUndefined
 								: new VersionValue(defaultValue);
 					}

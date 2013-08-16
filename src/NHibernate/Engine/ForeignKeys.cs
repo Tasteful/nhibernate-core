@@ -72,12 +72,12 @@ namespace NHibernate.Engine
 				else if (type.IsComponentType)
 				{
 					IAbstractComponentType actype = (IAbstractComponentType)type;
-					object[] subvalues = actype.GetPropertyValues(value, session);
+					object[] subvalues = await actype.GetPropertyValues(value, session);
 					IType[] subtypes = actype.Subtypes;
 					bool substitute = false;
 					for (int i = 0; i < subvalues.Length; i++)
 					{
-						object replacement = NullifyTransientReferences(subvalues[i], subtypes[i]);
+						object replacement = await NullifyTransientReferences(subvalues[i], subtypes[i]);
 						if (replacement != subvalues[i])
 						{
 							substitute = true;

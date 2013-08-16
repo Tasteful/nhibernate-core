@@ -33,7 +33,7 @@ namespace NHibernate.Engine
 		/// </summary>
 		/// <param name="collection"></param>
 		/// <param name="writing"></param>
-		void InitializeCollection(IPersistentCollection collection, bool writing);
+		Task InitializeCollection(IPersistentCollection collection, bool writing);
 
 		// NH-268
 		/// <summary>

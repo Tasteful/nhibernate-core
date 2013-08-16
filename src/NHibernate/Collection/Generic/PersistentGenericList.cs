@@ -84,7 +84,7 @@ namespace NHibernate.Collection.Generic
 				{
 					throw new IndexOutOfRangeException("negative index");
 				}
-				object result = ReadElementByIndex(index);
+				object result = ReadElementByIndex(index).WaitAndUnwrapException();
 				if (result == Unknown)
 				{
 					return glist[index];
@@ -106,7 +106,7 @@ namespace NHibernate.Collection.Generic
 				{
 					throw new IndexOutOfRangeException("negative index");
 				}
-				object old = PutQueueEnabled ? ReadElementByIndex(index) : Unknown;
+				object old = PutQueueEnabled ? ReadElementByIndex(index).WaitAndUnwrapException() : Unknown;
 				if (old == Unknown)
 				{
 					Write();
@@ -138,10 +138,7 @@ namespace NHibernate.Collection.Generic
 
 		bool ICollection<T>.Contains(T item)
 		{
-			// TODO Async
-			Task<bool?> task = ReadElementExistence(item);
-			task.Wait();
-			bool? exists = task.Result;
+			bool? exists = ReadElementExistence(item).WaitAndUnwrapException();
 			return !exists.HasValue ? glist.Contains(item) : exists.Value;
 		}
 
@@ -155,17 +152,10 @@ namespace NHibernate.Collection.Generic
 
 		bool ICollection<T>.Remove(T item)
 		{
-			// TODO Async
-			Task<bool?> task = null;
-			if (PutQueueEnabled)
-			{
-				task = ReadElementExistence(item);
-				task.Wait();
-			}
-			bool? exists = PutQueueEnabled ? task.Result : null;
+			bool? exists = PutQueueEnabled ? ReadElementExistence(item).WaitAndUnwrapException() : null;
 			if (!exists.HasValue)
 			{
-				Initialize(true);
+				Initialize(true).WaitAndUnwrapException();
 				bool contained = glist.Remove(item);
 				if (contained)
 				{

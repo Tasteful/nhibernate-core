@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Data;
+using System.Threading.Tasks;
 using NHibernate;
 using NHibernate.Dialect;
 using NHibernate.SqlTypes;
@@ -79,11 +80,11 @@ namespace NHibernate.Test.NHSpecificTest.NH732
 			return StringComparer.InvariantCultureIgnoreCase.GetHashCode((string)x);
 		}
 
-		public object NullSafeGet(IDataReader rs, string[] names, object owner)
+		public Task<object> NullSafeGet(IDataReader rs, string[] names, object owner)
 		{
 			int ordinal = rs.GetOrdinal(names[0]);
 			string s = rs.GetString(ordinal);
-			return s;
+			return Task.FromResult<object>(s);
 			/* Using this will work, because we normalize the returned value
 			 * if(s==null)
 				return null;

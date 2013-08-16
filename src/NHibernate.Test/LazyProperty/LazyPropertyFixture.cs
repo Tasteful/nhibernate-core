@@ -1,4 +1,5 @@
 ﻿using System.Collections;
+using System.Threading.Tasks;
 using NHibernate.Tuple.Entity;
 using NUnit.Framework;
 
@@ -65,7 +66,7 @@ namespace NHibernate.Test.LazyProperty
 				Assert.False(NHibernateUtil.IsPropertyInitialized(book, "Name"));
 				Assert.False(NHibernateUtil.IsPropertyInitialized(book, "ALotOfText"));
 
-				NHibernateUtil.Initialize(book);
+				NHibernateUtil.Initialize(book).Wait();
 
 				Assert.True(NHibernateUtil.IsPropertyInitialized(book, "Id"));
 				Assert.True(NHibernateUtil.IsPropertyInitialized(book, "Name"));

@@ -33,7 +33,7 @@ namespace NHibernate.Id
 					try
 					{
 						reader.Read();
-						result = IdentifierGeneratorFactory.Get(reader, identifierType, session);
+						result = await IdentifierGeneratorFactory.Get(reader, identifierType, session);
 					}
 					finally
 					{

@@ -73,7 +73,7 @@ namespace NHibernate.Event.Default
 					return EntityIsPersistent(@event);
 
 				default:  //TRANSIENT or DELETED
-					return EntityIsTransient(@event);
+					return await EntityIsTransient(@event);
 			}
 		}
 
@@ -240,7 +240,7 @@ namespace NHibernate.Event.Default
 			}
 
 			// this is a transient object with existing persistent state not loaded by the session
-			new OnUpdateVisitor(source, @event.RequestedId, entity).Process(entity, persister);
+			await new OnUpdateVisitor(source, @event.RequestedId, entity).Process(entity, persister);
 
 			//TODO: put this stuff back in to read snapshot from
 			//      the second-level cache (needs some extra work)
@@ -273,7 +273,7 @@ namespace NHibernate.Event.Default
 				log.Debug("updating " + MessageHelper.InfoString(persister, @event.RequestedId, source.Factory));
 			}
 
-			CascadeOnUpdate(@event, persister, entity);
+			await CascadeOnUpdate(@event, persister, entity);
 		}
 
 		protected virtual bool InvokeUpdateLifecycle(object entity, IEntityPersister persister, IEventSource source)
@@ -297,13 +297,13 @@ namespace NHibernate.Event.Default
 		/// <param name="event">The event currently being processed. </param>
 		/// <param name="persister">The defined persister for the entity being updated. </param>
 		/// <param name="entity">The entity being updated. </param>
-		private void CascadeOnUpdate(SaveOrUpdateEvent @event, IEntityPersister persister, object entity)
+		private async Task CascadeOnUpdate(SaveOrUpdateEvent @event, IEntityPersister persister, object entity)
 		{
 			IEventSource source = @event.Session;
 			source.PersistenceContext.IncrementCascadeLevel();
 			try
 			{
-				new Cascade(CascadingAction.SaveUpdate, CascadePoint.AfterUpdate, source).CascadeOn(persister, entity);
+				await new Cascade(CascadingAction.SaveUpdate, CascadePoint.AfterUpdate, source).CascadeOn(persister, entity);
 			}
 			finally
 			{

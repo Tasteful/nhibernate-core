@@ -61,7 +61,7 @@ namespace NHibernate.Impl
 
 		public IList List()
 		{
-			return AsyncHelper.RunSync(ListAsync);
+			return ListAsync().WaitAndUnwrapException();
 		}
 		public async Task<IList> ListAsync()
 		{
@@ -119,7 +119,7 @@ namespace NHibernate.Impl
 				.SetMaxRows(maxRows);
 
 			IList result =
-				assembler.GetResultFromQueryCache(session,
+				await assembler.GetResultFromQueryCache(session,
 												  combinedParameters,
 												  querySpaces,
 												  queryCache,
@@ -129,7 +129,7 @@ namespace NHibernate.Impl
 			{
 				log.Debug("Cache miss for multi criteria query");
 				IList list = await DoList();
-				queryCache.Put(key, new ICacheAssembler[] { assembler }, new object[] { list }, combinedParameters.NaturalKeyLookup, session);
+				await queryCache.Put(key, new ICacheAssembler[] { assembler }, new object[] { list }, combinedParameters.NaturalKeyLookup, session);
 				result = list;
 			}
 

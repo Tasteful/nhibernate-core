@@ -92,7 +92,7 @@ namespace NHibernate.Type
 			get { return foreignKeyDirection; }
 		}
 
-		public override object Hydrate(IDataReader rs, string[] names, ISessionImplementor session, object owner)
+		public override async Task<object> Hydrate(IDataReader rs, string[] names, ISessionImplementor session, object owner)
 		{
 			IType type = GetIdentifierOrUniqueKeyType(session.Factory);
 			object identifier = session.GetContextEntityIdentifier(owner);
@@ -104,8 +104,8 @@ namespace NHibernate.Type
 				EmbeddedComponentType ownerIdType = session.GetEntityPersister(null, owner).IdentifierType as EmbeddedComponentType;
 				if (ownerIdType != null)
 				{
-					object[] values = ownerIdType.GetPropertyValues(identifier, session);
-					object id = componentType.ResolveIdentifier(values, session, null);
+					object[] values = await ownerIdType.GetPropertyValues(identifier, session);
+					object id = await componentType.ResolveIdentifier(values, session, null);
 					IEntityPersister persister = session.Factory.GetEntityPersister(type.ReturnedClass.FullName);
 					var key = session.GenerateEntityKey(id, persister);
 					return session.PersistenceContext.GetEntity(key);
@@ -124,12 +124,12 @@ namespace NHibernate.Type
 			get { return true; }
 		}
 
-		public override object Disassemble(object value, ISessionImplementor session, object owner)
+		public override Task<object> Disassemble(object value, ISessionImplementor session, object owner)
 		{
 			return null;
 		}
 
-		public override object Assemble(object cached, ISessionImplementor session, object owner)
+		public override Task<object> Assemble(object cached, ISessionImplementor session, object owner)
 		{
 			//this should be a call to resolve(), not resolveIdentifier(), 
 			//'cos it might be a property-ref, and we did not cache the

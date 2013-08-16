@@ -930,7 +930,7 @@ namespace NHibernate.Impl
 
 		public int ExecuteUpdate()
 		{
-			return AsyncHelper.RunSync(ExecuteUpdateAsync);
+			return ExecuteUpdateAsync().WaitAndUnwrapException();
 		}
 
 		public abstract Task<int> ExecuteUpdateAsync();

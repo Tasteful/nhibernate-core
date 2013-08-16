@@ -324,7 +324,7 @@ namespace NHibernate.Hql.Ast.ANTLR
 					{
 						try
 						{
-							object seedValue = versionType.Seed(null);
+							object seedValue = versionType.Seed(null).WaitAndUnwrapException();
 							versionValueNode = ASTFactory.CreateNode(SQL_TOKEN, seedValue.ToString());
 						}
 						catch (Exception t)

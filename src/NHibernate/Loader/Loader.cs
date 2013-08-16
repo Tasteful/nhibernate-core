@@ -249,7 +249,7 @@ namespace NHibernate.Loader
 				{
 					persistenceContext.AfterLoad();
 				}
-				persistenceContext.InitializeNonLazyCollections();
+				await persistenceContext.InitializeNonLazyCollections();
 			}
 			finally
 			{
@@ -294,7 +294,7 @@ namespace NHibernate.Loader
 			}
 
 			await InitializeEntitiesAndCollections(hydratedObjects, resultSet, session, queryParameters.IsReadOnly(session));
-			session.PersistenceContext.InitializeNonLazyCollections();
+			await session.PersistenceContext.InitializeNonLazyCollections();
 			return result;
 		}
 
@@ -327,7 +327,7 @@ namespace NHibernate.Loader
 			for (int i = 0; i < entitySpan; i++)
 			{
 				keys[i] =
-					GetKeyFromResultSet(i, persisters[i], i == entitySpan - 1 ? queryParameters.OptionalId : null, resultSet, session);
+					await GetKeyFromResultSet(i, persisters[i], i == entitySpan - 1 ? queryParameters.OptionalId : null, resultSet, session);
 				//TODO: the i==entitySpan-1 bit depends upon subclass implementation (very bad)
 			}
 
@@ -338,7 +338,7 @@ namespace NHibernate.Loader
 				await GetRow(resultSet, persisters, keys, queryParameters.OptionalObject, optionalObjectKey, lockModeArray,
 					   hydratedObjects, session);
 
-			ReadCollectionElements(row, resultSet, session);
+			await ReadCollectionElements(row, resultSet, session);
 
 			if (returnProxies)
 			{
@@ -357,13 +357,13 @@ namespace NHibernate.Loader
 				}
 			}
 
-			return GetResultColumnOrRow(row, queryParameters.ResultTransformer, resultSet, session);
+			return await GetResultColumnOrRow(row, queryParameters.ResultTransformer, resultSet, session);
 		}
 
 		/// <summary>
 		/// Read any collection elements contained in a single row of the result set
 		/// </summary>
-		private void ReadCollectionElements(object[] row, IDataReader resultSet, ISessionImplementor session)
+		private async Task ReadCollectionElements(object[] row, IDataReader resultSet, ISessionImplementor session)
 		{
 			//TODO: make this handle multiple collection roles!
 
@@ -397,7 +397,7 @@ namespace NHibernate.Loader
 						//keys[collectionOwner].getIdentifier()
 					}
 
-					ReadCollectionElement(owner, key, collectionPersister, descriptors[i], resultSet, session);
+					await ReadCollectionElement(owner, key, collectionPersister, descriptors[i], resultSet, session);
 				}
 			}
 		}
@@ -571,7 +571,7 @@ namespace NHibernate.Loader
 						//during loading
 						//TODO: or we could do this polymorphically, and have two
 						//      different operations implemented differently for arrays
-						EndCollectionLoad(resultSetId, session, collectionPersisters[i]);
+						await EndCollectionLoad(resultSetId, session, collectionPersisters[i]);
 					}
 				}
 			}
@@ -615,16 +615,16 @@ namespace NHibernate.Loader
 						//the entities, since we might call hashCode() on the elements
 						//TODO: or we could do this polymorphically, and have two
 						//      different operations implemented differently for arrays
-						EndCollectionLoad(resultSetId, session, collectionPersisters[i]);
+						await EndCollectionLoad(resultSetId, session, collectionPersisters[i]);
 					}
 				}
 			}
 		}
 
-		private static void EndCollectionLoad(object resultSetId, ISessionImplementor session, ICollectionPersister collectionPersister)
+		private static async Task EndCollectionLoad(object resultSetId, ISessionImplementor session, ICollectionPersister collectionPersister)
 		{
 			//this is a query and we are loading multiple instances of the same collection role
-			session.PersistenceContext.LoadContexts.GetCollectionLoadContext((IDataReader)resultSetId).EndLoadingCollections(
+			await session.PersistenceContext.LoadContexts.GetCollectionLoadContext((IDataReader)resultSetId).EndLoadingCollections(
 				collectionPersister);
 		}
 
@@ -640,9 +640,9 @@ namespace NHibernate.Loader
 		/// This empty implementation merely returns its first argument. This is
 		/// overridden by some subclasses.
 		/// </remarks>
-		protected virtual object GetResultColumnOrRow(object[] row, IResultTransformer resultTransformer, IDataReader rs, ISessionImplementor session)
+		protected virtual Task<object> GetResultColumnOrRow(object[] row, IResultTransformer resultTransformer, IDataReader rs, ISessionImplementor session)
 		{
-			return row;
+			return Task.FromResult<object>(row);
 		}
 
 		/// <summary>
@@ -679,12 +679,12 @@ namespace NHibernate.Loader
 		/// <summary>
 		/// Read one collection element from the current row of the ADO.NET result set
 		/// </summary>
-		private static void ReadCollectionElement(object optionalOwner, object optionalKey, ICollectionPersister persister,
+		private static async Task ReadCollectionElement(object optionalOwner, object optionalKey, ICollectionPersister persister,
 												  ICollectionAliases descriptor, IDataReader rs, ISessionImplementor session)
 		{
 			IPersistenceContext persistenceContext = session.PersistenceContext;
 
-			object collectionRowKey = persister.ReadKey(rs, descriptor.SuffixedKeyAliases, session);
+			object collectionRowKey = await persister.ReadKey(rs, descriptor.SuffixedKeyAliases, session);
 
 			if (collectionRowKey != null)
 			{
@@ -713,7 +713,7 @@ namespace NHibernate.Loader
 
 				if (rowCollection != null)
 				{
-					rowCollection.ReadFrom(rs, persister, descriptor, owner);
+					await rowCollection.ReadFrom(rs, persister, descriptor, owner);
 				}
 			}
 			else if (optionalKey != null)
@@ -773,7 +773,7 @@ namespace NHibernate.Loader
 		/// Warning: this method is side-effecty. If an <c>id</c> is given, don't bother going
 		/// to the <c>IDataReader</c>
 		/// </remarks>
-		private EntityKey GetKeyFromResultSet(int i, IEntityPersister persister, object id, IDataReader rs, ISessionImplementor session)
+		private async Task<EntityKey> GetKeyFromResultSet(int i, IEntityPersister persister, object id, IDataReader rs, ISessionImplementor session)
 		{
 			object resultId;
 
@@ -788,7 +788,7 @@ namespace NHibernate.Loader
 			else
 			{
 				IType idType = persister.IdentifierType;
-				resultId = idType.NullSafeGet(rs, EntityAliases[i].SuffixedKeyAliases, session, null);
+				resultId = await idType.NullSafeGet(rs, EntityAliases[i].SuffixedKeyAliases, session, null);
 
 				bool idIsResultId = id != null && resultId != null && idType.IsEqual(id, resultId, session.EntityMode, _factory);
 
@@ -807,7 +807,7 @@ namespace NHibernate.Loader
 		/// if the version numbers are different.
 		/// </summary>
 		/// <exception cref="StaleObjectStateException"></exception>
-		private void CheckVersion(int i, IEntityPersister persister, object id, object entity, IDataReader rs, ISessionImplementor session)
+		private async Task CheckVersion(int i, IEntityPersister persister, object id, object entity, IDataReader rs, ISessionImplementor session)
 		{
 			object version = session.PersistenceContext.GetEntry(entity).Version;
 
@@ -815,7 +815,7 @@ namespace NHibernate.Loader
 			if (version != null)
 			{
 				IVersionType versionType = persister.VersionType;
-				object currentVersion = versionType.NullSafeGet(rs, EntityAliases[i].SuffixedVersionAliases, session, null);
+				object currentVersion = await versionType.NullSafeGet(rs, EntityAliases[i].SuffixedVersionAliases, session, null);
 				if (!versionType.IsEqual(version, currentVersion))
 				{
 					if (session.Factory.Statistics.IsStatisticsEnabled)
@@ -868,7 +868,7 @@ namespace NHibernate.Loader
 					if (obj != null)
 					{
 						//its already loaded so dont need to hydrate it
-						InstanceAlreadyLoaded(rs, i, persisters[i], key, obj, lockModes[i], session);
+						await InstanceAlreadyLoaded(rs, i, persisters[i], key, obj, lockModes[i], session);
 					}
 					else
 					{
@@ -886,7 +886,7 @@ namespace NHibernate.Loader
 		/// <summary>
 		/// The entity instance is already in the session cache
 		/// </summary>
-		private void InstanceAlreadyLoaded(IDataReader rs, int i, IEntityPersister persister, EntityKey key, object obj,
+		private async Task InstanceAlreadyLoaded(IDataReader rs, int i, IEntityPersister persister, EntityKey key, object obj,
 										   LockMode lockMode, ISessionImplementor session)
 		{
 			if (!persister.IsInstance(obj, session.EntityMode))
@@ -906,7 +906,7 @@ namespace NHibernate.Loader
 				if (isVersionCheckNeeded)
 				{
 					// we only check the version when _upgrading_ lock modes
-					CheckVersion(i, persister, key.Identifier, obj, rs, session);
+					await CheckVersion(i, persister, key.Identifier, obj, rs, session);
 					// we need to upgrade the lock mode to the mode requested
 					entry.LockMode = lockMode;
 				}
@@ -922,7 +922,7 @@ namespace NHibernate.Loader
 		{
 			object obj;
 
-			string instanceClass = GetInstanceClass(dr, i, persister, key.Identifier, session);
+			string instanceClass = await GetInstanceClass(dr, i, persister, key.Identifier, session);
 
 			if (optionalObjectKey != null && key.Equals(optionalObjectKey))
 			{
@@ -1016,13 +1016,13 @@ namespace NHibernate.Loader
 		/// <summary>
 		/// Determine the concrete class of an instance for the <c>IDataReader</c>
 		/// </summary>
-		private string GetInstanceClass(IDataReader rs, int i, ILoadable persister, object id, ISessionImplementor session)
+		private async Task<string> GetInstanceClass(IDataReader rs, int i, ILoadable persister, object id, ISessionImplementor session)
 		{
 			if (persister.HasSubclasses)
 			{
 				// code to handle subclasses of topClass
 				object discriminatorValue =
-					persister.DiscriminatorType.NullSafeGet(rs, EntityAliases[i].SuffixedDiscriminatorAlias, session, null);
+					await persister.DiscriminatorType.NullSafeGet(rs, EntityAliases[i].SuffixedDiscriminatorAlias, session, null);
 
 				string result = persister.GetSubclassForDiscriminatorValue(discriminatorValue);
 
@@ -1480,18 +1480,18 @@ namespace NHibernate.Loader
 			ISet<FilterKey> filterKeys = FilterKey.CreateFilterKeys(session.EnabledFilters, session.EntityMode);
 			QueryKey key = new QueryKey(Factory, SqlString, queryParameters, filterKeys);
 
-			IList result = GetResultFromQueryCache(session, queryParameters, querySpaces, resultTypes, queryCache, key);
+			IList result = await GetResultFromQueryCache(session, queryParameters, querySpaces, resultTypes, queryCache, key);
 
 			if (result == null)
 			{
 				result = await DoList(session, queryParameters);
-				PutResultInQueryCache(session, queryParameters, resultTypes, queryCache, key, result);
+				await PutResultInQueryCache(session, queryParameters, resultTypes, queryCache, key, result);
 			}
 
 			return GetResultList(result, queryParameters.ResultTransformer);
 		}
 
-		private IList GetResultFromQueryCache(ISessionImplementor session, QueryParameters queryParameters,
+		private async Task<IList> GetResultFromQueryCache(ISessionImplementor session, QueryParameters queryParameters,
 											  ISet<string> querySpaces, IType[] resultTypes, IQueryCache queryCache,
 											  QueryKey key)
 		{
@@ -1510,7 +1510,7 @@ namespace NHibernate.Loader
 
 				try
 				{
-					result = queryCache.Get(key, resultTypes, queryParameters.NaturalKeyLookup, querySpaces, session);
+					result = await queryCache.Get(key, resultTypes, queryParameters.NaturalKeyLookup, querySpaces, session);
 					if (_factory.Statistics.IsStatisticsEnabled)
 					{
 						if (result == null)
@@ -1531,12 +1531,12 @@ namespace NHibernate.Loader
 			return result;
 		}
 
-		private void PutResultInQueryCache(ISessionImplementor session, QueryParameters queryParameters, IType[] resultTypes,
+		private async Task PutResultInQueryCache(ISessionImplementor session, QueryParameters queryParameters, IType[] resultTypes,
 										   IQueryCache queryCache, QueryKey key, IList result)
 		{
 			if ((session.CacheMode & CacheMode.Put) == CacheMode.Put)
 			{
-				bool put = queryCache.Put(key, resultTypes, result, queryParameters.NaturalKeyLookup, session);
+				bool put = await queryCache.Put(key, resultTypes, result, queryParameters.NaturalKeyLookup, session);
 				if (put && _factory.Statistics.IsStatisticsEnabled)
 				{
 					_factory.StatisticsImplementor.QueryCachePut(QueryIdentifier, queryCache.RegionName);

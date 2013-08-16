@@ -111,10 +111,7 @@ namespace NHibernate.Collection.Generic
 
 		bool IDictionary<TKey, TValue>.ContainsKey(TKey key)
 		{
-			// TODO Async
-			Task<bool?> task = ReadIndexExistence(key);
-			task.Wait();
-			bool? exists = task.Result;
+			bool? exists = ReadIndexExistence(key).WaitAndUnwrapException();
 			return !exists.HasValue ? gmap.ContainsKey(key) : exists.Value;
 		}
 
@@ -126,24 +123,24 @@ namespace NHibernate.Collection.Generic
 			}
 			if (PutQueueEnabled)
 			{
-				object old = ReadElementByIndex(key);
+				object old = ReadElementByIndex(key).WaitAndUnwrapException();
 				if (old != Unknown)
 				{
 					QueueOperation(new PutDelayedOperation(this, key, value, old == NotFound ? null : old));
 					return;
 				}
 			}
-			Initialize(true);
+			Initialize(true).WaitAndUnwrapException();
 			gmap.Add(key, value);
 			Dirty();
 		}
 
 		bool IDictionary<TKey, TValue>.Remove(TKey key)
 		{
-			object old = PutQueueEnabled ? ReadElementByIndex(key) : Unknown;
+			object old = PutQueueEnabled ? ReadElementByIndex(key).WaitAndUnwrapException() : Unknown;
 			if (old == Unknown) // queue is not enabled for 'puts', or element not found
 			{
-				Initialize(true);
+				Initialize(true).WaitAndUnwrapException();
 				bool contained = gmap.Remove(key);
 				if (contained)
 				{
@@ -160,7 +157,7 @@ namespace NHibernate.Collection.Generic
 
 		bool IDictionary<TKey, TValue>.TryGetValue(TKey key, out TValue value)
 		{
-			object result = ReadElementByIndex(key);
+			object result = ReadElementByIndex(key).WaitAndUnwrapException();
 			if (result == Unknown)
 			{
 				return gmap.TryGetValue(key, out value);
@@ -178,7 +175,7 @@ namespace NHibernate.Collection.Generic
 		{
 			get
 			{
-				object result = ReadElementByIndex(key);
+				object result = ReadElementByIndex(key).WaitAndUnwrapException();
 				if (result == Unknown)
 				{
 					return gmap[key];
@@ -194,14 +191,14 @@ namespace NHibernate.Collection.Generic
 				// NH Note: the assignment in NET work like the put method in JAVA (mean assign or add)
 				if (PutQueueEnabled)
 				{
-					object old = ReadElementByIndex(key);
+					object old = ReadElementByIndex(key).WaitAndUnwrapException();
 					if (old != Unknown)
 					{
 						QueueOperation(new PutDelayedOperation(this, key, value, old == NotFound ? null : old));
 						return;
 					}
 				}
-				Initialize(true);
+				Initialize(true).WaitAndUnwrapException();
 				TValue tempObject;
 				gmap.TryGetValue(key, out tempObject);
 				gmap[key] = value;
@@ -246,10 +243,7 @@ namespace NHibernate.Collection.Generic
 
 		bool ICollection<KeyValuePair<TKey, TValue>>.Contains(KeyValuePair<TKey, TValue> item)
 		{
-			// TODO Async
-			Task<bool?> task = ReadIndexExistence(item.Key);
-			task.Wait();
-			bool? exists = task.Result;
+			bool? exists = ReadIndexExistence(item.Key).WaitAndUnwrapException();
 			if (!exists.HasValue)
 			{
 				return gmap.Contains(item);

@@ -54,7 +54,7 @@ namespace NHibernate.Event.Default
 				false,
 				true);
 
-			new OnLockVisitor(source, id, entity).Process(entity, persister);
+			await new OnLockVisitor(source, id, entity).Process(entity, persister);
 
 			persister.AfterReassociate(entity, source);
 

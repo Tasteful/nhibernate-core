@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using System.Threading.Tasks;
 using NHibernate.Proxy.DynamicProxy;
 using NUnit.Framework;
 using SharpTestsEx;
@@ -19,10 +20,10 @@ namespace NHibernate.Test.DynamicProxyTests
 		public class InterceptedMethodsExposer : Proxy.DynamicProxy.IInterceptor
 		{
 			private readonly List<string> interceptedMethods = new List<string>();
-			public object Intercept(InvocationInfo info)
+			public Task<object> Intercept(InvocationInfo info)
 			{
 				interceptedMethods.Add(info.TargetMethod.Name);
-				return true;
+				return Task.FromResult<object>(true);
 			}
 
 			public IEnumerable<string> InterceptedMethods

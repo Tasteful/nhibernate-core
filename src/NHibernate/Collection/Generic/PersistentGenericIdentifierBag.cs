@@ -124,7 +124,7 @@ namespace NHibernate.Collection.Generic
 
 		bool ICollection<T>.Remove(T item)
 		{
-			Initialize(true);
+			Initialize(true).WaitAndUnwrapException();
 			int index = gvalues.IndexOf(item);
 			if (index >= 0)
 			{

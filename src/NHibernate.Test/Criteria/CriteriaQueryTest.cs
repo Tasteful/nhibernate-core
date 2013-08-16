@@ -1,6 +1,7 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Threading.Tasks;
 using NHibernate.Dialect;
 using NHibernate.Criterion;
 using NHibernate.SqlCommand;
@@ -863,7 +864,7 @@ namespace NHibernate.Test.Criteria
 				{
 					foreach (Enrolment enrolment in student.Enrolments)
 					{
-						NHibernateUtil.Initialize(enrolment);
+						NHibernateUtil.Initialize(enrolment).Wait();
 					}
 				}
 

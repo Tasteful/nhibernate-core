@@ -1,5 +1,6 @@
 using System.Collections;
 using System.Collections.Generic;
+using System.Threading.Tasks;
 using NHibernate.Event;
 using NHibernate.Event.Default;
 using NHibernate.Impl;
@@ -155,9 +156,9 @@ namespace NHibernate.Test.Events.Collections
 
 			#endregion
 
-			public override void OnInitializeCollection(InitializeCollectionEvent @event)
+			public override async Task OnInitializeCollection(InitializeCollectionEvent @event)
 			{
-				base.OnInitializeCollection(@event);
+				await base.OnInitializeCollection(@event);
 				AddEvent(@event, this);
 			}
 		}

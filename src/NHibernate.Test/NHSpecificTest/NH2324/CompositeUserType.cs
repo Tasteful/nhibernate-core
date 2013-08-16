@@ -1,5 +1,6 @@
 using System;
 using System.Data;
+using System.Threading.Tasks;
 using NHibernate.Engine;
 using NHibernate.Type;
 using NHibernate.UserTypes;
@@ -119,11 +120,11 @@ namespace NHibernate.Test.NHSpecificTest.NH2324
 		/// <param name="session"></param>
 		/// <param name="owner">the containing entity</param>
 		/// <returns></returns>
-		public object NullSafeGet(IDataReader dr, string[] names, ISessionImplementor session, object owner)
+		public async Task<object> NullSafeGet(IDataReader dr, string[] names, ISessionImplementor session, object owner)
 		{
 			var data = new CompositeData();
-			data.DataA = (DateTime) NHibernateUtil.DateTime.NullSafeGet(dr, new[] {names[0]}, session, owner);
-			data.DataB = (DateTime) NHibernateUtil.DateTime.NullSafeGet(dr, new[] {names[1]}, session, owner);
+			data.DataA = (DateTime) await NHibernateUtil.DateTime.NullSafeGet(dr, new[] {names[0]}, session, owner);
+			data.DataB = (DateTime) await NHibernateUtil.DateTime.NullSafeGet(dr, new[] {names[1]}, session, owner);
 
 			return data;
 		}
@@ -138,7 +139,7 @@ namespace NHibernate.Test.NHSpecificTest.NH2324
 		/// <param name="index"></param>
 		/// <param name="settable"></param>
 		/// <param name="session"></param>
-		public void NullSafeSet(IDbCommand cmd, object value, int index, bool[] settable, ISessionImplementor session)
+		public Task NullSafeSet(IDbCommand cmd, object value, int index, bool[] settable, ISessionImplementor session)
 		{
 			if (value == null)
 			{
@@ -151,6 +152,7 @@ namespace NHibernate.Test.NHSpecificTest.NH2324
 				if (settable[0]) NHibernateUtil.DateTime.Set(cmd, data.DataA, index++);
 				if (settable[1]) NHibernateUtil.DateTime.Set(cmd, data.DataB, index);
 			}
+			return Task.FromResult(0);
 		}
 
 		/// <summary>
@@ -180,9 +182,9 @@ namespace NHibernate.Test.NHSpecificTest.NH2324
 		/// <param name="value">the object to be cached</param>
 		/// <param name="session"></param>
 		/// <returns></returns>
-		public object Disassemble(object value, ISessionImplementor session)
+		public Task<object> Disassemble(object value, ISessionImplementor session)
 		{
-			return DeepCopy(value);
+			return Task.FromResult(DeepCopy(value));
 		}
 
 		/// <summary>
@@ -211,9 +213,9 @@ namespace NHibernate.Test.NHSpecificTest.NH2324
 		/// <param name="session"></param>
 		/// <param name="owner"></param>
 		/// <returns></returns>
-		public object Replace(object original, object target, ISessionImplementor session, object owner)
+		public Task<object> Replace(object original, object target, ISessionImplementor session, object owner)
 		{
-			return original;
+			return Task.FromResult(original);
 		}
 
 		#endregion

@@ -62,11 +62,11 @@ namespace NHibernate.Loader.Entity
 					IList results =
 						await loaders[i].LoadEntityBatch(session, smallBatch, idType, optionalObject, persister.EntityName, id, persister);
 
-					return GetObjectFromList(results, id, session); //EARLY EXIT
+					return await GetObjectFromList(results, id, session); //EARLY EXIT
 				}
 			}
 
-			return ((IUniqueEntityLoader) loaders[batchSizes.Length - 1]).Load(id, optionalObject, session);
+			return await ((IUniqueEntityLoader) loaders[batchSizes.Length - 1]).Load(id, optionalObject, session);
 		}
 
 		public static IUniqueEntityLoader CreateBatchingEntityLoader(IOuterJoinLoadable persister, int maxBatchSize,

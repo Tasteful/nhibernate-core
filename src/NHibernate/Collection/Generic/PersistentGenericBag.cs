@@ -111,9 +111,7 @@ namespace NHibernate.Collection.Generic
 
 		bool ICollection<T>.Contains(T item)
 		{
-			Task<bool?> task = ReadElementExistence(item);
-			task.Wait();
-			bool? exists = task.Result;
+			bool? exists = ReadElementExistence(item).WaitAndUnwrapException();
 			return !exists.HasValue ? gbag.Contains(item) : exists.Value;
 		}
 
@@ -127,7 +125,7 @@ namespace NHibernate.Collection.Generic
 
 		bool ICollection<T>.Remove(T item)
 		{
-			Initialize(true);
+			Initialize(true).WaitAndUnwrapException();
 			bool result = gbag.Remove(item);
 			if (result)
 			{

@@ -1,6 +1,6 @@
 using System;
 using System.Data;
-
+using System.Threading.Tasks;
 using NHibernate.SqlTypes;
 using NHibernate.Type;
 using NHibernate.UserTypes;
@@ -63,9 +63,9 @@ namespace NHibernate.DomainModel.NHSpecific
 			get { return typeof(Int32); }
 		}
 
-		public object NullSafeGet(IDataReader rs, string[] names, object owner)
+		public Task<object> NullSafeGet(IDataReader rs, string[] names, object owner)
 		{
-			return _int32Type.NullSafeGet(rs, names);
+			return Task.FromResult(_int32Type.NullSafeGet(rs, names));
 		}
 
 		public bool IsMutable

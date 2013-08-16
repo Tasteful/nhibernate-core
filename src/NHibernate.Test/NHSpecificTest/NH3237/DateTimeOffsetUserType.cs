@@ -1,6 +1,7 @@
 using System.Linq;
 using System;
 using System.Data;
+using System.Threading.Tasks;
 using NHibernate.SqlTypes;
 using NHibernate.UserTypes;
 
@@ -29,7 +30,7 @@ namespace NHibernate.Test.NHSpecificTest.NH3237
 			get { return new[] { new SqlType(DbType.DateTime) }; }
 		}
 
-		public object NullSafeGet(IDataReader dr, string[] names, object owner)
+		public Task<object> NullSafeGet(IDataReader dr, string[] names, object owner)
 		{
 			var name = names[0];
 			int index = dr.GetOrdinal(name);
@@ -51,7 +52,7 @@ namespace NHibernate.Test.NHSpecificTest.NH3237
 					throw new FormatException(string.Format("Input string '{0}' was not in the correct format.", dr[index]), ex);
 				}
 
-				return new DateTimeOffset(storedTime, Offset);
+				return Task.FromResult<object>(new DateTimeOffset(storedTime, Offset));
 			}
 			catch (InvalidCastException ice)
 			{

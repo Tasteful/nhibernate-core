@@ -143,7 +143,7 @@ namespace NHibernate.Event.Default
 			if (!persister.HasProxy)
 			{
 				// this class has no proxies (so do a shortcut)
-				return Load(@event, persister, keyToLoad, options);
+				return await Load(@event, persister, keyToLoad, options);
 			}
 			else
 			{
@@ -153,7 +153,7 @@ namespace NHibernate.Event.Default
 				object proxy = persistenceContext.GetProxy(keyToLoad);
 				if (proxy != null)
 				{
-					return ReturnNarrowedProxy(@event, persister, keyToLoad, options, persistenceContext, proxy);
+					return await ReturnNarrowedProxy(@event, persister, keyToLoad, options, persistenceContext, proxy);
 				}
 				else
 				{
@@ -174,7 +174,7 @@ namespace NHibernate.Event.Default
 		/// Given that there is a pre-existing proxy.
 		/// Initialize it if necessary; narrow if necessary.
 		/// </summary>
-		private object ReturnNarrowedProxy(LoadEvent @event, IEntityPersister persister, EntityKey keyToLoad, LoadType options, IPersistenceContext persistenceContext, object proxy)
+		private async Task<object> ReturnNarrowedProxy(LoadEvent @event, IEntityPersister persister, EntityKey keyToLoad, LoadType options, IPersistenceContext persistenceContext, object proxy)
 		{
 			log.Debug("entity proxy found in session cache");
 			var castedProxy = (INHibernateProxy) proxy;
@@ -186,7 +186,7 @@ namespace NHibernate.Event.Default
 			object impl = null;
 			if (!options.IsAllowProxyCreation)
 			{
-				impl = Load(@event, persister, keyToLoad, options);
+				impl = await Load(@event, persister, keyToLoad, options);
 				// NH Different behavior : NH-1252
 				if (impl == null && !options.IsAllowNulls)
 				{
@@ -292,7 +292,7 @@ namespace NHibernate.Event.Default
 				log.Debug("attempting to resolve: " + MessageHelper.InfoString(persister, @event.EntityId, @event.Session.Factory));
 			}
 
-			object entity = LoadFromSessionCache(@event, keyToLoad, options);
+			object entity = await LoadFromSessionCache(@event, keyToLoad, options);
 			if (entity == RemovedEntityMarker)
 			{
 				log.Debug("load request found matching entity in context, but it is scheduled for removal; returning null");
@@ -375,7 +375,7 @@ namespace NHibernate.Event.Default
 		/// session-level cache, it's current status within the session cache
 		/// is checked to see if it has previously been scheduled for deletion.
 		/// </remarks>
-		protected virtual object LoadFromSessionCache(LoadEvent @event, EntityKey keyToLoad, LoadType options)
+		protected virtual async Task<object> LoadFromSessionCache(LoadEvent @event, EntityKey keyToLoad, LoadType options)
 		{
 			ISessionImplementor session = @event.Session;
 			object old = session.GetEntityUsingInterceptor(keyToLoad);
@@ -400,7 +400,7 @@ namespace NHibernate.Event.Default
 						return InconsistentRTNClassMarker;
 					}
 				}
-				UpgradeLock(old, oldEntry, @event.LockMode, session);
+				await UpgradeLock(old, oldEntry, @event.LockMode, session);
 			}
 			return old;
 		}
@@ -473,7 +473,7 @@ namespace NHibernate.Event.Default
 			TwoPhaseLoad.AddUninitializedCachedEntity(entityKey, result, subclassPersister, LockMode.None, entry.AreLazyPropertiesUnfetched, entry.Version, session);
 
 			IType[] types = subclassPersister.PropertyTypes;
-			object[] values = entry.Assemble(result, id, subclassPersister, session.Interceptor, session); // intializes result by side-effect
+			object[] values = await entry.Assemble(result, id, subclassPersister, session.Interceptor, session); // intializes result by side-effect
 			await TypeHelper.DeepCopy(values, types, subclassPersister.PropertyUpdateability, values, session);
 
 			object version = Versioning.GetVersion(values, subclassPersister);
@@ -512,7 +512,7 @@ namespace NHibernate.Event.Default
 				entry.AreLazyPropertiesUnfetched);
 			
 			subclassPersister.AfterInitialize(result, entry.AreLazyPropertiesUnfetched, session);
-			persistenceContext.InitializeNonLazyCollections();
+			await persistenceContext.InitializeNonLazyCollections();
 			// upgrade the lock if necessary:
 			//lock(result, lockMode);
 

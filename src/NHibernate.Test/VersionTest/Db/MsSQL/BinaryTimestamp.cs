@@ -1,4 +1,5 @@
 using System.Data;
+using System.Threading.Tasks;
 using NHibernate.Engine;
 using NHibernate.SqlTypes;
 using NHibernate.UserTypes;
@@ -44,9 +45,9 @@ namespace NHibernate.Test.VersionTest.Db.MsSQL
 			get { return false; }
 		}
 
-		public object NullSafeGet(IDataReader rs, string[] names, object owner)
+		public Task<object> NullSafeGet(IDataReader rs, string[] names, object owner)
 		{
-			return rs.GetValue(rs.GetOrdinal(names[0]));
+			return System.Threading.Tasks.Task.FromResult(rs.GetValue(rs.GetOrdinal(names[0])));
 		}
 
 		public void NullSafeSet(IDbCommand cmd, object value, int index)

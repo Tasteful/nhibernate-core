@@ -87,7 +87,7 @@ namespace NHibernate.Event.Default
 				EntityKey key = source.GenerateEntityKey(id, persister);
 				source.PersistenceContext.RemoveEntity(key);
 				if (persister.HasCollections)
-					new EvictVisitor(source).Process(obj, persister);
+					await new EvictVisitor(source).Process(obj, persister);
 			}
 
 			if (persister.HasCache)
@@ -102,11 +102,11 @@ namespace NHibernate.Event.Default
 			// At this point the entity need the real refresh, all elementes of collections are Refreshed,
 			// the collection state was evicted, but the PersistentCollection (in the entity state)
 			// is associated with a possible previous session.
-			new WrapVisitor(source).Process(obj, persister);
+			await new WrapVisitor(source).Process(obj, persister);
 
 			string previousFetchProfile = source.FetchProfile;
 			source.FetchProfile = "refresh";
-			object result = persister.Load(id, obj, @event.LockMode, source);
+			object result = await persister.Load(id, obj, @event.LockMode, source);
 			
 			if (result != null)
 				if (!persister.IsMutable)

@@ -87,7 +87,7 @@ namespace NHibernate.Test.NHSpecificTest.NH3374
 			using (session.BeginTransaction())
 			{
 				var blob = session.Get<Blob>(1);
-				NHibernateUtil.Initialize(blob.Bytes);
+				NHibernateUtil.Initialize(blob.Bytes).Wait();
 				return blob;
 			}
 		}

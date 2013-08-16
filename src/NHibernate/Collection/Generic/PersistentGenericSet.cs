@@ -139,14 +139,14 @@ namespace NHibernate.Collection.Generic
 		/// <param name="persister">The CollectionPersister to use to reassemble the PersistentSet.</param>
 		/// <param name="disassembled">The disassembled PersistentSet.</param>
 		/// <param name="owner">The owner object.</param>
-		public override void InitializeFromCache(ICollectionPersister persister, object disassembled, object owner)
+		public override async Task InitializeFromCache(ICollectionPersister persister, object disassembled, object owner)
 		{
 			var array = (object[])disassembled;
 			int size = array.Length;
 			BeforeInitialize(persister, size);
 			for (int i = 0; i < size; i++)
 			{
-				var element = (T)persister.ElementType.Assemble(array[i], Session, owner);
+				var element = (T)await persister.ElementType.Assemble(array[i], Session, owner);
 				if (element != null)
 				{
 					set.Add(element);
@@ -166,9 +166,9 @@ namespace NHibernate.Collection.Generic
 			return StringHelper.CollectionToString(set);
 		}
 
-		public override object ReadFrom(IDataReader rs, ICollectionPersister role, ICollectionAliases descriptor, object owner)
+		public override async Task<object> ReadFrom(IDataReader rs, ICollectionPersister role, ICollectionAliases descriptor, object owner)
 		{
-			var element = (T)role.ReadElement(rs, owner, descriptor.SuffixedElementAliases, Session);
+			var element = (T)await role.ReadElement(rs, owner, descriptor.SuffixedElementAliases, Session);
 			if (element != null)
 			{
 				_tempList.Add(element);
@@ -207,14 +207,14 @@ namespace NHibernate.Collection.Generic
 			return set;
 		}
 
-		public override object Disassemble(ICollectionPersister persister)
+		public override async Task<object> Disassemble(ICollectionPersister persister)
 		{
 			var result = new object[set.Count];
 			int i = 0;
 
 			foreach (object obj in set)
 			{
-				result[i++] = persister.ElementType.Disassemble(obj, Session, null);
+				result[i++] = await persister.ElementType.Disassemble(obj, Session, null);
 			}
 			return result;
 		}
@@ -306,26 +306,17 @@ namespace NHibernate.Collection.Generic
 
 		public bool Contains(T item)
 		{
-			Task<bool?> task = ReadElementExistence(item);
-			task.Wait();
-			bool? exists = task.Result;
+			bool? exists = ReadIndexExistence(item).WaitAndUnwrapException();
 			return exists == null ? set.Contains(item) : exists.Value;
 		}
 
 
 		public bool Add(T o)
 		{
-			// TODO Async
-			Task<bool?> task = null;
-			if (IsOperationQueueEnabled)
-			{
-				task = ReadElementExistence(o);
-				task.Wait();
-			}
-			bool? exists = IsOperationQueueEnabled ? task.Result : null;
+			bool? exists = IsOperationQueueEnabled ? ReadElementExistence(o).WaitAndUnwrapException() : null;
 			if (!exists.HasValue)
 			{
-				Initialize(true);
+				Initialize(true).WaitAndUnwrapException();
 				if (set.Add(o))
 				{
 					Dirty();
@@ -348,7 +339,7 @@ namespace NHibernate.Collection.Generic
 			if (collection.Count == 0)
 				return;
 
-			Initialize(true);
+			Initialize(true).WaitAndUnwrapException();
 
 			var oldCount = set.Count;
 			set.UnionWith(collection);
@@ -361,7 +352,7 @@ namespace NHibernate.Collection.Generic
 
 		public void IntersectWith(IEnumerable<T> other)
 		{
-			Initialize(true);
+			Initialize(true).WaitAndUnwrapException();
 
 			var oldCount = set.Count;
 			set.IntersectWith(other);
@@ -378,7 +369,7 @@ namespace NHibernate.Collection.Generic
 			if (collection.Count == 0)
 				return;
 
-			Initialize(true);
+			Initialize(true).WaitAndUnwrapException();
 
 			var oldCount = set.Count;
 			set.ExceptWith(collection);
@@ -395,7 +386,7 @@ namespace NHibernate.Collection.Generic
 			if (collection.Count == 0)
 				return;
 
-			Initialize(true);
+			Initialize(true).WaitAndUnwrapException();
 
 			set.SymmetricExceptWith(collection);
 
@@ -442,17 +433,10 @@ namespace NHibernate.Collection.Generic
 
 		public bool Remove(T o)
 		{
-			// TODO Async
-			Task<bool?> task = null;
-			if (PutQueueEnabled)
-			{
-				task = ReadElementExistence(o);
-				task.Wait();
-			}
-			bool? exists = PutQueueEnabled ? task.Result : null;
+			bool? exists = PutQueueEnabled ? ReadElementExistence(o).WaitAndUnwrapException() : null;
 			if (!exists.HasValue)
 			{
-				Initialize(true);
+				Initialize(true).WaitAndUnwrapException();
 				if (set.Remove(o))
 				{
 					Dirty();
@@ -477,7 +461,7 @@ namespace NHibernate.Collection.Generic
 			}
 			else
 			{
-				Initialize(true);
+				Initialize(true).WaitAndUnwrapException();
 				if (set.Count != 0)
 				{
 					set.Clear();
@@ -501,10 +485,7 @@ namespace NHibernate.Collection.Generic
 		{
 			get
 			{
-				// TODO Async
-				Task<bool> readSize = ReadSize();
-				readSize.Wait();
-				return readSize.Result ? CachedSize : set.Count;
+				return ReadSize().WaitAndUnwrapException() ? CachedSize : set.Count;
 			}
 		}
 

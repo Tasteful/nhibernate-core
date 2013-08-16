@@ -65,7 +65,7 @@ namespace NHibernate.Test.NHSpecificTest.NH706
 			using (ISession session = OpenSession())
 			{
 				Parent loadedParent = (Parent) session.Get(typeof(Parent), parent.ID);
-				NHibernateUtil.Initialize(loadedParent.DifferentChildren);
+				NHibernateUtil.Initialize(loadedParent.DifferentChildren).Wait();
 				foreach (DifferentChild dc in loadedParent.DifferentChildren)
 				{
 					dcId = dc.ID;

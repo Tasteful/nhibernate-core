@@ -70,17 +70,17 @@ namespace NHibernate.Impl
 			}
 		}
 
-		public abstract void InitializeCollection(IPersistentCollection collection, bool writing);
+		public abstract Task InitializeCollection(IPersistentCollection collection, bool writing);
 
 		public object InternalLoad(string entityName, object id, bool eager, bool isNullable)
 		{
-			return AsyncHelper.RunSync(() => InternalLoadAsync(entityName, id, eager, isNullable));
+			return InternalLoadAsync(entityName, id, eager, isNullable).WaitAndUnwrapException();
 		}
 		public abstract Task<object> InternalLoadAsync(string entityName, object id, bool eager, bool isNullable);
 
 		public object ImmediateLoad(string entityName, object id)
 		{
-			return AsyncHelper.RunSync(() => ImmediateLoadAsync(entityName, id));
+			return ImmediateLoadAsync(entityName, id).WaitAndUnwrapException();
 		}
 		public abstract Task<object> ImmediateLoadAsync(string entityName, object id);
 		public abstract long Timestamp { get; }
@@ -139,7 +139,7 @@ namespace NHibernate.Impl
 
 		public void List(IQueryExpression queryExpression, QueryParameters queryParameters, IList results)
 		{
-			AsyncHelper.RunSync(() => ListAsync(queryExpression, queryParameters, results));
+			ListAsync(queryExpression, queryParameters, results).WaitAndUnwrapException();
 		}
 		public abstract Task ListAsync(IQueryExpression queryExpression, QueryParameters queryParameters, IList results);
 
@@ -177,25 +177,25 @@ namespace NHibernate.Impl
 
 		public IList ListFilter(object collection, string filter, QueryParameters parameters)
 		{
-			return AsyncHelper.RunSync(() => ListFilterAsync(collection, filter, parameters));
+			return ListFilterAsync(collection, filter, parameters).WaitAndUnwrapException();
 		}
 		public abstract Task<IList> ListFilterAsync(object collection, string filter, QueryParameters parameters);
 
 		public IList<T> ListFilter<T>(object collection, string filter, QueryParameters parameters)
 		{
-			return AsyncHelper.RunSync(() => ListFilterAsync<T>(collection, filter, parameters));
+			return ListFilterAsync<T>(collection, filter, parameters).WaitAndUnwrapException();
 		}
 		public abstract Task<IList<T>> ListFilterAsync<T>(object collection, string filter, QueryParameters parameters);
 
 		public IEnumerable EnumerableFilter(object collection, string filter, QueryParameters parameters)
 		{
-			return AsyncHelper.RunSync(() => EnumerableFilterAsync(collection, filter, parameters));
+			return EnumerableFilterAsync(collection, filter, parameters).WaitAndUnwrapException();
 		}
 		public abstract Task<IEnumerable> EnumerableFilterAsync(object collection, string filter, QueryParameters parameters);
 
 		public IEnumerable<T> EnumerableFilter<T>(object collection, string filter, QueryParameters parameters)
 		{
-			return AsyncHelper.RunSync(() => EnumerableFilterAsync<T>(collection, filter, parameters));
+			return EnumerableFilterAsync<T>(collection, filter, parameters).WaitAndUnwrapException();
 		}
 		public abstract Task<IEnumerable<T>> EnumerableFilterAsync<T>(object collection, string filter, QueryParameters parameters);
 		public abstract IEntityPersister GetEntityPersister(string entityName, object obj);
@@ -353,7 +353,11 @@ namespace NHibernate.Impl
 			set { isAlreadyDisposed = value; }
 		}
 
-		public abstract void Flush();
+		public void Flush()
+		{
+			FlushAsync().WaitAndUnwrapException();
+		}
+		public abstract Task FlushAsync();
 
 		public abstract bool TransactionInProgress { get; }
 
@@ -495,7 +499,7 @@ namespace NHibernate.Impl
 
 		public IEnumerable Enumerable(IQueryExpression queryExpression, QueryParameters queryParameters)
 		{
-			return AsyncHelper.RunSync(() => EnumerableAsync(queryExpression, queryParameters));
+			return EnumerableAsync(queryExpression, queryParameters).WaitAndUnwrapException();
 		}
 		public abstract Task<IEnumerable> EnumerableAsync(IQueryExpression queryExpression, QueryParameters queryParameters);
 
@@ -513,7 +517,7 @@ namespace NHibernate.Impl
 
 		public IEnumerable<T> Enumerable<T>(IQueryExpression queryExpression, QueryParameters queryParameters)
 		{
-			return AsyncHelper.RunSync(() => EnumerableAsync<T>(queryExpression, queryParameters));
+			return EnumerableAsync<T>(queryExpression, queryParameters).WaitAndUnwrapException();
 		}
 		public abstract Task<IEnumerable<T>> EnumerableAsync<T>(IQueryExpression queryExpression, QueryParameters queryParameters);
 

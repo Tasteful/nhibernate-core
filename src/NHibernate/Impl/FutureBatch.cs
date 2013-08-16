@@ -71,7 +71,7 @@ namespace NHibernate.Impl
 			{
 				AddTo(multiApproach, queries[i], resultTypes[i]);
 			}
-			results = AsyncHelper.RunSync(() => GetResultsFrom(multiApproach));
+			results = GetResultsFrom(multiApproach).WaitAndUnwrapException();
 			ClearCurrentFutureBatch();
 		}
 

@@ -1,6 +1,7 @@
 using System;
 using System.Data;
 using System.Linq.Expressions;
+using System.Threading.Tasks;
 using NHibernate.Engine;
 
 namespace NHibernate
@@ -71,7 +72,7 @@ namespace NHibernate
 		/// <param name="entityName">The name of the entity to be inserted</param>
 		/// <param name="entity">A new transient instance</param>
 		/// <returns>The identifier of the instance</returns>
-		object Insert(string entityName, object entity);
+		Task<object> Insert(string entityName, object entity);
 
 		/// <summary>Update an entity.</summary>
 		/// <param name="entity">A detached entity instance</param>

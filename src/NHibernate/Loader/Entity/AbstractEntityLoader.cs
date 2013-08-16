@@ -67,10 +67,10 @@ namespace NHibernate.Loader.Entity
 			}
 		}
 
-		protected override object GetResultColumnOrRow(object[] row, IResultTransformer resultTransformer, IDataReader rs,
+		protected override Task<object> GetResultColumnOrRow(object[] row, IResultTransformer resultTransformer, IDataReader rs,
 													   ISessionImplementor session)
 		{
-			return row[row.Length - 1];
+			return Task.FromResult(row[row.Length - 1]);
 		}
 
 		protected IType UniqueKeyType { get; private set; }

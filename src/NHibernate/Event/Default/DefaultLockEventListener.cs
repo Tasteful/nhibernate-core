@@ -53,7 +53,7 @@ namespace NHibernate.Event.Default
 				await CascadeOnLock(@event, persister, entity);
 			}
 
-			UpgradeLock(entity, entry, @event.LockMode, source);
+			await UpgradeLock(entity, entry, @event.LockMode, source);
 		}
 
 		private async Task CascadeOnLock(LockEvent @event, IEntityPersister persister, object entity)
