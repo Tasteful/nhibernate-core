@@ -454,7 +454,7 @@ namespace NHibernate.Collection
 		{
 			get
 			{
-				return ReadSize().WaitAndUnwrapException() ? CachedSize : values.Count;
+				return ReadSize() ? CachedSize : values.Count;
 			}
 		}
 

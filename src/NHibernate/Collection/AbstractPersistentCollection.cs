@@ -273,7 +273,13 @@ namespace NHibernate.Collection
 		}
 
 		/// <summary> Called by the <tt>Count</tt> property</summary>
-		protected virtual async Task<bool> ReadSize()
+		protected bool ReadSize()
+		{
+			return ReadSizeAsync().WaitAndUnwrapException();
+		}
+
+		/// <summary> Called by the <tt>Count</tt> property</summary>
+		protected virtual async Task<bool> ReadSizeAsync()
 		{
 			if (!initialized)
 			{

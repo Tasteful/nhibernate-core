@@ -485,7 +485,7 @@ namespace NHibernate.Collection.Generic
 		{
 			get
 			{
-				return ReadSize().WaitAndUnwrapException() ? CachedSize : set.Count;
+				return ReadSize() ? CachedSize : set.Count;
 			}
 		}
 
