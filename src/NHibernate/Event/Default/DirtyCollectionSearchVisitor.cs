@@ -78,10 +78,10 @@ namespace NHibernate.Event.Default
 				{
 					//we need to check even if it was not initialized, because of delayed adds!
 					dirty = true;
-					return null; //NOTE: EARLY EXIT!
+					return Task.FromResult<object>(null); //NOTE: EARLY EXIT!
 				}
 			}
-			return null;
+			return Task.FromResult<object>(null);
 		}
 
 		internal override bool IncludeEntityProperty(object[] values, int i)

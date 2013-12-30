@@ -310,7 +310,7 @@ namespace NHibernate.DomainModel
 			get { return false; }
 		}
 
-		public Task<object> Load(object id, object optionalObject, LockMode lockMode, ISessionImplementor session)
+		public async Task<object> Load(object id, object optionalObject, LockMode lockMode, ISessionImplementor session)
 		{
 			// fails when optional object is supplied
 			Custom clone = null;
@@ -321,10 +321,10 @@ namespace NHibernate.DomainModel
 				TwoPhaseLoad.AddUninitializedEntity(session.GenerateEntityKey(id, this), clone, this, LockMode.None, false,
 				                                    session);
 				TwoPhaseLoad.PostHydrate(this, id, new String[] {obj.Name}, null, clone, LockMode.None, false, session);
-				TwoPhaseLoad.InitializeEntity(clone, false, session, new PreLoadEvent((IEventSource) session),
+				await TwoPhaseLoad.InitializeEntity(clone, false, session, new PreLoadEvent((IEventSource) session),
 				                              new PostLoadEvent((IEventSource) session));
 			}
-			return Task.FromResult<object>(clone);
+			return clone;
 		}
 
 		public Task Lock(object id, object version, object obj, LockMode lockMode, ISessionImplementor session)

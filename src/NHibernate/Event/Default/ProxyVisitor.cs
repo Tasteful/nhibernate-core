@@ -18,7 +18,7 @@ namespace NHibernate.Event.Default
 		/// <param name="value"></param>
 		/// <param name="entityType"></param>
 		/// <returns></returns>
-		internal override object ProcessEntity(object value, EntityType entityType)
+		internal override Task<object> ProcessEntity(object value, EntityType entityType)
 		{
 
 			if (value != null)
@@ -28,7 +28,7 @@ namespace NHibernate.Event.Default
 				// handle it later on
 			}
 
-			return null;
+			return Task.FromResult<object>(null);
 		}
 
 		/// <summary> 

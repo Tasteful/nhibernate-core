@@ -53,7 +53,7 @@ namespace NHibernate.Event.Default
 			}
 			else if (type.IsEntityType)
 			{
-				return ProcessEntity(value, (EntityType)type);
+				return await ProcessEntity(value, (EntityType)type);
 			}
 			else if (type.IsComponentType)
 			{
@@ -86,9 +86,9 @@ namespace NHibernate.Event.Default
 		/// <param name="value"></param>
 		/// <param name="entityType"></param>
 		/// <returns></returns>
-		internal virtual object ProcessEntity(object value, EntityType entityType)
+		internal virtual Task<object> ProcessEntity(object value, EntityType entityType)
 		{
-			return null;
+			return Task.FromResult<object>(null);
 		}
 
 		/// <summary>
