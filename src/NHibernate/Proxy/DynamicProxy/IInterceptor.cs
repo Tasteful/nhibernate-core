@@ -12,6 +12,6 @@ namespace NHibernate.Proxy.DynamicProxy
 {
 	public interface IInterceptor
 	{
-		Task<object> Intercept(InvocationInfo info);
+		object Intercept(InvocationInfo info);
 	}
 }

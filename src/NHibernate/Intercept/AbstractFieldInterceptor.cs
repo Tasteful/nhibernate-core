@@ -87,7 +87,7 @@ namespace NHibernate.Intercept
 			get { return initializing; }
 		}
 
-		public async Task<object> Intercept(object target, string fieldName, object value)
+		public object Intercept(object target, string fieldName, object value)
 		{
 			// NH Specific: Hibernate only deals with lazy properties here, we deal with 
 			// both lazy properties and with no-proxy. 
@@ -115,7 +115,7 @@ namespace NHibernate.Intercept
 
 			if (IsUninitializedProperty(fieldName))
 			{
-				return await InitializeField(fieldName, target);
+				return InitializeField(fieldName, target).WaitAndUnwrapException();
 			}
 
 			if (value.IsProxy() && IsUninitializedAssociation(fieldName))

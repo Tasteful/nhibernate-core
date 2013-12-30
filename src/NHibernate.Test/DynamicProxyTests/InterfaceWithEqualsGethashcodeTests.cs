@@ -20,10 +20,10 @@ namespace NHibernate.Test.DynamicProxyTests
 		public class InterceptedMethodsExposer : Proxy.DynamicProxy.IInterceptor
 		{
 			private readonly List<string> interceptedMethods = new List<string>();
-			public Task<object> Intercept(InvocationInfo info)
+			public object Intercept(InvocationInfo info)
 			{
 				interceptedMethods.Add(info.TargetMethod.Name);
-				return Task.FromResult<object>(true);
+				return true;
 			}
 
 			public IEnumerable<string> InterceptedMethods

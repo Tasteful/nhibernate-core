@@ -1,5 +1,4 @@
 using System;
-using System.Threading.Tasks;
 using NHibernate.Proxy.DynamicProxy;
 using NHibernate.Util;
 
@@ -10,7 +9,7 @@ namespace NHibernate.Intercept
 	{
 		public IFieldInterceptor FieldInterceptor { get; set; }
 
-		public async Task<object> Intercept(InvocationInfo info)
+		public object Intercept(InvocationInfo info)
 		{
 			var methodName = info.TargetMethod.Name;
 			if (FieldInterceptor != null)
@@ -24,7 +23,7 @@ namespace NHibernate.Intercept
 
 					object propValue = info.InvokeMethodOnTarget();
 
-					var result = await FieldInterceptor.Intercept(info.Target, ReflectHelper.GetPropertyName(info.TargetMethod), propValue);
+					var result = FieldInterceptor.Intercept(info.Target, ReflectHelper.GetPropertyName(info.TargetMethod), propValue);
 
 					if (result != AbstractFieldInterceptor.InvokeImplementation)
 					{
@@ -39,7 +38,7 @@ namespace NHibernate.Intercept
 						return null;
 					}
 					FieldInterceptor.MarkDirty();
-					await FieldInterceptor.Intercept(info.Target, ReflectHelper.GetPropertyName(info.TargetMethod), info.Arguments[0]);
+					FieldInterceptor.Intercept(info.Target, ReflectHelper.GetPropertyName(info.TargetMethod), info.Arguments[0]);
 				}
 			}
 			else

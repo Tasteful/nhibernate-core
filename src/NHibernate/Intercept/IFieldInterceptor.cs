@@ -28,7 +28,7 @@ namespace NHibernate.Intercept
 		void ClearDirty();
 
 		/// <summary> Intercept field set/get </summary>
-		Task<object> Intercept(object target, string fieldName, object value);
+		object Intercept(object target, string fieldName, object value);
 
 		/// <summary> Get the entity-name of the field DeclaringType.</summary>
 		string EntityName { get; }
