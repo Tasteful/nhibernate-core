@@ -126,7 +126,7 @@ namespace NHibernate.Type
 
 		public override Task<object> Disassemble(object value, ISessionImplementor session, object owner)
 		{
-			return null;
+			return Task.FromResult<object>(null);
 		}
 
 		public override Task<object> Assemble(object cached, ISessionImplementor session, object owner)

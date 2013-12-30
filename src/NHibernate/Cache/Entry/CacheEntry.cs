@@ -63,7 +63,7 @@ namespace NHibernate.Cache.Entry
 			}
 		}
 
-		public Task<object[]> Assemble(object instance, object id, IEntityPersister persister, IInterceptor interceptor,
+		public async Task<object[]> Assemble(object instance, object id, IEntityPersister persister, IInterceptor interceptor,
 		                         ISessionImplementor session)
 		{
 			if (!persister.EntityName.Equals(subclass))
@@ -71,7 +71,7 @@ namespace NHibernate.Cache.Entry
 				throw new AssertionFailure("Tried to assemble a different subclass instance");
 			}
 
-			return Assemble(disassembledState, instance, id, persister, interceptor, session);
+			return await Assemble(disassembledState, instance, id, persister, interceptor, session);
 		}
 
 		private static async Task<object[]> Assemble(object[] values, object result, object id, IEntityPersister persister,

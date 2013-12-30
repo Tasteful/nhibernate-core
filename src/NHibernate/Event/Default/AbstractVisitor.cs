@@ -99,7 +99,7 @@ namespace NHibernate.Event.Default
 		/// <returns></returns>
 		internal virtual Task<object> ProcessCollection(object value, CollectionType collectionType)
 		{
-			return null;
+			return Task.FromResult<object>(null);
 		}
 
 		/// <summary>

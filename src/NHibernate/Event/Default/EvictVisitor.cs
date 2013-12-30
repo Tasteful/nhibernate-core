@@ -24,7 +24,7 @@ namespace NHibernate.Event.Default
 			if (collection != null)
 				EvictCollection(collection, type);
 
-			return null;
+			return Task.FromResult<object>(null);
 		}
 
 		public virtual void EvictCollection(object value, CollectionType type)

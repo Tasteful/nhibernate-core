@@ -85,12 +85,12 @@ namespace NHibernate.Type
 		/// <remarks>
 		/// This method calls DeepCopy if the value is not null.
 		/// </remarks>
-		public virtual Task<object> Assemble(object cached, ISessionImplementor session, object owner)
+		public virtual async Task<object> Assemble(object cached, ISessionImplementor session, object owner)
 		{
 			if (cached == null)
 				return null;
 
-			return DeepCopy(cached, session.EntityMode, session.Factory);
+			return await DeepCopy(cached, session.EntityMode, session.Factory);
 		}
 
 		public virtual Task BeforeAssemble(object cached, ISessionImplementor session)
