@@ -130,7 +130,7 @@ namespace NHibernate.Cache
 					}
 					else
 					{
-						result.Add(TypeHelper.Assemble((object[])cacheable[i], returnTypes, session, null));
+						result.Add(await TypeHelper.Assemble((object[])cacheable[i], returnTypes, session, null));
 					}
 				}
 				catch (UnresolvableObjectException)

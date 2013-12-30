@@ -123,7 +123,7 @@ namespace NHibernate.Engine
 			ISessionFactoryImplementor factory = session.Factory;
 			ICollectionPersister persister = factory.GetCollectionPersister(type.Role);
 			ce.CurrentPersister = persister;
-			ce.CurrentKey = type.GetKeyOfOwner(entity, session); //TODO: better to pass the id in as an argument?
+			ce.CurrentKey = await type.GetKeyOfOwner(entity, session); //TODO: better to pass the id in as an argument?
 
 			if (log.IsDebugEnabled)
 			{
