@@ -574,9 +574,9 @@ namespace NHibernate.Persister.Collection
 			}
 		}
 
-		public void Initialize(object key, ISessionImplementor session)
+		public Task Initialize(object key, ISessionImplementor session)
 		{
-			GetAppropriateInitializer(key, session).Initialize(key, session);
+			return GetAppropriateInitializer(key, session).Initialize(key, session);
 		}
 
 		protected ICollectionInitializer GetAppropriateInitializer(object key, ISessionImplementor session)

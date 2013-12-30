@@ -48,7 +48,7 @@ namespace NHibernate.Event.Default
 				else
 				{
 					log.Debug("collection not cached");
-					ce.LoadedPersister.Initialize(ce.LoadedKey, source);
+					await ce.LoadedPersister.Initialize(ce.LoadedKey, source);
 					log.Debug("collection initialized");
 
 					if (statsEnabled)

@@ -52,7 +52,7 @@ namespace NHibernate.Impl
 			}
 		}
 
-		public override Task InitializeCollection(IPersistentCollection collection, bool writing)
+		public override async Task InitializeCollection(IPersistentCollection collection, bool writing)
 		{
 			if (temporaryPersistenceContext.IsLoadFinished)
 			{
@@ -61,9 +61,8 @@ namespace NHibernate.Impl
 			CollectionEntry ce = temporaryPersistenceContext.GetCollectionEntry(collection);
 			if (!collection.WasInitialized)
 			{
-				ce.LoadedPersister.Initialize(ce.LoadedKey, this);
+				await ce.LoadedPersister.Initialize(ce.LoadedKey, this);
 			}
-			return Task.FromResult(0);
 		}
 
 		public override Task<object> InternalLoadAsync(string entityName, object id, bool eager, bool isNullable)

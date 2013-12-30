@@ -145,7 +145,7 @@ namespace NHibernate.Persister.Collection
 		/// </summary>
 		/// <param name="key"></param>
 		/// <param name="session"></param>
-		void Initialize(object key, ISessionImplementor session);
+		Task Initialize(object key, ISessionImplementor session);
 
 		/// <summary>
 		/// Is this collection role cacheable

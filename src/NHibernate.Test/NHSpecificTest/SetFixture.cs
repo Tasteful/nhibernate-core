@@ -224,9 +224,10 @@ namespace NHibernate.Test.NHSpecificTest
 			return Task.FromResult<object>(null);
 		}
 
-		public void Initialize(object key, ISessionImplementor session)
+		public Task Initialize(object key, ISessionImplementor session)
 		{
 			// TODO:  Add CollectionPersisterStub.Initialize implementation
+			return Task.FromResult(0);
 		}
 
 		public Task<object> ReadKey(IDataReader rs, string[] aliases, ISessionImplementor session)
