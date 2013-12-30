@@ -261,7 +261,15 @@ namespace NHibernate.Collection
 		/// </summary>
 		public virtual void Read()
 		{
-			Initialize(false).WaitAndUnwrapException();
+			ReadAsync().WaitAndUnwrapException();
+		}
+
+		/// <summary>
+		/// Called by any async read-only method of the collection interface
+		/// </summary>
+		public virtual Task ReadAsync()
+		{
+			return Initialize(false);
 		}
 
 		/// <summary> Called by the <tt>Count</tt> property</summary>
@@ -289,7 +297,7 @@ namespace NHibernate.Collection
 					}
 				}
 			}
-			Read();
+			await ReadAsync();
 			return false;
 		}
 
@@ -309,7 +317,7 @@ namespace NHibernate.Collection
 					return await persister.IndexExists(entry.LoadedKey, index, session);
 				}
 			}
-			Read();
+			await ReadAsync();
 			return null;
 		}
 
@@ -329,7 +337,7 @@ namespace NHibernate.Collection
 					return await persister.ElementExists(entry.LoadedKey, element, session);
 				}
 			}
-			Read();
+			await ReadAsync();
 			return null;
 		}
 
@@ -350,7 +358,7 @@ namespace NHibernate.Collection
 					return persister.NotFoundObject == elementByIndex ? NotFound : elementByIndex;
 				}
 			}
-			Read();
+			await ReadAsync();
 			return Unknown;
 		}
 
