@@ -150,7 +150,7 @@ namespace NHibernate.Type
 			//what if the collection was null, and then later had elements added? seems unsafe
 			//session.getPersistenceContext().getCollectionEntry( (PersistentCollection) value ).getKey();
 
-			object key = GetKeyOfOwner(owner, session);
+			object key = await GetKeyOfOwner(owner, session);
 			if (key == null)
 			{
 				return null;
@@ -172,7 +172,7 @@ namespace NHibernate.Type
 			else
 			{
 				object key = await GetPersister(session).KeyType.Assemble(cached, session, owner);
-				return ResolveKey(key, session, owner);
+				return await ResolveKey(key, session, owner);
 			}
 		}
 
@@ -225,9 +225,9 @@ namespace NHibernate.Type
 			return Task.FromResult(NotNullCollection);
 		}
 
-		public override Task<object> ResolveIdentifier(object key, ISessionImplementor session, object owner)
+		public override async Task<object> ResolveIdentifier(object key, ISessionImplementor session, object owner)
 		{
-			return ResolveKey(GetKeyOfOwner(owner, session), session, owner);
+			return await ResolveKey(await GetKeyOfOwner(owner, session), session, owner);
 		}
 
 		private async Task<object> ResolveKey(object key, ISessionImplementor session, object owner)
@@ -280,7 +280,7 @@ namespace NHibernate.Type
 			return collection.GetValue();
 		}
 
-		public override object SemiResolve(object value, ISessionImplementor session, object owner)
+		public override Task<object> SemiResolve(object value, ISessionImplementor session, object owner)
 		{
 			throw new NotSupportedException("collection mappings may not form part of a property-ref");
 		}
@@ -465,7 +465,7 @@ namespace NHibernate.Type
 		/// Get the key value from the owning entity instance, usually the identifier, but might be some
 		/// other unique key, in the case of property-ref
 		/// </summary>
-		public object GetKeyOfOwner(object owner, ISessionImplementor session)
+		public async Task<object> GetKeyOfOwner(object owner, ISessionImplementor session)
 		{
 			EntityEntry entityEntry = session.PersistenceContext.GetEntry(owner);
 			if (entityEntry == null)
@@ -497,7 +497,7 @@ namespace NHibernate.Type
 				IType keyType = GetPersister(session).KeyType;
 				if (!keyType.ReturnedClass.IsInstanceOfType(id))
 				{
-					id = keyType.SemiResolve(entityEntry.GetLoadedValue(foreignKeyPropertyName), session, owner);
+					id = await keyType.SemiResolve(entityEntry.GetLoadedValue(foreignKeyPropertyName), session, owner);
 				}
 
 				return id;

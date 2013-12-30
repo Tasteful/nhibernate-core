@@ -1004,7 +1004,7 @@ namespace NHibernate.Loader
 					// the one used here, which it will be
 
 					EntityUniqueKey euk =
-						new EntityUniqueKey(rootPersister.EntityName, ukName, type.SemiResolve(values[index], session, obj), type,
+						new EntityUniqueKey(rootPersister.EntityName, ukName, await type.SemiResolve(values[index], session, obj), type,
 											session.EntityMode, session.Factory);
 					session.PersistenceContext.AddEntity(euk, obj);
 				}

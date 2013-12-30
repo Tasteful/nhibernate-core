@@ -245,7 +245,7 @@ namespace NHibernate.Param
 				throw new InvalidOperationException();
 			}
 
-			public object SemiResolve(object value, ISessionImplementor session, object owner)
+			public Task<object> SemiResolve(object value, ISessionImplementor session, object owner)
 			{
 				throw new InvalidOperationException();
 			}

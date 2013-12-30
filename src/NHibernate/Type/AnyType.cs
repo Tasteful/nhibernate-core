@@ -108,7 +108,7 @@ namespace NHibernate.Type
 			return Task.FromResult(ResolveAny(holder.entityName, holder.id, session));
 		}
 
-		public override object SemiResolve(object value, ISessionImplementor session, object owner)
+		public override Task<object> SemiResolve(object value, ISessionImplementor session, object owner)
 		{
 			throw new NotSupportedException("any mappings may not form part of a property-ref");
 		}

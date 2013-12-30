@@ -530,7 +530,7 @@ namespace NHibernate.Type
 			}
 		}
 
-		public override object SemiResolve(object value, ISessionImplementor session, object owner)
+		public override Task<object> SemiResolve(object value, ISessionImplementor session, object owner)
 		{
 			//note that this implementation is kinda broken
 			//for components with many-to-one associations

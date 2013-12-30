@@ -120,7 +120,7 @@ namespace NHibernate.Type
 		/// Given a hydrated, but unresolved value, return a value that may be used to
 		/// reconstruct property-ref associations.
 		/// </summary>
-		object SemiResolve(object value, ISessionImplementor session, object owner);
+		Task<object> SemiResolve(object value, ISessionImplementor session, object owner);
 
 		/// <include file='IType.cs.xmldoc' 
 		///		path='//members[@type="IType"]/member[@name="M:IType.Copy"]/*'

@@ -148,9 +148,9 @@ namespace NHibernate.Type
 			return Task.FromResult(value);
 		}
 
-		public virtual object SemiResolve(object value, ISessionImplementor session, object owner)
+		public virtual Task<object> SemiResolve(object value, ISessionImplementor session, object owner)
 		{
-			return value;
+			return Task.FromResult(value);
 		}
 
 		/// <summary>
