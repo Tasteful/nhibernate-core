@@ -63,9 +63,9 @@ namespace NHibernate.DomainModel.NHSpecific
 			get { return typeof(Int32); }
 		}
 
-		public Task<object> NullSafeGet(IDataReader rs, string[] names, object owner)
+		public object NullSafeGet(IDataReader rs, string[] names, object owner)
 		{
-			return Task.FromResult(_int32Type.NullSafeGet(rs, names));
+			return _int32Type.NullSafeGet(rs, names);
 		}
 
 		public bool IsMutable

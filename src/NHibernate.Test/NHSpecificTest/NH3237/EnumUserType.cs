@@ -20,19 +20,19 @@ namespace NHibernate.Test.NHSpecificTest.NH3237
 			get { return new[] { new SqlType(DbType.Int32) }; }
 		}
 
-		public Task<object> NullSafeGet(IDataReader dr, string[] names, object owner)
+		public object NullSafeGet(IDataReader dr, string[] names, object owner)
 		{
 			var name = names[0];
 			int index = dr.GetOrdinal(name);
 
 			if (dr.IsDBNull(index))
 			{
-				return Task.FromResult<object>(null);
+				return null;
 			}
 
 			try
 			{
-				return Task.FromResult(Enum.Parse(typeof(TestEnum), dr.GetValue(index).ToString()));
+				return Enum.Parse(typeof(TestEnum), dr.GetValue(index).ToString());
 			}
 			catch (InvalidCastException ice)
 			{
@@ -47,7 +47,7 @@ namespace NHibernate.Test.NHSpecificTest.NH3237
 		{
 			if (value == null)
 			{
-				NHibernateUtil.DateTime.NullSafeSet(cmd, null, index);
+				NHibernateUtil.DateTime.NullSafeSet(cmd, null, index).RunSynchronously();
 			}
 			else
 			{

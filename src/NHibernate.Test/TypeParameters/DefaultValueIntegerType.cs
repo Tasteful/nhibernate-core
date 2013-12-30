@@ -62,12 +62,12 @@ namespace NHibernate.Test.TypeParameters
 			get { return typeof(Int32); }
 		}
 
-		public Task<object> NullSafeGet(IDataReader rs, string[] names, object owner)
+		public object NullSafeGet(IDataReader rs, string[] names, object owner)
 		{
 			object value = _int32Type.NullSafeGet(rs, names);
 			if (value == null)
-				return Task.FromResult<object>(defaultValue);
-			return Task.FromResult(value);
+				return defaultValue;
+			return value;
 		}
 
 		public bool IsMutable

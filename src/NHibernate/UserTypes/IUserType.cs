@@ -62,7 +62,7 @@ namespace NHibernate.UserTypes
 		/// <returns></returns>
 		/// <exception cref="HibernateException">HibernateException</exception>
 //		/// <exception cref="SQLException">SQLException</exception>
-		Task<object> NullSafeGet(IDataReader rs, string[] names, object owner);
+		object NullSafeGet(IDataReader rs, string[] names, object owner);
 
 		/// <summary>
 		/// Write an instance of the mapped class to a prepared statement.

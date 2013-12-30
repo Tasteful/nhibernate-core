@@ -30,7 +30,7 @@ namespace NHibernate.Test.NHSpecificTest.NH3237
 			get { return new[] { new SqlType(DbType.DateTime) }; }
 		}
 
-		public Task<object> NullSafeGet(IDataReader dr, string[] names, object owner)
+		public object NullSafeGet(IDataReader dr, string[] names, object owner)
 		{
 			var name = names[0];
 			int index = dr.GetOrdinal(name);
@@ -52,7 +52,7 @@ namespace NHibernate.Test.NHSpecificTest.NH3237
 					throw new FormatException(string.Format("Input string '{0}' was not in the correct format.", dr[index]), ex);
 				}
 
-				return Task.FromResult<object>(new DateTimeOffset(storedTime, Offset));
+				return new DateTimeOffset(storedTime, Offset);
 			}
 			catch (InvalidCastException ice)
 			{

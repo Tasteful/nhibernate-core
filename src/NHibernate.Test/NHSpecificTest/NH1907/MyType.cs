@@ -79,15 +79,15 @@ namespace NHibernate.Test.NHSpecificTest.NH1907
 			get { return typeof(Int32); }
 		}
 
-		public Task<object> NullSafeGet(IDataReader rs, string[] names, object owner)
+		public object NullSafeGet(IDataReader rs, string[] names, object owner)
 		{
 			int index0 = rs.GetOrdinal(names[0]);
 			if (rs.IsDBNull(index0))
 			{
-				return Task.FromResult<object>(null);
+				return null;
 			}
 			int value = rs.GetInt32(index0);
-			return Task.FromResult<object>(new MyType { ToPersist = value});
+			return new MyType { ToPersist = value};
 		}
 
 		public bool IsMutable

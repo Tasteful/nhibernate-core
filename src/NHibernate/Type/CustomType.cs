@@ -99,7 +99,7 @@ namespace NHibernate.Type
 
 		public override Task<object> NullSafeGet(IDataReader rs, string[] names, ISessionImplementor session, object owner)
 		{
-			return userType.NullSafeGet(rs, names, owner);
+			return Task.FromResult(userType.NullSafeGet(rs, names, owner));
 		}
 
 		public override Task<object> NullSafeGet(IDataReader rs, string name, ISessionImplementor session, object owner)

@@ -336,7 +336,7 @@ namespace NHibernate.Test.MappingByCode.MappersTests
 			throw new NotImplementedException();
 		}
 
-		public Task<object> NullSafeGet(IDataReader rs, string[] names, object owner)
+		public object NullSafeGet(IDataReader rs, string[] names, object owner)
 		{
 			throw new NotImplementedException();
 		}

@@ -30,16 +30,16 @@ namespace NHibernate.Test.SqlTest
 			return x.GetHashCode();
 		}
 
-		public Task<object> NullSafeGet(IDataReader rs, string[] names, object owner)
+		public object NullSafeGet(IDataReader rs, string[] names, object owner)
 		{
 			int ordinal = rs.GetOrdinal(names[0]);
 			if (rs.IsDBNull(ordinal))
 			{
-				return Task.FromResult<object>(DateTime.MinValue);
+				return DateTime.MinValue;
 			}
 			else
 			{
-				return Task.FromResult<object>(rs.GetDateTime(ordinal));
+				return rs.GetDateTime(ordinal);
 			}
 		}
 
