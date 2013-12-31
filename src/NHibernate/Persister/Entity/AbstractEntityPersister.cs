@@ -3959,13 +3959,13 @@ namespace NHibernate.Persister.Entity
 			return GetTuplizer(session.EntityMode).GetPropertyValuesToInsert(obj, mergeMap, session);
 		}
 
-		public async Task ProcessInsertGeneratedProperties(object id, object entity, object[] state, ISessionImplementor session)
+		public Task ProcessInsertGeneratedProperties(object id, object entity, object[] state, ISessionImplementor session)
 		{
 			if (!HasInsertGeneratedProperties)
 			{
 				throw new AssertionFailure("no insert-generated properties");
 			}
-			await ProcessGeneratedProperties(id, entity, state, session, sqlInsertGeneratedValuesSelectString, PropertyInsertGenerationInclusions);
+			return ProcessGeneratedProperties(id, entity, state, session, sqlInsertGeneratedValuesSelectString, PropertyInsertGenerationInclusions);
 		}
 
 		public Task ProcessUpdateGeneratedProperties(object id, object entity, object[] state, ISessionImplementor session)

@@ -43,7 +43,7 @@ namespace NHibernate.Loader.Entity
 				}
 			}
 
-			return null;
+			return Task.FromResult<object>(null);
 		}
 
 		public async Task<object> Load(object id, object optionalObject, ISessionImplementor session)

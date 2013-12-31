@@ -345,7 +345,7 @@ namespace NHibernate.Type
 		{
 			if (component == null)
 			{
-				return Task.FromResult<object>(null);
+				return null;
 			}
 
 			object[] values = GetPropertyValues(component, entityMode);
@@ -372,7 +372,7 @@ namespace NHibernate.Type
 									   IDictionary copiedAlready)
 		{
 			if (original == null)
-				return Task.FromResult<object>(null); ;
+				return null;
 
 			object result = target ?? Instantiate(owner, session);
 
@@ -386,7 +386,7 @@ namespace NHibernate.Type
 		public override async Task<object> Replace(object original, object target, ISessionImplementor session, object owner, IDictionary copyCache, ForeignKeyDirection foreignKeyDirection)
 		{
 			if (original == null)
-				return Task.FromResult<object>(null); ;
+				return null;
 
 			object result = target ?? Instantiate(owner, session);
 

@@ -187,7 +187,7 @@ namespace NHibernate.Type
 		public override Task<object> Assemble(object cached, ISessionImplementor session, object owner)
 		{
 			ObjectTypeCacheEntry e = cached as ObjectTypeCacheEntry;
-			return (e == null) ? null : Task.FromResult(session.InternalLoad(e.entityName, e.id, false, false));
+			return Task.FromResult((e == null) ? null : session.InternalLoad(e.entityName, e.id, false, false));
 		}
 
 		public override async Task<object> Disassemble(object value, ISessionImplementor session, object owner)

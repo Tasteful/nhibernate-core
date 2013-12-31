@@ -259,7 +259,7 @@ namespace NHibernate.Collection
 		/// <summary>
 		/// Called by any read-only method of the collection interface
 		/// </summary>
-		public virtual void Read()
+		public void Read()
 		{
 			ReadAsync().WaitAndUnwrapException();
 		}

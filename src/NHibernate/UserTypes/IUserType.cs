@@ -1,5 +1,4 @@
 using System.Data;
-using System.Threading.Tasks;
 using NHibernate.SqlTypes;
 
 namespace NHibernate.UserTypes

@@ -26,7 +26,7 @@ namespace NHibernate.Id
 		/// <returns>The new identifier as a <see cref="Guid"/>.</returns>
 		public Task<object> Generate(ISessionImplementor session, object obj)
 		{
-			return Task.FromResult((object)Guid.NewGuid());
+			return Task.FromResult<object>(Guid.NewGuid());
 		}
 
 		#endregion

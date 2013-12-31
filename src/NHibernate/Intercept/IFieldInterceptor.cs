@@ -1,4 +1,3 @@
-using System.Threading.Tasks;
 using NHibernate.Engine;
 
 namespace NHibernate.Intercept

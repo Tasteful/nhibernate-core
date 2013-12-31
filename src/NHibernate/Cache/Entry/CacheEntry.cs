@@ -25,7 +25,6 @@ namespace NHibernate.Cache.Entry
 			var disassembledState = await TypeHelper.Disassemble(state, persister.PropertyTypes, null, session, owner);
 			var subclass = persister.EntityName;
 			var lazyPropertiesAreUnfetched = unfetched || !persister.IsLazyPropertiesCacheable;
-			//this.version = version;
 			return new CacheEntry(disassembledState, subclass, lazyPropertiesAreUnfetched, version);
 		}
 

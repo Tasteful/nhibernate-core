@@ -253,7 +253,7 @@ namespace NHibernate.Type
 
 		public override Task<object> Assemble(object cached, ISessionImplementor session, object owner)
 		{
-			return cached == null ? null : Task.FromResult(GetInstance(cached));
+			return Task.FromResult(cached == null ? null : GetInstance(cached));
 		}
 
 		public override Task<object> Disassemble(object value, ISessionImplementor session, object owner)

@@ -42,7 +42,7 @@ namespace NHibernate.Type
 
 			if (rs.IsDBNull(index))
 			{
-				return null;
+				return Task.FromResult<object>(null);
 			}
 			else
 			{

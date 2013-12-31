@@ -6,8 +6,6 @@
 
 #endregion
 
-using System.Threading.Tasks;
-
 namespace NHibernate.Proxy.DynamicProxy
 {
 	public interface IInterceptor
