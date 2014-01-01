@@ -35,7 +35,7 @@ namespace NHibernate.Test.NHSpecificTest.NH3145
 				using (var t = s.BeginTransaction())
 				{
 					var root = s.CreateQuery("from Root").UniqueResult<Root>();
-					NHibernateUtil.Initialize(root.Base).Wait();
+					NHibernateUtil.Initialize(root.Base).WaitAndUnwrapException();
 					var q = s.CreateQuery("from Derived d where d = ?")
 						.SetEntity(0, root.Base);
 					q.List();

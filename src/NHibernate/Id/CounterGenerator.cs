@@ -27,10 +27,9 @@ namespace NHibernate.Id
 			}
 		}
 
-		public Task<object> Generate(ISessionImplementor cache, object obj)
+		public object Generate(ISessionImplementor cache, object obj)
 		{
-			object value = unchecked ((DateTime.Now.Ticks << 16) + Count);
-			return Task.FromResult(value);
+			return unchecked ((DateTime.Now.Ticks << 16) + Count);
 		}
 	}
 }

@@ -11,7 +11,7 @@ namespace NHibernate
 	/// <summary>
 	/// Provides synchronous extension methods for tasks.
 	/// </summary>
-	internal static class TaskExtensions
+	public static class TaskExtensions
 	{
 		/// <summary>
 		/// Waits for the task to complete, unwrapping any exceptions.

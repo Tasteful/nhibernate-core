@@ -58,7 +58,7 @@ namespace NHibernate.Test.NHSpecificTest.NH643
 				Parent parent = (Parent) session.Get(typeof(Parent), 1);
 				Child child = new Child();
 				parent.AddChild(child);
-				NHibernateUtil.Initialize(parent.Children).Wait();
+				NHibernateUtil.Initialize(parent.Children).WaitAndUnwrapException();
 				tx.Commit();
 			}
 		}

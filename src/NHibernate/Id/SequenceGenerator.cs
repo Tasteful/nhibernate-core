@@ -109,7 +109,7 @@ namespace NHibernate.Id
 		/// <param name="session">The <see cref="ISessionImplementor"/> this id is being generated in.</param>
 		/// <param name="obj">The entity for which the id is being generated.</param>
 		/// <returns>The new identifier as a <see cref="Int16"/>, <see cref="Int32"/>, or <see cref="Int64"/>.</returns>
-		public virtual async Task<object> Generate(ISessionImplementor session, object obj)
+		public virtual object Generate(ISessionImplementor session, object obj)
 		{
 			try
 			{
@@ -117,11 +117,11 @@ namespace NHibernate.Id
 				IDataReader reader = null;
 				try
 				{
-					reader = await session.Batcher.ExecuteReader(cmd);
+					reader = session.Batcher.ExecuteReader(cmd).WaitAndUnwrapException();
 					try
 					{
 						reader.Read();
-						object result = await IdentifierGeneratorFactory.Get(reader, identifierType, session);
+						object result = IdentifierGeneratorFactory.Get(reader, identifierType, session).WaitAndUnwrapException();
 						if (log.IsDebugEnabled)
 						{
 							log.Debug("Sequence identifier generated: " + result);

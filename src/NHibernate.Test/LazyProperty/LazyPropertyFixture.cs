@@ -66,7 +66,7 @@ namespace NHibernate.Test.LazyProperty
 				Assert.False(NHibernateUtil.IsPropertyInitialized(book, "Name"));
 				Assert.False(NHibernateUtil.IsPropertyInitialized(book, "ALotOfText"));
 
-				NHibernateUtil.Initialize(book).Wait();
+				NHibernateUtil.Initialize(book).WaitAndUnwrapException();
 
 				Assert.True(NHibernateUtil.IsPropertyInitialized(book, "Id"));
 				Assert.True(NHibernateUtil.IsPropertyInitialized(book, "Name"));

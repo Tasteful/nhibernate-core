@@ -1063,7 +1063,7 @@ namespace NHibernate.Test.Legacy
 
 			s = OpenSession();
 			c = (Category) s.Load(typeof(Category), id);
-			NHibernateUtil.Initialize(c.Subcategories).Wait();
+			NHibernateUtil.Initialize(c.Subcategories).WaitAndUnwrapException();
 
 			ISession ss = OpenSession();
 			Category c2 = (Category) ss.Load(typeof(Category), id);

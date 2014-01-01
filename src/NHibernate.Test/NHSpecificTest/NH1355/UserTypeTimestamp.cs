@@ -56,7 +56,7 @@ namespace NHibernate.Test.NHSpecificTest.NH1355
 
 		public void NullSafeSet(IDbCommand cmd, object value, int index)
 		{
-			NHibernateUtil.Binary.NullSafeSet(cmd, value, index).RunSynchronously();
+			NHibernateUtil.Binary.NullSafeSet(cmd, value, index).WaitAndUnwrapException();
 		}
 
 		public object Replace(object original, object target, object owner)

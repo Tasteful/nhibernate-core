@@ -38,7 +38,7 @@ namespace NHibernate.Id
 		/// <see cref="IdentifierGeneratorFactory.ShortCircuitIndicator"/> if the <c>session</c>
 		/// already contains <c>obj</c>.
 		/// </returns>
-		public async Task<object> Generate(ISessionImplementor sessionImplementor, object obj)
+		public object Generate(ISessionImplementor sessionImplementor, object obj)
 		{
 			ISession session = (ISession) sessionImplementor;
 
@@ -65,10 +65,10 @@ namespace NHibernate.Id
 			object id;
 			try
 			{
-				id = await ForeignKeys.GetEntityIdentifierIfNotUnsaved(
+				id = ForeignKeys.GetEntityIdentifierIfNotUnsaved(
 					foreignValueSourceType.GetAssociatedEntityName(),
 					associatedObject,
-					sessionImplementor);
+					sessionImplementor).WaitAndUnwrapException();
 			}
 			catch (TransientObjectException)
 			{

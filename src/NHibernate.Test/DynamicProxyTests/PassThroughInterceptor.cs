@@ -1,3 +1,4 @@
+using System;
 using NHibernate.Proxy.DynamicProxy;
 
 namespace NHibernate.Test.DynamicProxyTests

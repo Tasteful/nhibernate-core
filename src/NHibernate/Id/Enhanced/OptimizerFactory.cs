@@ -141,16 +141,15 @@ namespace NHibernate.Id.Enhanced
 				get { return false; }
 			}
 
-			//TODO Syncronized implementation?
-			//[MethodImpl(MethodImplOptions.Synchronized)]
-			public override async Task<object> Generate(IAccessCallback callback)
+			[MethodImpl(MethodImplOptions.Synchronized)]
+			public override object Generate(IAccessCallback callback)
 			{
 				if (_lastSourceValue < 0)
 				{
-					_lastSourceValue = await callback.GetNextValue();
+					_lastSourceValue = callback.GetNextValue();
 					while (_lastSourceValue <= 0)
 					{
-						_lastSourceValue = await callback.GetNextValue();
+						_lastSourceValue = callback.GetNextValue();
 					}
 
 					// upperLimit defines the upper end of the bucket values
@@ -161,7 +160,7 @@ namespace NHibernate.Id.Enhanced
 				}
 				else if (_upperLimit <= _value)
 				{
-					_lastSourceValue = await callback.GetNextValue();
+					_lastSourceValue = callback.GetNextValue();
 					_upperLimit = (_lastSourceValue * IncrementSize) + 1;
 				}
 				return Make(_value++);
@@ -188,14 +187,14 @@ namespace NHibernate.Id.Enhanced
 				get { return false; }
 			}
 
-			public override async Task<object> Generate(IAccessCallback callback)
+			public override object Generate(IAccessCallback callback)
 			{
 				// We must use a local variable here to avoid concurrency issues.
 				// With the local value we can avoid synchronizing the whole method.
 
 				long val = -1;
 				while (val <= 0)
-					val = await callback.GetNextValue();
+					val = callback.GetNextValue();
 
 				// This value is only stored for easy access in test. Should be no
 				// threading concerns there.
@@ -239,7 +238,7 @@ namespace NHibernate.Id.Enhanced
 
 			public abstract bool ApplyIncrementSizeToSourceValues { get; }
 
-			public abstract Task<object> Generate(IAccessCallback param);
+			public abstract object Generate(IAccessCallback param);
 
 			#endregion
 
@@ -305,13 +304,12 @@ namespace NHibernate.Id.Enhanced
 				_initialValue = initialValue;
 			}
 
-			//TODO Syncronized implementation?
-			//[MethodImpl(MethodImplOptions.Synchronized)]
-			public override async Task<object> Generate(IAccessCallback callback)
+			[MethodImpl(MethodImplOptions.Synchronized)]
+			public override object Generate(IAccessCallback callback)
 			{
 				if (_hiValue < 0)
 				{
-					_value = await callback.GetNextValue();
+					_value = callback.GetNextValue();
 					if (_value < 1)
 					{
 						// unfortunately not really safe to normalize this
@@ -322,7 +320,7 @@ namespace NHibernate.Id.Enhanced
 					}
 
 					if ((_initialValue == -1 && _value < IncrementSize) || _value == _initialValue)
-						_hiValue = await callback.GetNextValue();
+						_hiValue = callback.GetNextValue();
 					else
 					{
 						_hiValue = _value;
@@ -331,7 +329,7 @@ namespace NHibernate.Id.Enhanced
 				}
 				else if (_value >= _hiValue)
 				{
-					_hiValue = await callback.GetNextValue();
+					_hiValue = callback.GetNextValue();
 					_value = _hiValue - IncrementSize;
 				}
 				return Make(_value++);
@@ -359,13 +357,12 @@ namespace NHibernate.Id.Enhanced
 				}
 			}
 			
-			// TODO Async
-			//[MethodImpl(MethodImplOptions.Synchronized)]
-			public override async Task<object> Generate(IAccessCallback callback)
+			[MethodImpl(MethodImplOptions.Synchronized)]
+			public override object Generate(IAccessCallback callback)
 			{
 				if (_lastSourceValue < 0 || _value >= (_lastSourceValue + IncrementSize))
 				{
-					_lastSourceValue = await callback.GetNextValue();
+					_lastSourceValue = callback.GetNextValue();
 					_value = _lastSourceValue;
 					// handle cases where initial-value is less than one (hsqldb for instance).
 					while (_value < 1)

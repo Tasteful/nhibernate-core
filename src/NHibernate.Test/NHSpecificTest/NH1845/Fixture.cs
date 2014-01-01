@@ -36,7 +36,7 @@ namespace NHibernate.Test.NHSpecificTest.NH1845
 			using (ITransaction transaction = session.BeginTransaction())
 			{
 				Category loaded = session.Load<Category>(category.Id);
-				NHibernateUtil.Initialize(loaded.Subcategories[0]).Wait();
+				NHibernateUtil.Initialize(loaded.Subcategories[0]).WaitAndUnwrapException();
 				session.Evict(loaded);
 				transaction.Commit();
 				Assert.AreEqual("child", loaded.Subcategories[0].Name, "cannot access child");

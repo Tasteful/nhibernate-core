@@ -128,7 +128,7 @@ namespace NHibernate.Test.JoinedSubclass
 			// get a proxied - initialized version of manager
 			s = OpenSession();
 			pointyhair = (Employee) s.Load(typeof(Employee), pointyhair.Id);
-			NHibernateUtil.Initialize(pointyhair).Wait();
+			NHibernateUtil.Initialize(pointyhair).WaitAndUnwrapException();
 			s.Close();
 
 			s = OpenSession();

@@ -864,7 +864,7 @@ namespace NHibernate.Test.Criteria
 				{
 					foreach (Enrolment enrolment in student.Enrolments)
 					{
-						NHibernateUtil.Initialize(enrolment).Wait();
+						NHibernateUtil.Initialize(enrolment).WaitAndUnwrapException();
 					}
 				}
 

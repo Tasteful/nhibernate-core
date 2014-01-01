@@ -24,7 +24,7 @@ namespace NHibernate.Test.IdGen.NativeGuid
 		}
 
 		[Test]
-		public async Task ReturnedValueIsGuid()
+		public void ReturnedValueIsGuid()
 		{
 			try
 			{
@@ -38,7 +38,7 @@ namespace NHibernate.Test.IdGen.NativeGuid
 			var gen = new NativeGuidGenerator();
 			using (ISession s = sessions.OpenSession())
 			{
-				object result = await gen.Generate((ISessionImplementor)s, null);
+				object result = gen.Generate((ISessionImplementor)s, null);
 				Assert.That(result, Is.TypeOf(typeof (Guid)));
 				Assert.That(result, Is.Not.EqualTo(Guid.Empty));
 			}

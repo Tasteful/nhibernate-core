@@ -28,7 +28,7 @@ namespace NHibernate.Test.FilterTest
 
 			// Force a collection into the second level cache, with its non-filtered elements
 			Salesperson sp = (Salesperson) session.Load(typeof(Salesperson), testData.steveId);
-			NHibernateUtil.Initialize(sp.Orders).Wait();
+			NHibernateUtil.Initialize(sp.Orders).WaitAndUnwrapException();
 			ICollectionPersister persister = ((ISessionFactoryImplementor) sessions)
 				.GetCollectionPersister(typeof(Salesperson).FullName + ".Orders");
 			Assert.IsTrue(persister.HasCache, "No cache for collection");

@@ -81,13 +81,12 @@ namespace NHibernate.Id
 		/// <param name="session"></param>
 		/// <param name="obj"></param>
 		/// <returns></returns>
-		// TODO: Async
-		//[MethodImpl(MethodImplOptions.Synchronized)]
-		public async Task<object> Generate(ISessionImplementor session, object obj)
+		[MethodImpl(MethodImplOptions.Synchronized)]
+		public object Generate(ISessionImplementor session, object obj)
 		{
 			if (sql != null)
 			{
-				await GetNext(session);
+				GetNext(session).WaitAndUnwrapException();
 			}
 			return IdentifierGeneratorFactory.CreateNumber(next++, returnClass);
 		}

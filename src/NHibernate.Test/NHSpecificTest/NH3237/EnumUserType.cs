@@ -47,7 +47,7 @@ namespace NHibernate.Test.NHSpecificTest.NH3237
 		{
 			if (value == null)
 			{
-				NHibernateUtil.DateTime.NullSafeSet(cmd, null, index).RunSynchronously();
+				NHibernateUtil.DateTime.NullSafeSet(cmd, null, index).WaitAndUnwrapException();
 			}
 			else
 			{

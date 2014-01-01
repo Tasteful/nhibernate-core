@@ -197,13 +197,11 @@ namespace NHibernate.Type
 
 		public Task<object> Next(object current, ISessionImplementor session)
 		{
-			// TODO Async
 			return Task.FromResult(((IUserVersionType) userType).Next(current, session));
 		}
 
 		public Task<object> Seed(ISessionImplementor session)
 		{
-			// TODO Async
 			return Task.FromResult(((IUserVersionType) userType).Seed(session));
 		}
 

@@ -19,7 +19,7 @@ namespace NHibernate.Id
 
 		#region Implementation of IIdentifierGenerator
 
-		public async Task<object> Generate(ISessionImplementor session, object obj)
+		public object Generate(ISessionImplementor session, object obj)
 		{
 			var sql = new SqlString(session.Factory.Dialect.SelectGUIDString);
 			try
@@ -28,12 +28,12 @@ namespace NHibernate.Id
 				IDataReader reader = null;
 				try
 				{
-					reader = await session.Batcher.ExecuteReader(st);
+					reader = session.Batcher.ExecuteReader(st).WaitAndUnwrapException();
 					object result;
 					try
 					{
 						reader.Read();
-						result = await IdentifierGeneratorFactory.Get(reader, identifierType, session);
+						result = IdentifierGeneratorFactory.Get(reader, identifierType, session).WaitAndUnwrapException();
 					}
 					finally
 					{

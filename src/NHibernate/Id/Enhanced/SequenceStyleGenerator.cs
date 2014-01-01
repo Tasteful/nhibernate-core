@@ -227,7 +227,7 @@ namespace NHibernate.Id.Enhanced
 
 		#region Implementation of IIdentifierGenerator
 
-		public virtual Task<object> Generate(ISessionImplementor session, object obj)
+		public virtual object Generate(ISessionImplementor session, object obj)
 		{
 			return Optimizer.Generate(DatabaseStructure.BuildCallback(session));
 		}

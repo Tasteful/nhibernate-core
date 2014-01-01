@@ -407,7 +407,7 @@ namespace NHibernate.Id.Enhanced
 
 
 		[MethodImpl(MethodImplOptions.Synchronized)]
-		public virtual Task<object> Generate(ISessionImplementor session, object obj)
+		public virtual object Generate(ISessionImplementor session, object obj)
 		{
 			return Optimizer.Generate(new TableAccessCallback(session, this));
 		}
@@ -426,9 +426,9 @@ namespace NHibernate.Id.Enhanced
 
 			#region IAccessCallback Members
 
-			public async Task<long> GetNextValue()
+			public long GetNextValue()
 			{
-				return Convert.ToInt64(await owner.DoWorkInNewTransaction(session));
+				return Convert.ToInt64(owner.DoWorkInNewTransaction(session).WaitAndUnwrapException());
 			}
 
 			#endregion

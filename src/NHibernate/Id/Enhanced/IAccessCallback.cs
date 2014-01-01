@@ -1,5 +1,3 @@
-using System.Threading.Tasks;
-
 namespace NHibernate.Id.Enhanced
 {
 	/// <summary>
@@ -11,6 +9,6 @@ namespace NHibernate.Id.Enhanced
 		/// <summary>
 		/// Retrieve the next value from the underlying source.
 		/// </summary>
-		Task<long> GetNextValue();
+		long GetNextValue();
 	}
 }

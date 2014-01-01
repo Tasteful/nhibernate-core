@@ -521,8 +521,8 @@ namespace NHibernate.Test.Join
 				emp0.Salary = 20000;
 				emp0.Title = "Title";
 				emp0.Zip = "Zip";
-				NHibernateUtil.Initialize(emp0.Meetings).Wait();
-				NHibernateUtil.Initialize(emp0.OthersPhones).Wait();
+				NHibernateUtil.Initialize(emp0.Meetings).WaitAndUnwrapException();
+				NHibernateUtil.Initialize(emp0.OthersPhones).WaitAndUnwrapException();
 				emp0.Meetings.Add(new Meeting { Employee = emp0, Description = "vacation def" });
 				// Not updating emp0.Sex because it is marked update=false in the mapping file.
 

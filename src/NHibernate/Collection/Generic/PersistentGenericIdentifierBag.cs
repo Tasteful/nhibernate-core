@@ -264,7 +264,7 @@ namespace NHibernate.Collection.Generic
 					int loc = i++;
 					if (!identifiers.ContainsKey(loc)) // TODO: native ids
 					{
-						object id = await persister.IdentifierGenerator.Generate(Session, entry);
+						object id = persister.IdentifierGenerator.Generate(Session, entry);
 						identifiers[loc] = id;
 					}
 				}

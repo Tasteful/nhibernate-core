@@ -333,7 +333,7 @@ namespace NHibernate.Test.Component.Basic
 			using (ITransaction t = s.BeginTransaction())
 			{
 				emp = (Employee)s.Get(typeof(Employee), emp.Id);
-				NHibernateUtil.Initialize(emp.DirectReports).Wait();
+				NHibernateUtil.Initialize(emp.DirectReports).WaitAndUnwrapException();
 				t.Commit();
 				s.Close();
 			}
@@ -359,7 +359,7 @@ namespace NHibernate.Test.Component.Basic
 			using (ITransaction t = s.BeginTransaction())
 			{
 				emp = (Employee)s.Get(typeof(Employee), emp.Id);
-				NHibernateUtil.Initialize(emp.DirectReports).Wait();
+				NHibernateUtil.Initialize(emp.DirectReports).WaitAndUnwrapException();
 				t.Commit();
 				s.Close();
 			}
@@ -387,7 +387,7 @@ namespace NHibernate.Test.Component.Basic
 			using (ITransaction t = s.BeginTransaction())
 			{
 				emp = (Employee)s.Get(typeof(Employee), emp.Id);
-				NHibernateUtil.Initialize(emp.DirectReports).Wait();
+				NHibernateUtil.Initialize(emp.DirectReports).WaitAndUnwrapException();
 				t.Commit();
 				s.Close();
 			}
@@ -415,7 +415,7 @@ namespace NHibernate.Test.Component.Basic
 			using (ITransaction t = s.BeginTransaction())
 			{
 				emp = (Employee)s.Get(typeof(Employee), emp.Id);
-				NHibernateUtil.Initialize(emp.DirectReports).Wait();
+				NHibernateUtil.Initialize(emp.DirectReports).WaitAndUnwrapException();
 				t.Commit();
 				s.Close();
 			}

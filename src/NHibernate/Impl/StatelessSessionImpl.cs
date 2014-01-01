@@ -482,7 +482,7 @@ namespace NHibernate.Impl
 			{
 				CheckAndUpdateSessionStatus();
 				IEntityPersister persister = GetEntityPersister(entityName, entity);
-				object id = await persister.IdentifierGenerator.Generate(this, entity);
+				object id = persister.IdentifierGenerator.Generate(this, entity);
 				object[] state = persister.GetPropertyValues(entity, EntityMode.Poco);
 				if (persister.IsVersioned)
 				{

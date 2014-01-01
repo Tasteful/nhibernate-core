@@ -129,8 +129,8 @@ namespace NHibernate.Test.Legacy
 			foo = (FooProxy) s.Load(typeof(Foo), id);
 			foo2 = (FooProxy) s.Load(typeof(Foo), id2);
 			Assert.IsFalse(NHibernateUtil.IsInitialized(foo));
-			NHibernateUtil.Initialize(foo2).Wait();
-			NHibernateUtil.Initialize(foo).Wait();
+			NHibernateUtil.Initialize(foo2).WaitAndUnwrapException();
+			NHibernateUtil.Initialize(foo).WaitAndUnwrapException();
 			Assert.AreEqual(3, foo.Component.ImportantDates.Length);
 			Assert.AreEqual(3, foo2.Component.ImportantDates.Length);
 			t.Commit();

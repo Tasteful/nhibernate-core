@@ -176,9 +176,9 @@ namespace NHibernate.Id.Enhanced
 
 			#region IAccessCallback Members
 
-			public virtual async Task<long> GetNextValue()
+			public virtual long GetNextValue()
 			{
-				return Convert.ToInt64(await _owner.DoWorkInNewTransaction(_session));
+				return Convert.ToInt64(_owner.DoWorkInNewTransaction(_session).WaitAndUnwrapException());
 			}
 
 			#endregion

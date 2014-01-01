@@ -93,7 +93,7 @@ namespace NHibernate.Id.Enhanced
 
 			#region IAccessCallback Members
 
-			public virtual async Task<long> GetNextValue()
+			public virtual long GetNextValue()
 			{
 				_owner._accessCounter++;
 				try
@@ -102,7 +102,7 @@ namespace NHibernate.Id.Enhanced
 					IDataReader rs = null;
 					try
 					{
-						rs = await _session.Batcher.ExecuteReader(st);
+						rs = _session.Batcher.ExecuteReader(st).WaitAndUnwrapException();
 						try
 						{
 							rs.Read();

@@ -68,7 +68,7 @@ namespace NHibernate.Test.SubselectFetchTest
 			Assert.AreEqual(3, sessions.Statistics.PrepareStatementCount);
 
 			Child c = (Child) p.Children[0];
-			NHibernateUtil.Initialize(c.Friends).Wait();
+			NHibernateUtil.Initialize(c.Friends).WaitAndUnwrapException();
 
 			s.Delete(p);
 			s.Delete(q);
@@ -133,7 +133,7 @@ namespace NHibernate.Test.SubselectFetchTest
 			Assert.AreEqual(3, sessions.Statistics.PrepareStatementCount);
 
 			Child c = (Child) p.Children[0];
-			NHibernateUtil.Initialize(c.Friends).Wait();
+			NHibernateUtil.Initialize(c.Friends).WaitAndUnwrapException();
 
 			s.Delete(p);
 			s.Delete(q);
@@ -198,7 +198,7 @@ namespace NHibernate.Test.SubselectFetchTest
 			Assert.AreEqual(3, sessions.Statistics.PrepareStatementCount);
 
 			Child c = (Child) p.Children[0];
-			NHibernateUtil.Initialize(c.Friends).Wait();
+			NHibernateUtil.Initialize(c.Friends).WaitAndUnwrapException();
 
 			s.Delete(p);
 			s.Delete(q);
@@ -357,7 +357,7 @@ namespace NHibernate.Test.SubselectFetchTest
 			Assert.AreEqual(3, sessions.Statistics.PrepareStatementCount);
 
 			Child c = (Child) p.Children[0];
-			NHibernateUtil.Initialize(c.Friends).Wait();
+			NHibernateUtil.Initialize(c.Friends).WaitAndUnwrapException();
 
 			s.Delete(p);
 			s.Delete(q);

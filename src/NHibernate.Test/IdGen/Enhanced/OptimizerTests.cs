@@ -8,14 +8,14 @@ namespace NHibernate.Test.IdGen.Enhanced
 	public class OptimizerTests
 	{
 		[Test]
-		public async Task TestBasicNoOptimizerUsage()
+		public void TestBasicNoOptimizerUsage()
 		{
 			// test historic sequence behavior, where the initial values start at 1...
 			var sequence = new SourceMock(1);
 			var optimizer = OptimizerFactory.BuildOptimizer(OptimizerFactory.None, typeof(long), 1, -1);
 			for (int i = 1; i < 11; i++)
 			{
-				long next = (long)await optimizer.Generate(sequence);
+				long next = (long)optimizer.Generate(sequence);
 				Assert.That(next, Is.EqualTo(i));
 			}
 			Assert.That(sequence.TimesCalled, Is.EqualTo(10));
@@ -26,7 +26,7 @@ namespace NHibernate.Test.IdGen.Enhanced
 			optimizer = OptimizerFactory.BuildOptimizer(OptimizerFactory.None, typeof(long), 1, -1);
 			for (int i = 1; i < 11; i++)
 			{
-				long next = (long)await optimizer.Generate(sequence);
+				long next = (long)optimizer.Generate(sequence);
 				Assert.That(next, Is.EqualTo(i));
 			}
 			Assert.That(sequence.TimesCalled, Is.EqualTo(11));  // an extra time to get to 1 initially
@@ -34,7 +34,7 @@ namespace NHibernate.Test.IdGen.Enhanced
 		}
 
 		[Test]
-		public async Task TestBasicHiLoOptimizerUsage()
+		public void TestBasicHiLoOptimizerUsage()
 		{
 			const int increment = 10;
 			long next;
@@ -44,14 +44,14 @@ namespace NHibernate.Test.IdGen.Enhanced
 			var optimizer = OptimizerFactory.BuildOptimizer(OptimizerFactory.HiLo, typeof(long), increment, -1);
 			for (int i = 1; i <= increment; i++)
 			{
-				next = (long)await optimizer.Generate(sequence);
+				next = (long)optimizer.Generate(sequence);
 				Assert.That(next, Is.EqualTo(i));
 			}
 			Assert.That(sequence.TimesCalled, Is.EqualTo(1));   // once to initialize state
 			Assert.That(sequence.CurrentValue, Is.EqualTo(1));
 
 			// force a "clock over"
-			next = (long)await optimizer.Generate(sequence);
+			next = (long)optimizer.Generate(sequence);
 			Assert.That(next, Is.EqualTo(11));
 			Assert.That(sequence.TimesCalled, Is.EqualTo(2));
 			Assert.That(sequence.CurrentValue, Is.EqualTo(2));
@@ -62,21 +62,21 @@ namespace NHibernate.Test.IdGen.Enhanced
 			optimizer = OptimizerFactory.BuildOptimizer(OptimizerFactory.HiLo, typeof(long), increment, -1);
 			for (int i = 1; i <= increment; i++)
 			{
-				next = (long)await optimizer.Generate(sequence);
+				next = (long)optimizer.Generate(sequence);
 				Assert.That(next, Is.EqualTo(i));
 			}
 			Assert.That(sequence.TimesCalled, Is.EqualTo(2)); // here have have an extra call to get to 1 initially
 			Assert.That(sequence.CurrentValue, Is.EqualTo(1));
 
 			// force a "clock over"
-			next = (long)await optimizer.Generate(sequence);
+			next = (long)optimizer.Generate(sequence);
 			Assert.That(next, Is.EqualTo(11));
 			Assert.That(sequence.TimesCalled, Is.EqualTo(3));
 			Assert.That(sequence.CurrentValue, Is.EqualTo(2));
 		}
 
 		[Test]
-		public async Task TestBasicPooledOptimizerUsage()
+		public void TestBasicPooledOptimizerUsage()
 		{
 			long next;
 			// test historic sequence behavior, where the initial values start at 1...
@@ -84,21 +84,21 @@ namespace NHibernate.Test.IdGen.Enhanced
 			var optimizer = OptimizerFactory.BuildOptimizer(OptimizerFactory.Pool, typeof(long), 10, -1);
 			for (int i = 1; i < 11; i++)
 			{
-				next = (long)await optimizer.Generate(sequence);
+				next = (long)optimizer.Generate(sequence);
 				Assert.That(next, Is.EqualTo(i));
 			}
 			Assert.That(sequence.TimesCalled, Is.EqualTo(2)); // twice to initialize state
 			Assert.That(sequence.CurrentValue, Is.EqualTo(11));
 
 			// force a "clock over"
-			next = (long)await optimizer.Generate(sequence);
+			next = (long)optimizer.Generate(sequence);
 			Assert.That(next, Is.EqualTo(11));
 			Assert.That(sequence.TimesCalled, Is.EqualTo(3));
 			Assert.That(sequence.CurrentValue, Is.EqualTo(21));
 		}
 
 		[Test]
-		public async Task TestSubsequentPooledOptimizerUsage()
+		public void TestSubsequentPooledOptimizerUsage()
 		{
 			// test the pooled optimizer in situation where the sequence is already beyond its initial value on init.
 			// cheat by telling the sequence to start with 1000
@@ -109,30 +109,30 @@ namespace NHibernate.Test.IdGen.Enhanced
 			Assert.That(sequence.TimesCalled, Is.EqualTo(5));
 			Assert.That(sequence.CurrentValue, Is.EqualTo(1001));
 
-			long next = (long)await optimizer.Generate(sequence);
+			long next = (long)optimizer.Generate(sequence);
 			Assert.That(next, Is.EqualTo(1001));
 			Assert.That(sequence.TimesCalled, Is.EqualTo(5 + 1));
 			Assert.That(sequence.CurrentValue, Is.EqualTo(1001 + 3));
 
-			next = (long)await optimizer.Generate(sequence);
+			next = (long)optimizer.Generate(sequence);
 			Assert.That(next, Is.EqualTo(1001 + 1));
 			Assert.That(sequence.TimesCalled, Is.EqualTo(5 + 1));
 			Assert.That(sequence.CurrentValue, Is.EqualTo(1001 + 3));
 
-			next = (long)await optimizer.Generate(sequence);
+			next = (long)optimizer.Generate(sequence);
 			Assert.That(next, Is.EqualTo(1001 + 2));
 			Assert.That(sequence.TimesCalled, Is.EqualTo(5 + 1));
 			Assert.That(sequence.CurrentValue, Is.EqualTo(1001 + 3));
 
 			// force a "clock over"
-			next = (long)await optimizer.Generate(sequence);
+			next = (long)optimizer.Generate(sequence);
 			Assert.That(next, Is.EqualTo(1001 + 3));
 			Assert.That(sequence.TimesCalled, Is.EqualTo(5 + 2));
 			Assert.That(sequence.CurrentValue, Is.EqualTo(1001 + 6));
 		}
 
 		[Test]
-		public async Task TestBasicPooledLoOptimizerUsage()
+		public void TestBasicPooledLoOptimizerUsage()
 		{
 			var sequence = new SourceMock(1, 3);
 			var optimizer = OptimizerFactory.BuildOptimizer(OptimizerFactory.PoolLo, typeof(long), 3, -1);
@@ -140,30 +140,30 @@ namespace NHibernate.Test.IdGen.Enhanced
 			Assert.That(sequence.TimesCalled, Is.EqualTo(0));
 			Assert.That(sequence.CurrentValue, Is.EqualTo(-1));
 
-			var next = (long)await optimizer.Generate(sequence);
+			var next = (long)optimizer.Generate(sequence);
 			Assert.That(next, Is.EqualTo(1));
 			Assert.That(sequence.TimesCalled, Is.EqualTo(1));
 			Assert.That(sequence.CurrentValue, Is.EqualTo(1));
 
-			next = (long)await optimizer.Generate(sequence);
+			next = (long)optimizer.Generate(sequence);
 			Assert.That(next, Is.EqualTo(2));
 			Assert.That(sequence.TimesCalled, Is.EqualTo(1));
 			Assert.That(sequence.CurrentValue, Is.EqualTo(1));
 
-			next = (long)await optimizer.Generate(sequence);
+			next = (long)optimizer.Generate(sequence);
 			Assert.That(next, Is.EqualTo(3));
 			Assert.That(sequence.TimesCalled, Is.EqualTo(1));
 			Assert.That(sequence.CurrentValue, Is.EqualTo(1));
 
 			// force a "clock over"
-			next = (long)await optimizer.Generate(sequence);
+			next = (long)optimizer.Generate(sequence);
 			Assert.That(next, Is.EqualTo(4));
 			Assert.That(sequence.TimesCalled, Is.EqualTo(2));
 			Assert.That(sequence.CurrentValue, Is.EqualTo(1 + 3));
 		}
 
 		[Test]
-		public async Task TestSubsequentPooledLoOptimizerUsage()
+		public void TestSubsequentPooledLoOptimizerUsage()
 		{
 			// test the pooled optimizer in situation where the sequence is already beyond its initial value on init.
 			// cheat by telling the sequence to start with 1000
@@ -174,30 +174,30 @@ namespace NHibernate.Test.IdGen.Enhanced
 			Assert.That(sequence.TimesCalled, Is.EqualTo(5));
 			Assert.That(sequence.CurrentValue, Is.EqualTo(1001));
 
-			var next = (long)await optimizer.Generate(sequence);
+			var next = (long)optimizer.Generate(sequence);
 			Assert.That(next, Is.EqualTo(1001 + 3));
 			Assert.That(sequence.TimesCalled, Is.EqualTo(5 + 1));
 			Assert.That(sequence.CurrentValue, Is.EqualTo(1001 + 3));
 
-			next = (long)await optimizer.Generate(sequence);
+			next = (long)optimizer.Generate(sequence);
 			Assert.That(next, Is.EqualTo(1001 + 3 + 1));
 			Assert.That(sequence.TimesCalled, Is.EqualTo(5 + 1));
 			Assert.That(sequence.CurrentValue, Is.EqualTo(1001 + 3));
 
-			next = (long)await optimizer.Generate(sequence);
+			next = (long)optimizer.Generate(sequence);
 			Assert.That(next, Is.EqualTo(1001 + 3 + 2));
 			Assert.That(sequence.TimesCalled, Is.EqualTo(5 + 1));
 			Assert.That(sequence.CurrentValue, Is.EqualTo(1001 + 3));
 
 			// force a "clock over"
-			next = (long)await optimizer.Generate(sequence);
+			next = (long)optimizer.Generate(sequence);
 			Assert.That(next, Is.EqualTo(1001 + 3 + 3));
 			Assert.That(sequence.TimesCalled, Is.EqualTo(5 + 2));
 			Assert.That(sequence.CurrentValue, Is.EqualTo(1001 + 6));
 		}
 
 		[Test]
-		public async Task TestRecoveredPooledOptimizerUsage()
+		public void TestRecoveredPooledOptimizerUsage()
 		{
 			var sequence = new SourceMock(1, 3);
 			var optimizer = OptimizerFactory.BuildOptimizer(OptimizerFactory.Pool, typeof(long), 3, 1);
@@ -205,21 +205,21 @@ namespace NHibernate.Test.IdGen.Enhanced
 			Assert.That(sequence.TimesCalled, Is.EqualTo(0));
 			Assert.That(sequence.CurrentValue, Is.EqualTo(-1));
 
-			var next = (long)await optimizer.Generate(sequence);
+			var next = (long)optimizer.Generate(sequence);
 			Assert.That(next, Is.EqualTo(1));
 			Assert.That(sequence.TimesCalled, Is.EqualTo(2));
 			Assert.That(sequence.CurrentValue, Is.EqualTo(4));
 
 			// app ends, and starts back up (we should "lose" only 2 and 3 as id values)
 			var optimizer2 = OptimizerFactory.BuildOptimizer(OptimizerFactory.Pool, typeof(long), 3, 1);
-			next = (long)await optimizer2.Generate(sequence);
+			next = (long)optimizer2.Generate(sequence);
 			Assert.That(next, Is.EqualTo(4));
 			Assert.That(sequence.TimesCalled, Is.EqualTo(3));
 			Assert.That(sequence.CurrentValue, Is.EqualTo(7));
 		}
 
 		[Test]
-		public async Task TestRecoveredPooledLoOptimizerUsage()
+		public void TestRecoveredPooledLoOptimizerUsage()
 		{
 			var sequence = new SourceMock(1, 3);
 			var optimizer = OptimizerFactory.BuildOptimizer(OptimizerFactory.PoolLo, typeof(long), 3, 1);
@@ -227,14 +227,14 @@ namespace NHibernate.Test.IdGen.Enhanced
 			Assert.That(sequence.TimesCalled, Is.EqualTo(0));
 			Assert.That(sequence.CurrentValue, Is.EqualTo(-1));
 
-			long next = (long)await optimizer.Generate(sequence);
+			long next = (long)optimizer.Generate(sequence);
 			Assert.That(next, Is.EqualTo(1));
 			Assert.That(sequence.TimesCalled, Is.EqualTo(1));
 			Assert.That(sequence.CurrentValue, Is.EqualTo(1));
 
 			// app ends, and starts back up (we should "lose" only 2 and 3 as id values)
 			var optimizer2 = OptimizerFactory.BuildOptimizer(OptimizerFactory.PoolLo, typeof(long), 3, 1);
-			next = (long)await optimizer2.Generate(sequence);
+			next = (long)optimizer2.Generate(sequence);
 			Assert.That(next, Is.EqualTo(4));
 			Assert.That(sequence.TimesCalled, Is.EqualTo(2));
 			Assert.That(sequence.CurrentValue, Is.EqualTo(4));

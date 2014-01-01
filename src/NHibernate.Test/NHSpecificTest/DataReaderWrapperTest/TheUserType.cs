@@ -35,7 +35,7 @@ namespace NHibernate.Test.NHSpecificTest.DataReaderWrapperTest
 
 		public void NullSafeSet(IDbCommand cmd, object value, int index)
 		{
-			NHibernateUtil.String.NullSafeSet(cmd, value, index).RunSynchronously();
+			NHibernateUtil.String.NullSafeSet(cmd, value, index).WaitAndUnwrapException();
 		}
 
 		public object DeepCopy(object value)

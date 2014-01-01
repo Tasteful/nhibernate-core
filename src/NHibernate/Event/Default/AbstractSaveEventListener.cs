@@ -105,7 +105,7 @@ namespace NHibernate.Event.Default
 		protected virtual async Task<object> SaveWithGeneratedId(object entity, string entityName, object anything, IEventSource source, bool requiresImmediateIdAccess)
 		{
 			IEntityPersister persister = source.GetEntityPersister(entityName, entity);
-			object generatedId = await persister.IdentifierGenerator.Generate(source, entity);
+			object generatedId = persister.IdentifierGenerator.Generate(source, entity);
 			if (generatedId == null)
 			{
 				throw new IdentifierGenerationException("null id generated for:" + entity.GetType());

@@ -105,7 +105,7 @@ namespace NHibernate.Test.ReadOnly
 			// If LazyDataPoint(Id=1) is not evicted, it has a status of Loaded, not ReadOnly, and causes the test to fail further
 			// down.
 			// Another way to get this test to pass is s.Clear().
-			NHibernateUtil.Initialize(cOrig.LazyDataPoints).Wait();
+			NHibernateUtil.Initialize(cOrig.LazyDataPoints).WaitAndUnwrapException();
 			
 			s.Evict(cOrig);
 
@@ -147,12 +147,12 @@ namespace NHibernate.Test.ReadOnly
 //			expectedInitializedObjects.Add(c.NoProxyInfo);
 //			CheckContainer(c, expectedInitializedObjects, expectedReadOnlyObjects, s);
 			Assert.That(NHibernateUtil.IsInitialized(c.ProxyInfo), Is.False);
-			NHibernateUtil.Initialize(c.ProxyInfo).Wait();
+			NHibernateUtil.Initialize(c.ProxyInfo).WaitAndUnwrapException();
 			expectedInitializedObjects.Add(c.ProxyInfo);
 			CheckContainer(c, expectedInitializedObjects, expectedReadOnlyObjects, s);
 			
 			Assert.That(NHibernateUtil.IsInitialized(c.LazyDataPoints), Is.False);
-			NHibernateUtil.Initialize(c.LazyDataPoints).Wait();
+			NHibernateUtil.Initialize(c.LazyDataPoints).WaitAndUnwrapException();
 			expectedInitializedObjects.Add(c.LazyDataPoints.First());
 			expectedReadOnlyObjects.Add(c.LazyDataPoints.First());
 			
@@ -250,11 +250,11 @@ namespace NHibernate.Test.ReadOnly
 //			expectedInitializedObjects.Add(c.NoProxyInfo);
 //			CheckContainer(c, expectedInitializedObjects, expectedReadOnlyObjects, s);
 			Assert.That(NHibernateUtil.IsInitialized(c.ProxyInfo), Is.False);
-			NHibernateUtil.Initialize(c.ProxyInfo).Wait();
+			NHibernateUtil.Initialize(c.ProxyInfo).WaitAndUnwrapException();
 			expectedInitializedObjects.Add(c.ProxyInfo);
 			CheckContainer(c, expectedInitializedObjects, expectedReadOnlyObjects, s);
 			Assert.That(NHibernateUtil.IsInitialized(c.LazyDataPoints), Is.False);
-			NHibernateUtil.Initialize(c.LazyDataPoints).Wait();
+			NHibernateUtil.Initialize(c.LazyDataPoints).WaitAndUnwrapException();
 			expectedInitializedObjects.Add(c.LazyDataPoints.First());
 			//expectedReadOnlyObjects.Add(c.LazyDataPoints.First());
 			CheckContainer(c, expectedInitializedObjects, expectedReadOnlyObjects, s);
@@ -346,12 +346,12 @@ namespace NHibernate.Test.ReadOnly
 //			expectedInitializedObjects.Add(c.NoProxyInfo);
 //			CheckContainer(c, expectedInitializedObjects, expectedReadOnlyObjects, s);
 			Assert.That(NHibernateUtil.IsInitialized(c.ProxyInfo), Is.False);
-			NHibernateUtil.Initialize(c.ProxyInfo).Wait();
+			NHibernateUtil.Initialize(c.ProxyInfo).WaitAndUnwrapException();
 			expectedInitializedObjects.Add(c.ProxyInfo);
 			CheckContainer(c, expectedInitializedObjects, expectedReadOnlyObjects, s);
 			DataPoint lazyDataPoint = s.Get<DataPoint>(lazyDataPointOrig.Id);
 			Assert.That(NHibernateUtil.IsInitialized(c.LazyDataPoints), Is.False);
-			NHibernateUtil.Initialize(c.LazyDataPoints).Wait();
+			NHibernateUtil.Initialize(c.LazyDataPoints).WaitAndUnwrapException();
 			Assert.That(lazyDataPoint, Is.SameAs(c.LazyDataPoints.First()));
 			expectedInitializedObjects.Add(c.LazyDataPoints.First());
 			CheckContainer(c, expectedInitializedObjects, expectedReadOnlyObjects, s);
@@ -445,14 +445,14 @@ namespace NHibernate.Test.ReadOnly
 //			expectedInitializedObjects.Add(c.NoProxyInfo);
 //			CheckContainer(c, expectedInitializedObjects, expectedReadOnlyObjects, s);
 			Assert.That(NHibernateUtil.IsInitialized(c.ProxyInfo), Is.False);
-			NHibernateUtil.Initialize(c.ProxyInfo).Wait();
+			NHibernateUtil.Initialize(c.ProxyInfo).WaitAndUnwrapException();
 			expectedInitializedObjects.Add(c.ProxyInfo);
 			CheckContainer(c, expectedInitializedObjects, expectedReadOnlyObjects, s);
 			s.DefaultReadOnly = true;
 			DataPoint lazyDataPoint = s.Get<DataPoint>(lazyDataPointOrig.Id);
 			s.DefaultReadOnly = false;
 			Assert.That(NHibernateUtil.IsInitialized(c.LazyDataPoints), Is.False);
-			NHibernateUtil.Initialize(c.LazyDataPoints).Wait();
+			NHibernateUtil.Initialize(c.LazyDataPoints).WaitAndUnwrapException();
 			Assert.That(lazyDataPoint, Is.SameAs(c.LazyDataPoints.First()));
 			expectedInitializedObjects.Add(c.LazyDataPoints.First());
 			expectedReadOnlyObjects.Add(lazyDataPoint);
@@ -546,12 +546,12 @@ namespace NHibernate.Test.ReadOnly
 //			expectedInitializedObjects.Add(c.NoProxyInfo);
 //			CheckContainer(c, expectedInitializedObjects, expectedReadOnlyObjects, s);
 			Assert.That(NHibernateUtil.IsInitialized(c.ProxyInfo), Is.False);
-			NHibernateUtil.Initialize(c.ProxyInfo).Wait();
+			NHibernateUtil.Initialize(c.ProxyInfo).WaitAndUnwrapException();
 			expectedInitializedObjects.Add(c.ProxyInfo);
 			CheckContainer(c, expectedInitializedObjects, expectedReadOnlyObjects, s);
 			DataPoint lazyDataPoint = s.Load<DataPoint>(lazyDataPointOrig.Id);
 			Assert.That(NHibernateUtil.IsInitialized(c.LazyDataPoints), Is.False);
-			NHibernateUtil.Initialize(c.LazyDataPoints).Wait();
+			NHibernateUtil.Initialize(c.LazyDataPoints).WaitAndUnwrapException();
 			Assert.That(lazyDataPoint, Is.SameAs(c.LazyDataPoints.First()));
 			expectedInitializedObjects.Add(c.LazyDataPoints.First());
 			CheckContainer(c, expectedInitializedObjects, expectedReadOnlyObjects, s);
@@ -644,14 +644,14 @@ namespace NHibernate.Test.ReadOnly
 //			expectedInitializedObjects.Add(c.NoProxyInfo);
 //			CheckContainer(c, expectedInitializedObjects, expectedReadOnlyObjects, s);
 			Assert.That(NHibernateUtil.IsInitialized(c.ProxyInfo), Is.False);
-			NHibernateUtil.Initialize(c.ProxyInfo).Wait();
+			NHibernateUtil.Initialize(c.ProxyInfo).WaitAndUnwrapException();
 			expectedInitializedObjects.Add(c.ProxyInfo);
 			CheckContainer(c, expectedInitializedObjects, expectedReadOnlyObjects, s);
 			s.DefaultReadOnly = true;
 			DataPoint lazyDataPoint = s.Load<DataPoint>(lazyDataPointOrig.Id);
 			s.DefaultReadOnly = false;
 			Assert.That(NHibernateUtil.IsInitialized(c.LazyDataPoints), Is.False);
-			NHibernateUtil.Initialize(c.LazyDataPoints).Wait();
+			NHibernateUtil.Initialize(c.LazyDataPoints).WaitAndUnwrapException();
 			Assert.That(lazyDataPoint, Is.SameAs(c.LazyDataPoints.First()));
 			expectedInitializedObjects.Add(c.LazyDataPoints.First());
 			expectedReadOnlyObjects.Add(lazyDataPoint);
@@ -741,11 +741,11 @@ namespace NHibernate.Test.ReadOnly
 //			expectedInitializedObjects.Add(c.NoProxyInfo);
 //			CheckContainer(c, expectedInitializedObjects, expectedReadOnlyObjects, s);
 			Assert.That(NHibernateUtil.IsInitialized(c.ProxyInfo), Is.False);
-			NHibernateUtil.Initialize(c.ProxyInfo).Wait();
+			NHibernateUtil.Initialize(c.ProxyInfo).WaitAndUnwrapException();
 			expectedInitializedObjects.Add(c.ProxyInfo);
 			CheckContainer(c, expectedInitializedObjects, expectedReadOnlyObjects, s);
 			Assert.That(NHibernateUtil.IsInitialized(c.LazyDataPoints), Is.False);
-			NHibernateUtil.Initialize(c.LazyDataPoints).Wait();
+			NHibernateUtil.Initialize(c.LazyDataPoints).WaitAndUnwrapException();
 			expectedInitializedObjects.Add(c.LazyDataPoints.First());
 			//expectedReadOnlyObjects.Add(c.LazyDataPoints.First());
 			CheckContainer(c, expectedInitializedObjects, expectedReadOnlyObjects, s);
@@ -819,11 +819,11 @@ namespace NHibernate.Test.ReadOnly
 //			expectedInitializedObjects.Add(c.NoProxyInfo);
 //			CheckContainer(c, expectedInitializedObjects, expectedReadOnlyObjects, s);
 			Assert.That(NHibernateUtil.IsInitialized(c.ProxyInfo), Is.False);
-			NHibernateUtil.Initialize(c.ProxyInfo).Wait();
+			NHibernateUtil.Initialize(c.ProxyInfo).WaitAndUnwrapException();
 			expectedInitializedObjects.Add(c.ProxyInfo);
 			CheckContainer(c, expectedInitializedObjects, expectedReadOnlyObjects, s);
 			Assert.That(NHibernateUtil.IsInitialized(c.LazyDataPoints), Is.False);
-			NHibernateUtil.Initialize(c.LazyDataPoints).Wait();
+			NHibernateUtil.Initialize(c.LazyDataPoints).WaitAndUnwrapException();
 			expectedInitializedObjects.Add(c.LazyDataPoints.First());
 			expectedReadOnlyObjects.Add(c.LazyDataPoints.First());
 			CheckContainer(c, expectedInitializedObjects, expectedReadOnlyObjects, s);
@@ -913,11 +913,11 @@ namespace NHibernate.Test.ReadOnly
 //			expectedInitializedObjects.Add(c.NoProxyInfo);
 //			CheckContainer(c, expectedInitializedObjects, expectedReadOnlyObjects, s);
 			Assert.That(NHibernateUtil.IsInitialized(c.ProxyInfo), Is.False);
-			NHibernateUtil.Initialize(c.ProxyInfo).Wait();
+			NHibernateUtil.Initialize(c.ProxyInfo).WaitAndUnwrapException();
 			expectedInitializedObjects.Add(c.ProxyInfo);
 			CheckContainer(c, expectedInitializedObjects, expectedReadOnlyObjects, s);
 			Assert.That(NHibernateUtil.IsInitialized(c.LazyDataPoints), Is.False);
-			NHibernateUtil.Initialize(c.LazyDataPoints).Wait();
+			NHibernateUtil.Initialize(c.LazyDataPoints).WaitAndUnwrapException();
 			expectedInitializedObjects.Add(c.LazyDataPoints.First());
 			expectedReadOnlyObjects.Add(c.LazyDataPoints.First());
 			CheckContainer(c, expectedInitializedObjects, expectedReadOnlyObjects, s);
@@ -990,11 +990,11 @@ namespace NHibernate.Test.ReadOnly
 //			expectedInitializedObjects.Add(c.NoProxyInfo);
 //			CheckContainer(c, expectedInitializedObjects, expectedReadOnlyObjects, s);
 			Assert.That(NHibernateUtil.IsInitialized(c.ProxyInfo), Is.False);
-			NHibernateUtil.Initialize(c.ProxyInfo).Wait();
+			NHibernateUtil.Initialize(c.ProxyInfo).WaitAndUnwrapException();
 			expectedInitializedObjects.Add(c.ProxyInfo);
 			CheckContainer(c, expectedInitializedObjects, expectedReadOnlyObjects, s);
 			Assert.That(NHibernateUtil.IsInitialized(c.LazyDataPoints), Is.False);
-			NHibernateUtil.Initialize(c.LazyDataPoints).Wait();
+			NHibernateUtil.Initialize(c.LazyDataPoints).WaitAndUnwrapException();
 			expectedInitializedObjects.Add(c.LazyDataPoints.First());
 			//expectedReadOnlyObjects.Add(c.LazyDataPoints.First());
 			CheckContainer(c, expectedInitializedObjects, expectedReadOnlyObjects, s);

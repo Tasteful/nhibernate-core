@@ -39,7 +39,7 @@ namespace NHibernate.Test.NHSpecificTest.NH467
 
 				try
 				{
-					NHibernateUtil.Initialize(loaded.User).Wait();
+					NHibernateUtil.Initialize(loaded.User).WaitAndUnwrapException();
 					Assert.Fail("Should not have initialized");
 				}
 				catch (ObjectNotFoundException)

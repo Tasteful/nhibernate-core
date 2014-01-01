@@ -101,7 +101,7 @@ namespace NHibernate.Test.NHSpecificTest.NH2603
 							.List<object[]>();
 						int lazyCount = entity.ListChildren.Count;
 						NHibernateUtil.IsInitialized(entity.ListChildren).Should().Be.False();
-						NHibernateUtil.Initialize(entity.ListChildren).Wait();
+						NHibernateUtil.Initialize(entity.ListChildren).WaitAndUnwrapException();
 						int initCount = entity.ListChildren.Count;
 						initCount.Should().Be.EqualTo(lazyCount);
 						members.Count.Should("because only the valid element should be persisted.").Be(1);
@@ -126,7 +126,7 @@ namespace NHibernate.Test.NHSpecificTest.NH2603
 							.List<object[]>();
 						int lazyCount = entity.MapChildren.Count;
 						NHibernateUtil.IsInitialized(entity.MapChildren).Should().Be.False();
-						NHibernateUtil.Initialize(entity.MapChildren).Wait();
+						NHibernateUtil.Initialize(entity.MapChildren).WaitAndUnwrapException();
 						int initCount = entity.MapChildren.Count;
 						initCount.Should().Be.EqualTo(lazyCount);
 						members.Count.Should("because all elements with a valid key should be persisted.").Be(3);

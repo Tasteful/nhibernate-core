@@ -24,9 +24,9 @@ namespace NHibernate.Id
 		/// <param name="session">The <see cref="ISessionImplementor"/> this id is being generated in.</param>
 		/// <param name="obj">The entity for which the id is being generated.</param>
 		/// <returns>The new identifier as a <see cref="Guid"/>.</returns>
-		public Task<object> Generate(ISessionImplementor session, object obj)
+		public object Generate(ISessionImplementor session, object obj)
 		{
-			return Task.FromResult<object>(Guid.NewGuid());
+			return Guid.NewGuid();
 		}
 
 		#endregion

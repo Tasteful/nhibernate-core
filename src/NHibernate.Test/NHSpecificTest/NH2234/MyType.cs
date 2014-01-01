@@ -91,9 +91,9 @@ namespace NHibernate.Test.NHSpecificTest.NH2234
 		public void NullSafeSet(IDbCommand cmd, object value, int index)
 		{
 			if (value == null)
-			  NHibernateUtil.Int32.NullSafeSet(cmd, null, index, null).RunSynchronously();
+			  NHibernateUtil.Int32.NullSafeSet(cmd, null, index, null).WaitAndUnwrapException();
 			else
-				NHibernateUtil.Int32.NullSafeSet(cmd, ((MyUsertype)value).Id, index, null).RunSynchronously();
+				NHibernateUtil.Int32.NullSafeSet(cmd, ((MyUsertype)value).Id, index, null).WaitAndUnwrapException();
 		}
 
 		public System.Type ReturnedType
@@ -103,7 +103,7 @@ namespace NHibernate.Test.NHSpecificTest.NH2234
 
 		public object NullSafeGet(IDataReader rs, string[] names, object owner)
 		{
-			int value = (int)NHibernateUtil.Int32.NullSafeGet(rs, names[0], null, owner).Result;
+			int value = (int)NHibernateUtil.Int32.NullSafeGet(rs, names[0], null, owner).WaitAndUnwrapException();
 		  return MyUserTypes.Find(value);
 		}
 
