@@ -26,11 +26,11 @@ namespace NHibernate.Engine
 
 			#region Implementation of IIsolatedWork
 
-			public async Task DoWork(IDbConnection connection, IDbTransaction transaction)
+			public void DoWork(IDbConnection connection, IDbTransaction transaction)
 			{
 				try
 				{
-					generatedValue = await owner.DoWorkInCurrentTransaction(session, connection, transaction);
+					generatedValue = owner.DoWorkInCurrentTransaction(session, connection, transaction);
 				}
 				catch (DbException sqle)
 				{
@@ -42,13 +42,13 @@ namespace NHibernate.Engine
 		}
 
 		/// <summary> The work to be done</summary>
-		public abstract Task<object> DoWorkInCurrentTransaction(ISessionImplementor session, IDbConnection conn, IDbTransaction transaction);
+		public abstract object DoWorkInCurrentTransaction(ISessionImplementor session, IDbConnection conn, IDbTransaction transaction);
 
 		/// <summary> Suspend the current transaction and perform work in a new transaction</summary>
-		public virtual async Task<object> DoWorkInNewTransaction(ISessionImplementor session)
+		public virtual object DoWorkInNewTransaction(ISessionImplementor session)
 		{
 			Work work = new Work(session, this);
-			await Isolater.DoIsolatedWork(work, session);
+			Isolater.DoIsolatedWork(work, session);
 			return work.generatedValue;
 		}
 	}

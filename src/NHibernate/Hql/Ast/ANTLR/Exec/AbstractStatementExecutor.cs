@@ -125,7 +125,7 @@ namespace NHibernate.Hql.Ast.ANTLR.Exec
 			return "select " + StringHelper.Join(", ", persister.IdentifierColumnNames) + " from " + persister.TemporaryIdTableName;
 		}
 
-		protected virtual async Task CreateTemporaryTableIfNecessary(IQueryable persister, ISessionImplementor session)
+		protected virtual void CreateTemporaryTableIfNecessary(IQueryable persister, ISessionImplementor session)
 		{
 			// Don't really know all the codes required to adequately decipher returned ADO exceptions here.
 			// simply allow the failure to be eaten and the subsequent insert-selects/deletes should fail
@@ -134,16 +134,16 @@ namespace NHibernate.Hql.Ast.ANTLR.Exec
 			{
 				if (Factory.Settings.IsDataDefinitionInTransactionSupported)
 				{
-					await Isolater.DoIsolatedWork(work, session);
+					Isolater.DoIsolatedWork(work, session);
 				}
 				else
 				{
-					await Isolater.DoNonTransactedWork(work, session);
+					Isolater.DoNonTransactedWork(work, session);
 				}
 			}
 			else
 			{
-				await work.DoWork(session.ConnectionManager.GetConnection(), null);
+				work.DoWork(session.ConnectionManager.GetConnection(), null);
 				session.ConnectionManager.AfterStatement();
 			}
 		}
@@ -158,7 +158,7 @@ namespace NHibernate.Hql.Ast.ANTLR.Exec
 			return Factory.Settings.IsDataDefinitionImplicitCommit;
 		}
 
-		protected virtual async Task DropTemporaryTableIfNecessary(IQueryable persister, ISessionImplementor session)
+		protected virtual void DropTemporaryTableIfNecessary(IQueryable persister, ISessionImplementor session)
 		{
 			if (Factory.Dialect.DropTemporaryTableAfterUse())
 			{
@@ -168,16 +168,16 @@ namespace NHibernate.Hql.Ast.ANTLR.Exec
 				{
 					if (Factory.Settings.IsDataDefinitionInTransactionSupported)
 					{
-						await Isolater.DoIsolatedWork(work, session);
+						Isolater.DoIsolatedWork(work, session);
 					}
 					else
 					{
-						await Isolater.DoNonTransactedWork(work, session);
+						Isolater.DoNonTransactedWork(work, session);
 					}
 				}
 				else
 				{
-					await work.DoWork(session.ConnectionManager.GetConnection(), null);
+					work.DoWork(session.ConnectionManager.GetConnection(), null);
 					session.ConnectionManager.AfterStatement();
 				}
 			}
@@ -189,7 +189,7 @@ namespace NHibernate.Hql.Ast.ANTLR.Exec
 				{
 					var commandText = new SqlString("delete from " + persister.TemporaryIdTableName);
 					ps = session.Batcher.PrepareCommand(CommandType.Text, commandText, new SqlType[0]);
-					await session.Batcher.ExecuteNonQuery(ps);
+					session.Batcher.ExecuteNonQuery(ps).WaitAndUnwrapException();
 				}
 				catch (Exception t)
 				{
@@ -225,15 +225,14 @@ namespace NHibernate.Hql.Ast.ANTLR.Exec
 				this.session = session;
 			}
 
-			public async Task DoWork(IDbConnection connection, IDbTransaction transaction)
+			public void DoWork(IDbConnection connection, IDbTransaction transaction)
 			{
 				IDbCommand stmnt = null;
 				try
 				{
 					stmnt = session.ConnectionManager.CreateCommand();
 					stmnt.CommandText = persister.TemporaryIdTableDDL;
-					// TODO: Async
-					await session.Factory.ConnectionProvider.Driver.ExecuteNonQueryAsync(stmnt);
+					session.Factory.ConnectionProvider.Driver.ExecuteNonQueryAsync(stmnt).WaitAndUnwrapException();
 					session.Factory.Settings.SqlStatementLogger.LogCommand(stmnt, FormatStyle.Ddl);
 				}
 				catch (Exception t)
@@ -270,14 +269,14 @@ namespace NHibernate.Hql.Ast.ANTLR.Exec
 			private readonly IInternalLogger log;
 			private readonly ISessionImplementor session;
 
-			public async Task DoWork(IDbConnection connection, IDbTransaction transaction)
+			public void DoWork(IDbConnection connection, IDbTransaction transaction)
 			{
 				IDbCommand stmnt = null;
 				try
 				{
 					stmnt = session.ConnectionManager.CreateCommand();
 					stmnt.CommandText = "drop table " + persister.TemporaryIdTableName;
-					await session.Factory.ConnectionProvider.Driver.ExecuteNonQueryAsync(stmnt);
+					session.Factory.ConnectionProvider.Driver.ExecuteNonQueryAsync(stmnt).WaitAndUnwrapException();
 					session.Factory.Settings.SqlStatementLogger.LogCommand(stmnt, FormatStyle.Ddl);
 				}
 				catch (Exception t)

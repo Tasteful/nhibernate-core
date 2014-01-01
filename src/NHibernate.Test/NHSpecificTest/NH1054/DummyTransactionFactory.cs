@@ -29,7 +29,7 @@ namespace NHibernate.Test.NHSpecificTest.NH1054
 			return false;
 		}
 
-		public Task ExecuteWorkInIsolation(ISessionImplementor session, IIsolatedWork work, bool transacted)
+		public void ExecuteWorkInIsolation(ISessionImplementor session, IIsolatedWork work, bool transacted)
 		{
 			throw new NotImplementedException();
 		}

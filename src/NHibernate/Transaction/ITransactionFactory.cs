@@ -33,6 +33,6 @@ namespace NHibernate.Transaction
 
 		bool IsInDistributedActiveTransaction(ISessionImplementor session);
 
-		Task ExecuteWorkInIsolation(ISessionImplementor session, IIsolatedWork work, bool transacted);
+		void ExecuteWorkInIsolation(ISessionImplementor session, IIsolatedWork work, bool transacted);
 	}
 }

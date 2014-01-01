@@ -30,7 +30,7 @@ namespace NHibernate.Transaction
 			return false;
 		}
 
-		public async Task ExecuteWorkInIsolation(ISessionImplementor session, IIsolatedWork work, bool transacted)
+		public void ExecuteWorkInIsolation(ISessionImplementor session, IIsolatedWork work, bool transacted)
 		{
 			IDbConnection connection = null;
 			IDbTransaction trans = null;
@@ -55,7 +55,7 @@ namespace NHibernate.Transaction
 					//}
 				}
 
-				await work.DoWork(connection, trans);
+				work.DoWork(connection, trans);
 
 				if (transacted)
 				{

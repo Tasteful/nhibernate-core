@@ -15,6 +15,6 @@ namespace NHibernate.Engine.Transaction
 		/// </summary>
 		/// <param name="connection">The ADP connection to use.</param>
 		/// <param name="transaction">The active transaction of the connection.</param>
-		Task DoWork(IDbConnection connection, IDbTransaction transaction);
+		void DoWork(IDbConnection connection, IDbTransaction transaction);
 	}
 }

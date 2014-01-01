@@ -262,7 +262,7 @@ namespace NHibernate.Impl
 			Before();
 			try
 			{
-				session.List(this, results);
+				session.List(this, results).WaitAndUnwrapException();
 			}
 			finally
 			{

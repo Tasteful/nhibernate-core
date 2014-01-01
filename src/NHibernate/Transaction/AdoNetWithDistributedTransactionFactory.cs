@@ -73,13 +73,13 @@ namespace NHibernate.Transaction
 				   distributedTransactionContext.IsInActiveTransaction;
 		}
 
-		public async Task ExecuteWorkInIsolation(ISessionImplementor session, IIsolatedWork work, bool transacted)
+		public void ExecuteWorkInIsolation(ISessionImplementor session, IIsolatedWork work, bool transacted)
 		{
 			using (var tx = new TransactionScope(TransactionScopeOption.Suppress))
 			{
 				// instead of duplicating the logic, we suppress the DTC transaction and create
 				// our own transaction instead
-				await adoNetTransactionFactory.ExecuteWorkInIsolation(session, work, transacted);
+				adoNetTransactionFactory.ExecuteWorkInIsolation(session, work, transacted);
 				tx.Complete();
 			}
 		}

@@ -96,7 +96,7 @@ namespace NHibernate.Id.Enhanced
 
 		#region Overrides of TransactionHelper
 
-		public override async Task<object> DoWorkInCurrentTransaction(ISessionImplementor session, IDbConnection conn, IDbTransaction transaction)
+		public override object DoWorkInCurrentTransaction(ISessionImplementor session, IDbConnection conn, IDbTransaction transaction)
 		{
 			long result;
 			int updatedRows;
@@ -114,7 +114,7 @@ namespace NHibernate.Id.Enhanced
 						selectCmd.Transaction = transaction;
 						PersistentIdGeneratorParmsNames.SqlStatementLogger.LogCommand(selectCmd, FormatStyle.Basic);
 
-						selectedValue = await session.Factory.ConnectionProvider.Driver.ExecuteScalarAsync(selectCmd);
+						selectedValue = session.Factory.ConnectionProvider.Driver.ExecuteScalarAsync(selectCmd).WaitAndUnwrapException();
 					}
 
 					if (selectedValue ==null)
@@ -143,7 +143,7 @@ namespace NHibernate.Id.Enhanced
 						int increment = _applyIncrementSizeToSourceValues ? _incrementSize : 1;
 						((IDataParameter)updateCmd.Parameters[0]).Value = result + increment;
 						((IDataParameter)updateCmd.Parameters[1]).Value = result;
-						updatedRows = await session.Factory.ConnectionProvider.Driver.ExecuteNonQueryAsync(updateCmd);
+						updatedRows = session.Factory.ConnectionProvider.Driver.ExecuteNonQueryAsync(updateCmd).WaitAndUnwrapException();
 					}
 				}
 				catch (Exception sqle)
@@ -178,7 +178,7 @@ namespace NHibernate.Id.Enhanced
 
 			public virtual long GetNextValue()
 			{
-				return Convert.ToInt64(_owner.DoWorkInNewTransaction(_session).WaitAndUnwrapException());
+				return Convert.ToInt64(_owner.DoWorkInNewTransaction(_session));
 			}
 
 			#endregion

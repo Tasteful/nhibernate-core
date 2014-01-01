@@ -156,7 +156,7 @@ namespace NHibernate.Id
 			// This has to be done using a different connection to the containing
 			// transaction becase the new hi value must remain valid even if the
 			// containing transaction rolls back.
-			return DoWorkInNewTransaction(session).WaitAndUnwrapException();
+			return DoWorkInNewTransaction(session);
 		}
 
 		#endregion
@@ -209,7 +209,7 @@ namespace NHibernate.Id
 
 		#endregion
 
-		public override async Task<object> DoWorkInCurrentTransaction(ISessionImplementor session, IDbConnection conn,
+		public override object DoWorkInCurrentTransaction(ISessionImplementor session, IDbConnection conn,
 														  IDbTransaction transaction)
 		{
 			long result;
@@ -228,7 +228,7 @@ namespace NHibernate.Id
 				PersistentIdGeneratorParmsNames.SqlStatementLogger.LogCommand("Reading high value:", qps, FormatStyle.Basic);
 				try
 				{
-					rs = await session.Factory.ConnectionProvider.Driver.ExecuteReaderAsync(qps);
+					rs = session.Factory.ConnectionProvider.Driver.ExecuteReaderAsync(qps).WaitAndUnwrapException();
 					if (!rs.Read())
 					{
 						string err;
@@ -271,7 +271,7 @@ namespace NHibernate.Id
 
 					PersistentIdGeneratorParmsNames.SqlStatementLogger.LogCommand("Updating high value:", ups, FormatStyle.Basic);
 
-					rows = await session.Factory.ConnectionProvider.Driver.ExecuteNonQueryAsync(ups);
+					rows = session.Factory.ConnectionProvider.Driver.ExecuteNonQueryAsync(ups).WaitAndUnwrapException();
 				}
 				catch (Exception e)
 				{

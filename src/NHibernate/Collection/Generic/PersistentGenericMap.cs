@@ -259,7 +259,7 @@ namespace NHibernate.Collection.Generic
 
 		public bool Remove(TKey key)
 		{
-			object old = PutQueueEnabled ? ReadElementByIndex(key) : Unknown;
+			object old = PutQueueEnabled ? ReadElementByIndex(key).WaitAndUnwrapException() : Unknown;
 			if (old == Unknown) // queue is not enabled for 'puts', or element not found
 			{
 				Initialize(true).WaitAndUnwrapException();
@@ -280,7 +280,7 @@ namespace NHibernate.Collection.Generic
 
 		public bool TryGetValue(TKey key, out TValue value)
 		{
-			object result = ReadElementByIndex(key);
+			object result = ReadElementByIndex(key).WaitAndUnwrapException();
 			if (result == Unknown)
 			{
 				return gmap.TryGetValue(key, out value);
@@ -298,7 +298,7 @@ namespace NHibernate.Collection.Generic
 		{
 			get
 			{
-				object result = ReadElementByIndex(key);
+				object result = ReadElementByIndex(key).WaitAndUnwrapException();
 				if (result == Unknown)
 				{
 					return gmap[key];
@@ -314,7 +314,7 @@ namespace NHibernate.Collection.Generic
 				// NH Note: the assignment in NET work like the put method in JAVA (mean assign or add)
 				if (PutQueueEnabled)
 				{
-					object old = ReadElementByIndex(key);
+					object old = ReadElementByIndex(key).WaitAndUnwrapException();
 					if (old != Unknown)
 					{
 						QueueOperation(new PutDelayedOperation(this, key, value, old == NotFound ? null : old));

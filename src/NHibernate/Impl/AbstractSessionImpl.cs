@@ -224,7 +224,7 @@ namespace NHibernate.Impl
 					spec.QueryString,
 					spec.QuerySpaces,
 					Factory);
-				ListCustomQuery(query, queryParameters, results);
+				ListCustomQuery(query, queryParameters, results).WaitAndUnwrapException();
 			}
 		}
 
@@ -245,7 +245,7 @@ namespace NHibernate.Impl
 			using (new SessionIdLoggingContext(SessionId))
 			{
 				var results = new List<T>();
-				ListCustomQuery(customQuery, queryParameters, results);
+				ListCustomQuery(customQuery, queryParameters, results).WaitAndUnwrapException();
 				return results;
 			}
 		}

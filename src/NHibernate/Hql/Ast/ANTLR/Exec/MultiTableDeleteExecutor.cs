@@ -71,7 +71,7 @@ namespace NHibernate.Hql.Ast.ANTLR.Exec
 		{
 			CoordinateSharedCacheCleanup(session);
 
-			await CreateTemporaryTableIfNecessary(persister, session);
+			CreateTemporaryTableIfNecessary(persister, session);
 
 			try
 			{
@@ -135,7 +135,7 @@ namespace NHibernate.Hql.Ast.ANTLR.Exec
 			}
 			finally
 			{
-				DropTemporaryTableIfNecessary(persister, session).WaitAndUnwrapException();
+				DropTemporaryTableIfNecessary(persister, session);
 			}
 		}
 

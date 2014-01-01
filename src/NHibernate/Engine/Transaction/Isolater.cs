@@ -36,9 +36,9 @@ namespace NHibernate.Engine.Transaction
 		/// </summary>
 		/// <param name="work">The work to be performed. </param>
 		/// <param name="session">The session from which this request is originating. </param>
-		public static Task DoIsolatedWork(IIsolatedWork work, ISessionImplementor session)
+		public static void DoIsolatedWork(IIsolatedWork work, ISessionImplementor session)
 		{
-			return session.Factory.TransactionFactory.ExecuteWorkInIsolation(session, work, true);
+			session.Factory.TransactionFactory.ExecuteWorkInIsolation(session, work, true);
 		}
 
 		/// <summary> 
@@ -47,9 +47,9 @@ namespace NHibernate.Engine.Transaction
 		/// </summary>
 		/// <param name="work">The work to be performed. </param>
 		/// <param name="session">The session from which this request is originating. </param>
-		public static Task DoNonTransactedWork(IIsolatedWork work, ISessionImplementor session)
+		public static void DoNonTransactedWork(IIsolatedWork work, ISessionImplementor session)
 		{
-			return session.Factory.TransactionFactory.ExecuteWorkInIsolation(session, work, false);
+			session.Factory.TransactionFactory.ExecuteWorkInIsolation(session, work, false);
 		}
 	}
 }

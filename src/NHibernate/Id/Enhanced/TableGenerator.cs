@@ -428,14 +428,14 @@ namespace NHibernate.Id.Enhanced
 
 			public long GetNextValue()
 			{
-				return Convert.ToInt64(owner.DoWorkInNewTransaction(session).WaitAndUnwrapException());
+				return Convert.ToInt64(owner.DoWorkInNewTransaction(session));
 			}
 
 			#endregion
 		}
 
 
-		public override async Task<object> DoWorkInCurrentTransaction(ISessionImplementor session, System.Data.IDbConnection conn, System.Data.IDbTransaction transaction)
+		public override object DoWorkInCurrentTransaction(ISessionImplementor session, System.Data.IDbConnection conn, System.Data.IDbTransaction transaction)
 		{
 			long result;
 			int updatedRows;
@@ -454,7 +454,7 @@ namespace NHibernate.Id.Enhanced
 						string s = selectCmd.CommandText;
 						((IDataParameter)selectCmd.Parameters[0]).Value = SegmentValue;
 						PersistentIdGeneratorParmsNames.SqlStatementLogger.LogCommand(selectCmd, FormatStyle.Basic);
-						selectedValue = await session.Factory.ConnectionProvider.Driver.ExecuteScalarAsync(selectCmd);
+						selectedValue = session.Factory.ConnectionProvider.Driver.ExecuteScalarAsync(selectCmd).WaitAndUnwrapException();
 					}
 
 					if (selectedValue == null)
@@ -471,7 +471,7 @@ namespace NHibernate.Id.Enhanced
 							((IDataParameter)insertCmd.Parameters[1]).Value = result;
 
 							PersistentIdGeneratorParmsNames.SqlStatementLogger.LogCommand(insertCmd, FormatStyle.Basic);
-							await session.Factory.ConnectionProvider.Driver.ExecuteNonQueryAsync(insertCmd);
+							session.Factory.ConnectionProvider.Driver.ExecuteNonQueryAsync(insertCmd).WaitAndUnwrapException();
 						}
 					}
 					else
@@ -499,7 +499,7 @@ namespace NHibernate.Id.Enhanced
 						((IDataParameter)updateCmd.Parameters[1]).Value = result;
 						((IDataParameter)updateCmd.Parameters[2]).Value = SegmentValue;
 						PersistentIdGeneratorParmsNames.SqlStatementLogger.LogCommand(updateCmd, FormatStyle.Basic);
-						updatedRows = await session.Factory.ConnectionProvider.Driver.ExecuteNonQueryAsync(updateCmd);
+						updatedRows = session.Factory.ConnectionProvider.Driver.ExecuteNonQueryAsync(updateCmd).WaitAndUnwrapException();
 					}
 				}
 				catch (Exception ex)

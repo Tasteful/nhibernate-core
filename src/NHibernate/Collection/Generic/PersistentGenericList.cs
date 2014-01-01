@@ -305,7 +305,7 @@ namespace NHibernate.Collection.Generic
 			{
 				throw new IndexOutOfRangeException("negative index");
 			}
-			object old = PutQueueEnabled ? ReadElementByIndex(index) : Unknown;
+			object old = PutQueueEnabled ? ReadElementByIndex(index).WaitAndUnwrapException() : Unknown;
 			if (old == Unknown)
 			{
 				Write();
@@ -369,7 +369,7 @@ namespace NHibernate.Collection.Generic
 				{
 					throw new IndexOutOfRangeException("negative index");
 				}
-				object result = ReadElementByIndex(index);
+				object result = ReadElementByIndex(index).WaitAndUnwrapException();
 				if (result == Unknown)
 				{
 					return WrappedList[index];
@@ -391,7 +391,7 @@ namespace NHibernate.Collection.Generic
 				{
 					throw new IndexOutOfRangeException("negative index");
 				}
-				object old = PutQueueEnabled ? ReadElementByIndex(index) : Unknown;
+				object old = PutQueueEnabled ? ReadElementByIndex(index).WaitAndUnwrapException() : Unknown;
 				if (old == Unknown)
 				{
 					Write();
