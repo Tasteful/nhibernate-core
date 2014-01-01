@@ -3,6 +3,7 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Data;
 using System.Linq;
+using System.Threading.Tasks;
 using NHibernate.Action;
 using NHibernate.Engine.Query.Sql;
 using NHibernate.Event;
@@ -56,7 +57,7 @@ namespace NHibernate.Engine.Query
 		}
 
 		// DONE : H3.2 Executable query (now can be supported for named SQL query/ storedProcedure)
-		public int PerformExecuteUpdate(QueryParameters queryParameters, ISessionImplementor session)
+		public async Task<int> PerformExecuteUpdate(QueryParameters queryParameters, ISessionImplementor session)
 		{
 			CoordinateSharedCacheCleanup(session);
 
@@ -90,10 +91,10 @@ namespace NHibernate.Engine.Query
 
 					foreach (IParameterSpecification parameterSpecification in parametersSpecifications)
 					{
-						parameterSpecification.Bind(ps, sqlParametersList, queryParameters, session);
+						await parameterSpecification.Bind(ps, sqlParametersList, queryParameters, session);
 					}
 					
-					result = session.Batcher.ExecuteNonQuery(ps);
+					result = await session.Batcher.ExecuteNonQuery(ps);
 				}
 				finally
 				{

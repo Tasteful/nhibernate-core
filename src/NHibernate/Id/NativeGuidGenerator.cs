@@ -1,6 +1,6 @@
 using System;
 using System.Data;
-
+using System.Threading.Tasks;
 using NHibernate.Engine;
 using NHibernate.Exceptions;
 using NHibernate.SqlCommand;
@@ -19,7 +19,7 @@ namespace NHibernate.Id
 
 		#region Implementation of IIdentifierGenerator
 
-		public object Generate(ISessionImplementor session, object obj)
+		public async Task<object> Generate(ISessionImplementor session, object obj)
 		{
 			var sql = new SqlString(session.Factory.Dialect.SelectGUIDString);
 			try
@@ -28,12 +28,12 @@ namespace NHibernate.Id
 				IDataReader reader = null;
 				try
 				{
-					reader = session.Batcher.ExecuteReader(st);
+					reader = await session.Batcher.ExecuteReader(st);
 					object result;
 					try
 					{
 						reader.Read();
-						result = IdentifierGeneratorFactory.Get(reader, identifierType, session);
+						result = await IdentifierGeneratorFactory.Get(reader, identifierType, session);
 					}
 					finally
 					{

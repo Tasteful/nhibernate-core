@@ -1,5 +1,6 @@
 using System.Collections;
 using System.Collections.Generic;
+using System.Threading.Tasks;
 using NHibernate.Collection;
 using NHibernate.Engine.Loading;
 using NHibernate.Persister.Collection;
@@ -96,7 +97,7 @@ namespace NHibernate.Engine
 		/// Get the current state of the entity as known to the underlying
 		/// database, or null if there is no corresponding row
 		/// </summary>
-		object[] GetDatabaseSnapshot(object id, IEntityPersister persister);
+		Task<object[]> GetDatabaseSnapshot(object id, IEntityPersister persister);
 
 		/// <summary>
 		/// Retrieve the cached database snapshot for the requested entity key.
@@ -117,7 +118,7 @@ namespace NHibernate.Engine
 		/// database, or null if the entity has no natural id or there is no
 		/// corresponding row.
 		/// </summary>
-		object[] GetNaturalIdSnapshot(object id, IEntityPersister persister);
+		Task<object[]> GetNaturalIdSnapshot(object id, IEntityPersister persister);
 
 		/// <summary> Add a canonical mapping from entity key to entity instance</summary>
 		void AddEntity(EntityKey key, object entity);
@@ -268,16 +269,16 @@ namespace NHibernate.Engine
 		/// </summary>
 		/// <param name="collection">The collection to be associated with the persistence context </param>
 		/// <param name="persister"></param>
-		void AddNewCollection(ICollectionPersister persister, IPersistentCollection collection);
+		Task AddNewCollection(ICollectionPersister persister, IPersistentCollection collection);
 
 		/// <summary>
 		/// add an (initialized) collection that was created by another session and passed
 		/// into update() (ie. one with a snapshot and existing state on the database)
 		/// </summary>
-		void AddInitializedDetachedCollection(ICollectionPersister collectionPersister, IPersistentCollection collection);
+		Task AddInitializedDetachedCollection(ICollectionPersister collectionPersister, IPersistentCollection collection);
 
 		/// <summary> add a collection we just pulled out of the cache (does not need initializing)</summary>
-		CollectionEntry AddInitializedCollection(ICollectionPersister persister, IPersistentCollection collection, object id);
+		Task<CollectionEntry> AddInitializedCollection(ICollectionPersister persister, IPersistentCollection collection, object id);
 
 		/// <summary> Get the collection instance associated with the <tt>CollectionKey</tt></summary>
 		IPersistentCollection GetCollection(CollectionKey collectionKey);
@@ -292,7 +293,7 @@ namespace NHibernate.Engine
 		/// the current two-phase load (actually, this is a no-op, unless this
 		/// is the "outermost" load)
 		/// </summary>
-		void InitializeNonLazyCollections();
+		Task InitializeNonLazyCollections();
 
 		/// <summary> Get the <tt>PersistentCollection</tt> object for an array</summary>
 		IPersistentCollection GetCollectionHolder(object array);

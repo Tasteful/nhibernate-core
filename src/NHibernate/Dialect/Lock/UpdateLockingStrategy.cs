@@ -1,6 +1,6 @@
 using System;
 using System.Data;
-
+using System.Threading.Tasks;
 using NHibernate.Engine;
 using NHibernate.Exceptions;
 using NHibernate.Impl;
@@ -64,7 +64,7 @@ namespace NHibernate.Dialect.Lock
 
 		#region ILockingStrategy Members
 
-		public void Lock(object id, object version, object obj, ISessionImplementor session)
+		public async Task Lock(object id, object version, object obj, ISessionImplementor session)
 		{
 			if (!lockable.IsVersioned)
 			{
@@ -77,18 +77,18 @@ namespace NHibernate.Dialect.Lock
 				IDbCommand st = session.Batcher.PrepareCommand(CommandType.Text, sql, lockable.IdAndVersionSqlTypes);
 				try
 				{
-					lockable.VersionType.NullSafeSet(st, version, 1, session);
+					await lockable.VersionType.NullSafeSet(st, version, 1, session);
 					int offset = 2;
 
-					lockable.IdentifierType.NullSafeSet(st, id, offset, session);
+					await lockable.IdentifierType.NullSafeSet(st, id, offset, session);
 					offset += lockable.IdentifierType.GetColumnSpan(factory);
 
 					if (lockable.IsVersioned)
 					{
-						lockable.VersionType.NullSafeSet(st, version, offset, session);
+						await lockable.VersionType.NullSafeSet(st, version, offset, session);
 					}
 
-					int affected = session.Batcher.ExecuteNonQuery(st);
+					int affected = await session.Batcher.ExecuteNonQuery(st);
 					if (affected < 0)
 					{
 						factory.StatisticsImplementor.OptimisticFailure(lockable.EntityName);

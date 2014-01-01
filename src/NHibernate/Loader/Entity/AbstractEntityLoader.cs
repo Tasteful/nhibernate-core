@@ -2,6 +2,7 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Data;
 using System.Linq;
+using System.Threading.Tasks;
 using NHibernate.Engine;
 using NHibernate.Param;
 using NHibernate.Persister.Entity;
@@ -34,14 +35,14 @@ namespace NHibernate.Loader.Entity
 			get { return true; }
 		}
 
-		public object Load(object id, object optionalObject, ISessionImplementor session)
+		public Task<object> Load(object id, object optionalObject, ISessionImplementor session)
 		{
 			return Load(session, id, optionalObject, id);
 		}
 
-		protected virtual object Load(ISessionImplementor session, object id, object optionalObject, object optionalId)
+		protected virtual async Task<object> Load(ISessionImplementor session, object id, object optionalObject, object optionalId)
 		{
-			IList list = LoadEntity(session, id, UniqueKeyType, optionalObject, entityName, optionalId, persister);
+			IList list = await LoadEntity(session, id, UniqueKeyType, optionalObject, entityName, optionalId, persister);
 
 			if (list.Count == 1)
 			{
@@ -66,10 +67,10 @@ namespace NHibernate.Loader.Entity
 			}
 		}
 
-		protected override object GetResultColumnOrRow(object[] row, IResultTransformer resultTransformer, IDataReader rs,
+		protected override Task<object> GetResultColumnOrRow(object[] row, IResultTransformer resultTransformer, IDataReader rs,
 													   ISessionImplementor session)
 		{
-			return row[row.Length - 1];
+			return Task.FromResult(row[row.Length - 1]);
 		}
 
 		protected IType UniqueKeyType { get; private set; }

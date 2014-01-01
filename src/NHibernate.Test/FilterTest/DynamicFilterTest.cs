@@ -1,6 +1,7 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Threading.Tasks;
 using log4net;
 using NHibernate.Cache;
 using NHibernate.Cache.Entry;
@@ -27,7 +28,7 @@ namespace NHibernate.Test.FilterTest
 
 			// Force a collection into the second level cache, with its non-filtered elements
 			Salesperson sp = (Salesperson) session.Load(typeof(Salesperson), testData.steveId);
-			NHibernateUtil.Initialize(sp.Orders);
+			NHibernateUtil.Initialize(sp.Orders).Wait();
 			ICollectionPersister persister = ((ISessionFactoryImplementor) sessions)
 				.GetCollectionPersister(typeof(Salesperson).FullName + ".Orders");
 			Assert.IsTrue(persister.HasCache, "No cache for collection");

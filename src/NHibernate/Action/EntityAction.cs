@@ -1,6 +1,7 @@
 using System;
 using System.IO;
 using System.Runtime.Serialization;
+using System.Threading.Tasks;
 using NHibernate.Engine;
 using NHibernate.Persister.Entity;
 using NHibernate.Util;
@@ -100,7 +101,7 @@ namespace NHibernate.Action
 			throw new AssertionFailure("BeforeExecutions() called for non-collection action");
 		}
 
-		public abstract void Execute();
+		public abstract Task Execute();
 
 		public virtual BeforeTransactionCompletionProcessDelegate BeforeTransactionCompletionProcess
 		{

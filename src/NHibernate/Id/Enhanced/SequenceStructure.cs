@@ -1,7 +1,7 @@
 using System;
 using System.Data;
 using System.Data.Common;
-
+using System.Threading.Tasks;
 using NHibernate.Engine;
 using NHibernate.Exceptions;
 using NHibernate.SqlCommand;
@@ -93,7 +93,7 @@ namespace NHibernate.Id.Enhanced
 
 			#region IAccessCallback Members
 
-			public virtual long GetNextValue()
+			public virtual async Task<long> GetNextValue()
 			{
 				_owner._accessCounter++;
 				try
@@ -102,7 +102,7 @@ namespace NHibernate.Id.Enhanced
 					IDataReader rs = null;
 					try
 					{
-						rs = _session.Batcher.ExecuteReader(st);
+						rs = await _session.Batcher.ExecuteReader(st);
 						try
 						{
 							rs.Read();

@@ -1,5 +1,6 @@
 using System;
 using System.Data;
+using System.Threading.Tasks;
 using NHibernate.Engine;
 using NHibernate.Persister.Entity;
 using NHibernate.SqlCommand;
@@ -51,7 +52,7 @@ namespace NHibernate.Dialect.Lock
 
 		#region ILockingStrategy Members
 
-		public void Lock(object id, object version, object obj, ISessionImplementor session)
+		public async Task Lock(object id, object version, object obj, ISessionImplementor session)
 		{
 			ISessionFactoryImplementor factory = session.Factory;
 			try
@@ -60,13 +61,13 @@ namespace NHibernate.Dialect.Lock
 				IDataReader rs = null;
 				try
 				{
-					lockable.IdentifierType.NullSafeSet(st, id, 0, session);
+					await lockable.IdentifierType.NullSafeSet(st, id, 0, session);
 					if (lockable.IsVersioned)
 					{
-						lockable.VersionType.NullSafeSet(st, version, lockable.IdentifierType.GetColumnSpan(factory), session);
+						await lockable.VersionType.NullSafeSet(st, version, lockable.IdentifierType.GetColumnSpan(factory), session);
 					}
 
-					rs = session.Batcher.ExecuteReader(st);
+					rs = await session.Batcher.ExecuteReader(st);
 					try
 					{
 						if (!rs.Read())

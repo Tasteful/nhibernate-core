@@ -1,6 +1,7 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Threading.Tasks;
 using NHibernate.Engine;
 using NHibernate.Engine.Query;
 using NHibernate.Engine.Query.Sql;
@@ -298,13 +299,13 @@ namespace NHibernate.Impl
 			throw new NotSupportedException("cannot set the lock mode for a native SQL query");
 		}
 
-		public override int ExecuteUpdate()
+		public override async Task<int> ExecuteUpdateAsync()
 		{
 			IDictionary<string,TypedValue> namedParams = NamedParams;
 			Before();
 			try
 			{
-				return Session.ExecuteNativeUpdate(GenerateQuerySpecification(namedParams), GetQueryParameters(namedParams));
+				return await Session.ExecuteNativeUpdate(GenerateQuerySpecification(namedParams), GetQueryParameters(namedParams));
 			}
 			finally
 			{

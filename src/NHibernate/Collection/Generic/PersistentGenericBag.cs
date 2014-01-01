@@ -3,6 +3,7 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Data;
 using System.Diagnostics;
+using System.Threading.Tasks;
 using NHibernate.DebugHelpers;
 using NHibernate.Engine;
 using NHibernate.Loader;
@@ -37,12 +38,12 @@ namespace NHibernate.Collection.Generic
 		 * expensive than .NET original implementation.
 		 */
 
-		/// For a one-to-many, a <bag> is not really a bag;
-		/// it is *really* a set, since it can't contain the
-		/// same element twice. It could be considered a bug
-		/// in the mapping dtd that <bag> allows <one-to-many>.
-		/// Anyway, here we implement <set> semantics for a
-		/// <one-to-many> <bag>!
+		// For a one-to-many, a <bag> is not really a bag;
+		// it is *really* a set, since it can't contain the
+		// same element twice. It could be considered a bug
+		// in the mapping dtd that <bag> allows <one-to-many>.
+		// Anyway, here we implement <set> semantics for a
+		// <one-to-many> <bag>!
 		private IList<T> gbag;
 
 		public PersistentGenericBag()
@@ -176,7 +177,7 @@ namespace NHibernate.Collection.Generic
 			}
 			else
 			{
-				Initialize(true);
+				Initialize(true).WaitAndUnwrapException();
 				if (gbag.Count != 0)
 				{
 					gbag.Clear();
@@ -187,7 +188,7 @@ namespace NHibernate.Collection.Generic
 
 		public bool Contains(T item)
 		{
-			var exists = ReadElementExistence(item);
+			var exists = ReadElementExistence(item).WaitAndUnwrapException();
 			return !exists.HasValue ? gbag.Contains(item) : exists.Value;
 		}
 
@@ -201,7 +202,7 @@ namespace NHibernate.Collection.Generic
 
 		public bool Remove(T item)
 		{
-			Initialize(true);
+			Initialize(true).WaitAndUnwrapException();
 			var result = gbag.Remove(item);
 			if (result)
 			{
@@ -297,14 +298,14 @@ namespace NHibernate.Collection.Generic
 			gbag = (IList<T>) persister.CollectionType.Instantiate(anticipatedSize);
 		}
 
-		public override object Disassemble(ICollectionPersister persister)
+		public override async Task<object> Disassemble(ICollectionPersister persister)
 		{
 			var length = gbag.Count;
 			var result = new object[length];
 
 			for (var i = 0; i < length; i++)
 			{
-				result[i] = persister.ElementType.Disassemble(gbag[i], Session, null);
+				result[i] = await persister.ElementType.Disassemble(gbag[i], Session, null);
 			}
 
 			return result;
@@ -320,7 +321,7 @@ namespace NHibernate.Collection.Generic
 			return entry != null;
 		}
 
-		public override bool EqualsSnapshot(ICollectionPersister persister)
+		public override Task<bool> EqualsSnapshot(ICollectionPersister persister)
 		{
 			var elementType = persister.ElementType;
 			var entityMode = Session.EntityMode;
@@ -328,21 +329,21 @@ namespace NHibernate.Collection.Generic
 			var sn = (IList) GetSnapshot();
 			if (sn.Count != gbag.Count)
 			{
-				return false;
+				return Task.FromResult(false);
 			}
 
 			foreach (var elt in gbag)
 			{
 				if (CountOccurrences(elt, gbag, elementType, entityMode) != CountOccurrences(elt, sn, elementType, entityMode))
 				{
-					return false;
+					return Task.FromResult(false);
 				}
 			}
 
-			return true;
+			return Task.FromResult(true);
 		}
 
-		public override IEnumerable GetDeletes(ICollectionPersister persister, bool indexIsFormula)
+		public override Task<IEnumerable> GetDeletes(ICollectionPersister persister, bool indexIsFormula)
 		{
 			var elementType = persister.ElementType;
 			var entityMode = Session.EntityMode;
@@ -373,7 +374,7 @@ namespace NHibernate.Collection.Generic
 					deletes.Add(old);
 				}
 			}
-			return deletes;
+			return Task.FromResult<IEnumerable>(deletes);
 		}
 
 		public override object GetElement(object entry)
@@ -386,19 +387,19 @@ namespace NHibernate.Collection.Generic
 			throw new NotSupportedException("Bags don't have indexes");
 		}
 
-		public override ICollection GetOrphans(object snapshot, string entityName)
+		public override Task<ICollection> GetOrphans(object snapshot, string entityName)
 		{
 			var sn = (ICollection) snapshot;
 			return GetOrphans(sn, (ICollection) gbag, entityName, Session);
 		}
 
-		public override object GetSnapshot(ICollectionPersister persister)
+		public override async Task<object> GetSnapshot(ICollectionPersister persister)
 		{
 			var entityMode = Session.EntityMode;
 			var clonedList = new List<object>(gbag.Count);
 			foreach (object current in gbag)
 			{
-				clonedList.Add(persister.ElementType.DeepCopy(current, entityMode, persister.Factory));
+				clonedList.Add(await persister.ElementType.DeepCopy(current, entityMode, persister.Factory));
 			}
 			return clonedList;
 		}
@@ -415,14 +416,14 @@ namespace NHibernate.Collection.Generic
 		/// <param name="persister">The CollectionPersister to use to reassemble the PersistentBag.</param>
 		/// <param name="disassembled">The disassembled PersistentBag.</param>
 		/// <param name="owner">The owner object.</param>
-		public override void InitializeFromCache(ICollectionPersister persister, object disassembled, object owner)
+		public override async Task InitializeFromCache(ICollectionPersister persister, object disassembled, object owner)
 		{
 			var array = (object[]) disassembled;
 			var size = array.Length;
 			BeforeInitialize(persister, size);
 			for (var i = 0; i < size; i++)
 			{
-				var element = persister.ElementType.Assemble(array[i], Session, owner);
+				var element = await persister.ElementType.Assemble(array[i], Session, owner);
 				if (element != null)
 				{
 					gbag.Add((T) element);
@@ -440,7 +441,7 @@ namespace NHibernate.Collection.Generic
 			return gbag == collection;
 		}
 
-		public override bool NeedsInserting(object entry, int i, IType elemType)
+		public override Task<bool> NeedsInserting(object entry, int i, IType elemType)
 		{
 			var sn = (IList) GetSnapshot();
 			var entityMode = Session.EntityMode;
@@ -448,17 +449,17 @@ namespace NHibernate.Collection.Generic
 			if (sn.Count > i && elemType.IsSame(sn[i], entry, entityMode))
 			{
 				// a shortcut if its location didn't change
-				return false;
+				return Task.FromResult(false);
 			}
 			//search for it
 			foreach (var old in sn)
 			{
 				if (elemType.IsEqual(old, entry, entityMode))
 				{
-					return false;
+					return Task.FromResult(false);
 				}
 			}
-			return true;
+			return Task.FromResult(true);
 		}
 
 		/// <summary>
@@ -477,16 +478,16 @@ namespace NHibernate.Collection.Generic
 			return !persister.IsOneToMany;
 		}
 
-		public override bool NeedsUpdating(object entry, int i, IType elemType)
+		public override Task<bool> NeedsUpdating(object entry, int i, IType elemType)
 		{
-			return false;
+			return Task.FromResult(false);
 		}
 
-		public override object ReadFrom(IDataReader reader, ICollectionPersister role, ICollectionAliases descriptor, object owner)
+		public override async Task<object> ReadFrom(IDataReader reader, ICollectionPersister role, ICollectionAliases descriptor, object owner)
 		{
 			// note that if we load this collection from a cartesian product
 			// the multiplicity would be broken ... so use an idbag instead
-			var element = role.ReadElement(reader, owner, descriptor.SuffixedElementAliases, Session);
+			var element = await role.ReadElement(reader, owner, descriptor.SuffixedElementAliases, Session);
 			// NH Different behavior : we don't check for null
 			// The NH-750 test show how checking for null we are ignoring the not-found tag and
 			// the DB may have some records ignored by NH. This issue may need some more deep consideration.

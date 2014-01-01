@@ -2,6 +2,7 @@ using System;
 using System.Collections;
 using System.Data;
 using System.Data.Common;
+using System.Threading.Tasks;
 using NHibernate.AdoNet;
 using NHibernate.Cache;
 using NHibernate.Cfg;
@@ -156,7 +157,7 @@ namespace NHibernate.Persister.Collection
 			return true;
 		}
 
-		protected override int DoUpdateRows(object id, IPersistentCollection collection, ISessionImplementor session)
+		protected override async Task<int> DoUpdateRows(object id, IPersistentCollection collection, ISessionImplementor session)
 		{
 			if (ArrayHelper.IsAllFalse(elementColumnIsSettable)) return 0;
 
@@ -171,7 +172,7 @@ namespace NHibernate.Persister.Collection
 				int count = 0;
 				foreach (object entry in entries)
 				{
-					if (collection.NeedsUpdating(entry, i, ElementType))
+					if (await collection.NeedsUpdating(entry, i, ElementType))
 					{
 						int offset = 0;
 						if (useBatch)
@@ -197,14 +198,14 @@ namespace NHibernate.Persister.Collection
 							int loc = WriteElement(st, collection.GetElement(entry), offset, session);
 							if (hasIdentifier)
 							{
-								WriteIdentifier(st, collection.GetIdentifier(entry, i), loc, session);
+								await WriteIdentifier(st, collection.GetIdentifier(entry, i), loc, session);
 							}
 							else
 							{
-								loc = WriteKey(st, id, loc, session);
+								loc = await WriteKey(st, id, loc, session);
 								if (HasIndex && !indexContainsFormula)
 								{
-									WriteIndexToWhere(st, collection.GetIndex(entry, i, this), loc, session);
+									await WriteIndexToWhere(st, collection.GetIndex(entry, i, this), loc, session);
 								}
 								else
 								{
@@ -218,7 +219,7 @@ namespace NHibernate.Persister.Collection
 							}
 							else
 							{
-								expectation.VerifyOutcomeNonBatched(session.Batcher.ExecuteNonQuery(st), st);
+								expectation.VerifyOutcomeNonBatched(await session.Batcher.ExecuteNonQuery(st), st);
 							}
 						}
 						catch (Exception e)

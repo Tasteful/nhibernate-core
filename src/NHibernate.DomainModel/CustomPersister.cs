@@ -1,5 +1,6 @@
 using System;
 using System.Collections;
+using System.Threading.Tasks;
 using NHibernate.Cache;
 using NHibernate.Cache.Entry;
 using NHibernate.Engine;
@@ -260,11 +261,11 @@ namespace NHibernate.DomainModel
 			throw new NotSupportedException();
 		}
 
-		public int[] FindDirty(object[] currentState, object[] previousState, object entity, ISessionImplementor session)
+		public Task<int[]> FindDirty(object[] currentState, object[] previousState, object entity, ISessionImplementor session)
 		{
 			if (!EqualsHelper.Equals(currentState[0], previousState[0]))
 			{
-				return new int[] { 0 };
+				return Task.FromResult(new int[] { 0 });
 			}
 			else
 			{
@@ -272,11 +273,11 @@ namespace NHibernate.DomainModel
 			}
 		}
 
-		public int[] FindModified(object[] old, object[] current, object entity, ISessionImplementor session)
+		public Task<int[]> FindModified(object[] old, object[] current, object entity, ISessionImplementor session)
 		{
 			if (!EqualsHelper.Equals(old[0], current[0]))
 			{
-				return new int[] { 0 };
+				return Task.FromResult(new int[] { 0 });
 			}
 			else
 			{
@@ -299,7 +300,7 @@ namespace NHibernate.DomainModel
 			get { return false; }
 		}
 
-		public object[] GetNaturalIdentifierSnapshot(object id, ISessionImplementor session)
+		public Task<object[]> GetNaturalIdentifierSnapshot(object id, ISessionImplementor session)
 		{
 			return null;
 		}
@@ -309,7 +310,7 @@ namespace NHibernate.DomainModel
 			get { return false; }
 		}
 
-		public object Load(object id, object optionalObject, LockMode lockMode, ISessionImplementor session)
+		public async Task<object> Load(object id, object optionalObject, LockMode lockMode, ISessionImplementor session)
 		{
 			// fails when optional object is supplied
 			Custom clone = null;
@@ -320,36 +321,39 @@ namespace NHibernate.DomainModel
 				TwoPhaseLoad.AddUninitializedEntity(session.GenerateEntityKey(id, this), clone, this, LockMode.None, false,
 				                                    session);
 				TwoPhaseLoad.PostHydrate(this, id, new String[] {obj.Name}, null, clone, LockMode.None, false, session);
-				TwoPhaseLoad.InitializeEntity(clone, false, session, new PreLoadEvent((IEventSource) session),
+				await TwoPhaseLoad.InitializeEntity(clone, false, session, new PreLoadEvent((IEventSource) session),
 				                              new PostLoadEvent((IEventSource) session));
 			}
 			return clone;
 		}
 
-		public void Lock(object id, object version, object obj, LockMode lockMode, ISessionImplementor session)
+		public Task Lock(object id, object version, object obj, LockMode lockMode, ISessionImplementor session)
 		{
 			throw new NotSupportedException();
 		}
 
-		public void Insert(object id, object[] fields, object obj, ISessionImplementor session)
+		public Task Insert(object id, object[] fields, object obj, ISessionImplementor session)
 		{
 			Instances[id] = ((Custom)obj).Clone();
+			return Task.FromResult(0);
 		}
 
-		public object Insert(object[] fields, object obj, ISessionImplementor session)
+		public Task<object> Insert(object[] fields, object obj, ISessionImplementor session)
 		{
 			throw new NotSupportedException();
 		}
 
-		public void Delete(object id, object version, object obj, ISessionImplementor session)
+		public Task Delete(object id, object version, object obj, ISessionImplementor session)
 		{
 			Instances.Remove(id);
+			return Task.FromResult(0);
 		}
 
-		public void Update(object id, object[] fields, int[] dirtyFields, bool hasDirtyCollection, object[] oldFields,
+		public Task Update(object id, object[] fields, int[] dirtyFields, bool hasDirtyCollection, object[] oldFields,
 		                   object oldVersion, object obj, object rowId, ISessionImplementor session)
 		{
 			Instances[id] = ((Custom)obj).Clone();
+			return Task.FromResult(0);
 		}
 
 		public bool[] PropertyUpdateability
@@ -362,19 +366,19 @@ namespace NHibernate.DomainModel
 			get { return false; }
 		}
 
-		public object[] GetDatabaseSnapshot(object id, ISessionImplementor session)
+		public Task<object[]> GetDatabaseSnapshot(object id, ISessionImplementor session)
 		{
-			return null;
+			return Task.FromResult<object[]>(null);
 		}
 
-		public object GetCurrentVersion(object id, ISessionImplementor session)
+		public Task<object> GetCurrentVersion(object id, ISessionImplementor session)
 		{
-			return Instances[id];
+			return Task.FromResult(Instances[id]);
 		}
 
-		public object ForceVersionIncrement(object id, object currentVersion, ISessionImplementor session)
+		public Task<object> ForceVersionIncrement(object id, object currentVersion, ISessionImplementor session)
 		{
-			return null;
+			return Task.FromResult<object>(null);
 		}
 
 		public EntityMode? GuessEntityMode(object obj)
@@ -427,12 +431,14 @@ namespace NHibernate.DomainModel
 			return GetPropertyValues(obj, session.EntityMode);
 		}
 
-		public void ProcessInsertGeneratedProperties(object id, object entity, object[] state, ISessionImplementor session)
+		public Task ProcessInsertGeneratedProperties(object id, object entity, object[] state, ISessionImplementor session)
 		{
+			return Task.FromResult(0);
 		}
 
-		public void ProcessUpdateGeneratedProperties(object id, object entity, object[] state, ISessionImplementor session)
+		public Task ProcessUpdateGeneratedProperties(object id, object entity, object[] state, ISessionImplementor session)
 		{
+			return Task.FromResult(0);
 		}
 
 		public System.Type GetMappedClass(EntityMode entityMode)

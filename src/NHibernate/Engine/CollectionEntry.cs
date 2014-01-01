@@ -1,6 +1,7 @@
 using System;
 using System.Collections;
-
+using System.Threading.Tasks;
+using NHibernate.Cfg.Loquacious;
 using NHibernate.Collection;
 using NHibernate.Impl;
 using NHibernate.Persister.Collection;
@@ -107,22 +108,33 @@ namespace NHibernate.Engine
 
 		[NonSerialized] private object currentKey;
 
+		private CollectionEntry()
+		{
+		}
+
 		/// <summary>
 		/// Initializes a new instance of <see cref="CollectionEntry"/>.
 		/// </summary>
 		/// <remarks> 
 		/// For newly wrapped collections, or dereferenced collection wrappers
 		/// </remarks>
-		public CollectionEntry(ICollectionPersister persister, IPersistentCollection collection)
+		public static async Task<CollectionEntry> Create(ICollectionPersister persister, IPersistentCollection collection)
 		{
-			// new collections that get found + wrapped
-			// during flush shouldn't be ignored
-			ignore = false;
+			//// new collections that get found + wrapped
+			//// during flush shouldn't be ignored
+			//ignore = false;
 
 			collection.ClearDirty(); //a newly wrapped collection is NOT dirty (or we get unnecessary version updates)
 
-			snapshot = persister.IsMutable ? collection.GetSnapshot(persister) : null;
-			collection.SetSnapshot(loadedKey, role, snapshot);
+			var snapshot = persister.IsMutable ? await collection.GetSnapshot(persister) : null;
+			//collection.SetSnapshot(loadedKey, role, snapshot);
+			collection.SetSnapshot(null, null, snapshot);
+
+			return new CollectionEntry
+			{
+				ignore = false,
+				snapshot = snapshot
+			};
 		}
 
 		/// <summary> For collections just loaded from the database</summary>
@@ -251,14 +263,14 @@ namespace NHibernate.Engine
 		/// Determine if the collection is "really" dirty, by checking dirtiness
 		/// of the collection elements, if necessary
 		/// </summary>
-		private void Dirty(IPersistentCollection collection)
+		private async Task Dirty(IPersistentCollection collection)
 		{
 			// if the collection is initialized and it was previously persistent
 			// initialize the dirty flag
 			bool forceDirty = collection.WasInitialized && !collection.IsDirty && LoadedPersister != null
 			                  && LoadedPersister.IsMutable
 			                  && (collection.IsDirectlyAccessible || LoadedPersister.ElementType.IsMutable)
-			                  && !collection.EqualsSnapshot(LoadedPersister);
+			                  && !await collection.EqualsSnapshot(LoadedPersister);
 
 			if (forceDirty)
 			{
@@ -270,14 +282,14 @@ namespace NHibernate.Engine
 		/// Prepares this CollectionEntry for the Flush process.
 		/// </summary>
 		/// <param name="collection">The <see cref="IPersistentCollection"/> that this CollectionEntry will be responsible for flushing.</param>
-		public void PreFlush(IPersistentCollection collection)
+		public async Task PreFlush(IPersistentCollection collection)
 		{
 			bool nonMutableChange = collection.IsDirty && LoadedPersister != null && !LoadedPersister.IsMutable;
 			if (nonMutableChange)
 			{
 				throw new HibernateException("changed an immutable collection instance: " + MessageHelper.InfoString(LoadedPersister.Role, LoadedKey));
 			}
-			Dirty(collection);
+			await Dirty(collection);
 
 			if (log.IsDebugEnabled && collection.IsDirty && loadedPersister != null)
 			{
@@ -298,9 +310,9 @@ namespace NHibernate.Engine
 		/// has been initialized.
 		/// </summary>
 		/// <param name="collection">The initialized <see cref="AbstractPersistentCollection"/> that this Entry is for.</param>
-		public void PostInitialize(IPersistentCollection collection)
+		public async Task PostInitialize(IPersistentCollection collection)
 		{
-			snapshot = LoadedPersister.IsMutable ? collection.GetSnapshot(LoadedPersister) : null;
+			snapshot = LoadedPersister.IsMutable ? await collection.GetSnapshot(LoadedPersister) : null;
 			collection.SetSnapshot(loadedKey, role, snapshot);
 		}
 
@@ -326,7 +338,7 @@ namespace NHibernate.Engine
 			collection.SetSnapshot(loadedKey, role, snapshot);
 		}
 
-		public void AfterAction(IPersistentCollection collection)
+		public async Task AfterAction(IPersistentCollection collection)
 		{
 			loadedKey = CurrentKey;
 			SetLoadedPersister(CurrentPersister);
@@ -335,7 +347,7 @@ namespace NHibernate.Engine
 			if (resnapshot)
 			{
 				//re-snapshot
-				snapshot = loadedPersister == null || !loadedPersister.IsMutable ? null : collection.GetSnapshot(loadedPersister);
+				snapshot = loadedPersister == null || !loadedPersister.IsMutable ? null : await collection.GetSnapshot(loadedPersister);
 			}
 
 			collection.PostAction();
@@ -360,7 +372,7 @@ namespace NHibernate.Engine
 			loadedPersister = factory.GetCollectionPersister(role);
 		}
 
-		public ICollection GetOrphans(string entityName, IPersistentCollection collection)
+		public Task<ICollection> GetOrphans(string entityName, IPersistentCollection collection)
 		{
 			if (snapshot == null)
 			{

@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Threading.Tasks;
 using NHibernate.Engine;
 using NHibernate.Proxy;
 
@@ -114,7 +115,7 @@ namespace NHibernate.Intercept
 
 			if (IsUninitializedProperty(fieldName))
 			{
-				return InitializeField(fieldName, target);
+				return InitializeField(fieldName, target).WaitAndUnwrapException();
 			}
 
 			if (value.IsProxy() && IsUninitializedAssociation(fieldName))
@@ -151,14 +152,14 @@ namespace NHibernate.Intercept
 			return value.HibernateLazyInitializer.GetImplementation(session);
 		}
 
-		private object InitializeField(string fieldName, object target)
+		private async Task<object> InitializeField(string fieldName, object target)
 		{
 			object result;
 			initializing = true;
 			try
 			{
 				var lazyPropertyInitializer = ((ILazyPropertyInitializer) session.Factory.GetEntityPersister(entityName));
-				result = lazyPropertyInitializer.InitializeLazyProperty(fieldName, target, session);
+				result = await lazyPropertyInitializer.InitializeLazyProperty(fieldName, target, session);
 			}
 			finally
 			{

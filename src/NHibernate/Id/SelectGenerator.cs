@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using System.Data;
+using System.Threading.Tasks;
 using NHibernate.Engine;
 using NHibernate.Id.Insert;
 using NHibernate.Persister.Entity;
@@ -103,14 +104,14 @@ namespace NHibernate.Id
 				return new IdentifierGeneratingInsert(factory);
 			}
 
-			protected internal override void BindParameters(ISessionImplementor session, IDbCommand ps, object entity)
+			protected internal override async Task BindParameters(ISessionImplementor session, IDbCommand ps, object entity)
 			{
 				object uniqueKeyValue = ((IEntityPersister) persister).GetPropertyValue(entity, uniqueKeyPropertyName,
 				                                                                        session.EntityMode);
-				uniqueKeyType.NullSafeSet(ps, uniqueKeyValue, 0, session);
+				await uniqueKeyType.NullSafeSet(ps, uniqueKeyValue, 0, session);
 			}
 
-			protected internal override object GetResult(ISessionImplementor session, IDataReader rs, object entity)
+			protected internal override Task<object> GetResult(ISessionImplementor session, IDataReader rs, object entity)
 			{
 				if (!rs.Read())
 				{

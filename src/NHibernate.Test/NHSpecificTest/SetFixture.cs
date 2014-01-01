@@ -1,6 +1,7 @@
 using System;
 using System.Collections;
 using System.Data;
+using System.Threading.Tasks;
 using NHibernate.Cache;
 using NHibernate.Cache.Entry;
 using NHibernate.Collection;
@@ -120,9 +121,10 @@ namespace NHibernate.Test.NHSpecificTest
 			}
 		}
 
-		public void InsertRows(IPersistentCollection collection, object key, ISessionImplementor session)
+		public Task InsertRows(IPersistentCollection collection, object key, ISessionImplementor session)
 		{
 			// TODO:  Add CollectionPersisterStub.InsertRows implementation
+			return Task.FromResult(0);
 		}
 
 		public bool IsLazy
@@ -141,14 +143,16 @@ namespace NHibernate.Test.NHSpecificTest
 			get { return collectionType; }
 		}
 
-		public void UpdateRows(IPersistentCollection collection, object key, ISessionImplementor session)
+		public Task UpdateRows(IPersistentCollection collection, object key, ISessionImplementor session)
 		{
 			// TODO:  Add CollectionPersisterStub.UpdateRows implementation
+			return Task.FromResult(0);
 		}
 
-		public void DeleteRows(IPersistentCollection collection, object key, ISessionImplementor session)
+		public Task DeleteRows(IPersistentCollection collection, object key, ISessionImplementor session)
 		{
 			// TODO:  Add CollectionPersisterStub.DeleteRows implementation
+			return Task.FromResult(0);
 		}
 
 		public void WriteElement(IDbCommand st, object elt, bool writeOrder, ISessionImplementor session)
@@ -156,9 +160,10 @@ namespace NHibernate.Test.NHSpecificTest
 			// TODO:  Add CollectionPersisterStub.WriteElement implementation
 		}
 
-		public void Recreate(IPersistentCollection collection, object key, ISessionImplementor session)
+		public Task Recreate(IPersistentCollection collection, object key, ISessionImplementor session)
 		{
 			// TODO:  Add CollectionPersisterStub.Recreate implementation
+			return Task.FromResult(0);
 		}
 
 		public bool HasOrdering
@@ -178,15 +183,16 @@ namespace NHibernate.Test.NHSpecificTest
 			set { elementType = value; }
 		}
 
-		public void Remove(object id, ISessionImplementor session)
+		public Task Remove(object id, ISessionImplementor session)
 		{
 			// TODO:  Add CollectionPersisterStub.Remove implementation
+			return Task.FromResult(0);
 		}
 
-		public object ReadElement(IDataReader rs, object owner, string[] aliases, ISessionImplementor session)
+		public Task<object> ReadElement(IDataReader rs, object owner, string[] aliases, ISessionImplementor session)
 		{
 			// TODO:  Add CollectionPersisterStub.ReadElement implementation
-			return null;
+			return Task.FromResult<object>(null);
 		}
 
 		public string Role
@@ -212,21 +218,22 @@ namespace NHibernate.Test.NHSpecificTest
 			get { throw new NotImplementedException(); }
 		}
 
-		public object ReadIndex(IDataReader rs, string[] aliases, ISessionImplementor session)
+		public Task<object> ReadIndex(IDataReader rs, string[] aliases, ISessionImplementor session)
 		{
 			// TODO:  Add CollectionPersisterStub.ReadIndex implementation
-			return null;
+			return Task.FromResult<object>(null);
 		}
 
-		public void Initialize(object key, ISessionImplementor session)
+		public Task Initialize(object key, ISessionImplementor session)
 		{
 			// TODO:  Add CollectionPersisterStub.Initialize implementation
+			return Task.FromResult(0);
 		}
 
-		public object ReadKey(IDataReader rs, string[] aliases, ISessionImplementor session)
+		public Task<object> ReadKey(IDataReader rs, string[] aliases, ISessionImplementor session)
 		{
 			// TODO:  Add CollectionPersisterStub.ReadKey implementation
-			return null;
+			return Task.FromResult<object>(null);
 		}
 
 		public IType IdentifierType
@@ -275,10 +282,10 @@ namespace NHibernate.Test.NHSpecificTest
 			}
 		}
 
-		public object ReadIdentifier(IDataReader rs, string alias, ISessionImplementor session)
+		public Task<object> ReadIdentifier(IDataReader rs, string alias, ISessionImplementor session)
 		{
 			// TODO:  Add CollectionPersisterStub.ReadIdentifier implementation
-			return null;
+			return Task.FromResult<object>(null);
 		}
 
 		public string CollectionSpace
@@ -323,22 +330,22 @@ namespace NHibernate.Test.NHSpecificTest
 			return null;
 		}
 
-		public int GetSize(object key, ISessionImplementor session)
+		public Task<int> GetSize(object key, ISessionImplementor session)
 		{
 			throw new NotImplementedException();
 		}
 
-		public bool IndexExists(object key, object index, ISessionImplementor session)
+		public Task<bool> IndexExists(object key, object index, ISessionImplementor session)
 		{
 			throw new NotImplementedException();
 		}
 
-		public bool ElementExists(object key, object element, ISessionImplementor session)
+		public Task<bool> ElementExists(object key, object element, ISessionImplementor session)
 		{
 			throw new NotImplementedException();
 		}
 
-		public object GetElementByIndex(object key, object index, ISessionImplementor session, object owner)
+		public Task<object> GetElementByIndex(object key, object index, ISessionImplementor session, object owner)
 		{
 			throw new NotImplementedException();
 		}
@@ -400,7 +407,7 @@ namespace NHibernate.Test.NHSpecificTest
 	public class SetFixture: TestCase
 	{
 		[Test]
-		public void DisassembleAndAssemble()
+		public async Task DisassembleAndAssemble()
 		{
 			using (ISession s = OpenSession())
 			{
@@ -413,10 +420,10 @@ namespace NHibernate.Test.NHSpecificTest
 				CollectionPersisterStub collectionPersister = new CollectionPersisterStub();
 				collectionPersister.ElementType = NHibernateUtil.Int32;
 
-				object disassembled = set.Disassemble(collectionPersister);
+				object disassembled = await set.Disassemble(collectionPersister);
 
 				var assembledSet = new PersistentGenericSet<int>(si);
-				assembledSet.InitializeFromCache(collectionPersister, disassembled, null);
+				await assembledSet.InitializeFromCache(collectionPersister, disassembled, null);
 
 				Assert.AreEqual(2, assembledSet.Count);
 				Assert.IsTrue(assembledSet.Contains(10));

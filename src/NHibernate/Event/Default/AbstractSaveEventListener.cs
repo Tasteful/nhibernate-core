@@ -1,6 +1,6 @@
 using System;
 using System.Collections;
-
+using System.Threading.Tasks;
 using NHibernate.Action;
 using NHibernate.Classic;
 using NHibernate.Engine;
@@ -80,7 +80,7 @@ namespace NHibernate.Event.Default
 		/// <param name="anything">Generally cascade-specific information. </param>
 		/// <param name="source">The session which is the source of this save event. </param>
 		/// <returns> The id used to save the entity. </returns>
-		protected virtual object SaveWithRequestedId(object entity, object requestedId, string entityName, object anything, IEventSource source)
+		protected virtual Task<object> SaveWithRequestedId(object entity, object requestedId, string entityName, object anything, IEventSource source)
 		{
 			return PerformSave(entity, requestedId, source.GetEntityPersister(entityName, entity), false, anything, source, true);
 		}
@@ -102,10 +102,10 @@ namespace NHibernate.Event.Default
 		/// The id used to save the entity; may be null depending on the
 		/// type of id generator used and the requiresImmediateIdAccess value
 		/// </returns>
-		protected virtual object SaveWithGeneratedId(object entity, string entityName, object anything, IEventSource source, bool requiresImmediateIdAccess)
+		protected virtual async Task<object> SaveWithGeneratedId(object entity, string entityName, object anything, IEventSource source, bool requiresImmediateIdAccess)
 		{
 			IEntityPersister persister = source.GetEntityPersister(entityName, entity);
-			object generatedId = persister.IdentifierGenerator.Generate(source, entity);
+			object generatedId = await persister.IdentifierGenerator.Generate(source, entity);
 			if (generatedId == null)
 			{
 				throw new IdentifierGenerationException("null id generated for:" + entity.GetType());
@@ -116,7 +116,7 @@ namespace NHibernate.Event.Default
 			}
 			else if (generatedId == IdentifierGeneratorFactory.PostInsertIndicator)
 			{
-				return PerformSave(entity, null, persister, true, anything, source, requiresImmediateIdAccess);
+				return await PerformSave(entity, null, persister, true, anything, source, requiresImmediateIdAccess);
 			}
 			else
 			{
@@ -126,7 +126,7 @@ namespace NHibernate.Event.Default
 						persister.IdentifierType.ToLoggableString(generatedId, source.Factory),
 						persister.IdentifierGenerator.GetType().FullName));
 				}
-				return PerformSave(entity, generatedId, persister, false, anything, source, true);
+				return await PerformSave(entity, generatedId, persister, false, anything, source, true);
 			}
 		}
 
@@ -150,7 +150,7 @@ namespace NHibernate.Event.Default
 		/// The id used to save the entity; may be null depending on the
 		/// type of id generator used and the requiresImmediateIdAccess value
 		/// </returns>
-		protected virtual object PerformSave(object entity, object id, IEntityPersister persister, bool useIdentityColumn, object anything, IEventSource source, bool requiresImmediateIdAccess)
+		protected virtual async Task<object> PerformSave(object entity, object id, IEntityPersister persister, bool useIdentityColumn, object anything, IEventSource source, bool requiresImmediateIdAccess)
 		{
 			if (log.IsDebugEnabled)
 			{
@@ -184,7 +184,7 @@ namespace NHibernate.Event.Default
 			{
 				return id; //EARLY EXIT
 			}
-			return PerformSaveOrReplicate(entity, key, persister, useIdentityColumn, anything, source, requiresImmediateIdAccess);
+			return await PerformSaveOrReplicate(entity, key, persister, useIdentityColumn, anything, source, requiresImmediateIdAccess);
 		}
 
 		/// <summary> 
@@ -205,7 +205,7 @@ namespace NHibernate.Event.Default
 		/// The id used to save the entity; may be null depending on the
 		/// type of id generator used and the requiresImmediateIdAccess value
 		/// </returns>
-		protected virtual object PerformSaveOrReplicate(object entity, EntityKey key, IEntityPersister persister, bool useIdentityColumn, object anything, IEventSource source, bool requiresImmediateIdAccess)
+		protected virtual async Task<object> PerformSaveOrReplicate(object entity, EntityKey key, IEntityPersister persister, bool useIdentityColumn, object anything, IEventSource source, bool requiresImmediateIdAccess)
 		{
 			Validate(entity, persister, source);
 
@@ -221,23 +221,23 @@ namespace NHibernate.Event.Default
 			// likewise, should it be done before onUpdate()?
 			source.PersistenceContext.AddEntry(entity, Status.Saving, null, null, id, null, LockMode.Write, useIdentityColumn, persister, false, false);
 
-			CascadeBeforeSave(source, persister, entity, anything);
+			await CascadeBeforeSave(source, persister, entity, anything);
 
 			// NH-962: This was originally done before many-to-one cascades.
 			if (useIdentityColumn && !shouldDelayIdentityInserts)
 			{
 				log.Debug("executing insertions");
-				source.ActionQueue.ExecuteInserts();
+				await source.ActionQueue.ExecuteInserts();
 			}
 
 			object[] values = persister.GetPropertyValuesToInsert(entity, GetMergeMap(anything), source);
 			IType[] types = persister.PropertyTypes;
 
-			bool substitute = SubstituteValuesIfNecessary(entity, id, values, persister, source);
+			bool substitute = await SubstituteValuesIfNecessary(entity, id, values, persister, source);
 
 			if (persister.HasCollections)
 			{
-				substitute = substitute || VisitCollectionsBeforeSave(entity, id, values, types, source);
+				substitute = substitute || await VisitCollectionsBeforeSave(entity, id, values, types, source);
 			}
 
 			if (substitute)
@@ -245,9 +245,9 @@ namespace NHibernate.Event.Default
 				persister.SetPropertyValues(entity, values, source.EntityMode);
 			}
 
-			TypeHelper.DeepCopy(values, types, persister.PropertyUpdateability, values, source);
+			await TypeHelper.DeepCopy(values, types, persister.PropertyUpdateability, values, source);
 
-			new ForeignKeys.Nullifier(entity, false, useIdentityColumn, source).NullifyTransientReferences(values, types);
+			await new ForeignKeys.Nullifier(entity, false, useIdentityColumn, source).NullifyTransientReferences(values, types);
 			new Nullability(source).CheckNullability(values, persister, false);
 
 			if (useIdentityColumn)
@@ -256,7 +256,7 @@ namespace NHibernate.Event.Default
 				if (!shouldDelayIdentityInserts)
 				{
 					log.Debug("executing identity-insert immediately");
-					source.ActionQueue.Execute(insert);
+					await source.ActionQueue.Execute(insert);
 					id = insert.GeneratedId;
 					//now done in EntityIdentityInsertAction
 					//persister.setIdentifier( entity, id, source.getEntityMode() );
@@ -290,7 +290,7 @@ namespace NHibernate.Event.Default
 				source.ActionQueue.AddAction(new EntityInsertAction(id, values, entity, version, persister, source));
 			}
 
-			CascadeAfterSave(source, persister, entity, anything);
+			await CascadeAfterSave(source, persister, entity, anything);
 
 			MarkInterceptorDirty(entity, persister, source);
 
@@ -311,11 +311,11 @@ namespace NHibernate.Event.Default
 			return null;
 		}
 
-		protected virtual bool VisitCollectionsBeforeSave(object entity, object id, object[] values, IType[] types, IEventSource source)
+		protected virtual async Task<bool> VisitCollectionsBeforeSave(object entity, object id, object[] values, IType[] types, IEventSource source)
 		{
 			WrapVisitor visitor = new WrapVisitor(source);
 			// substitutes into values by side-effect
-			visitor.ProcessEntityPropertyValues(values, types);
+			await visitor.ProcessEntityPropertyValues(values, types);
 			return visitor.SubstitutionRequired;
 		}
 
@@ -332,7 +332,7 @@ namespace NHibernate.Event.Default
 		/// True if the snapshot state changed such that
 		/// reinjection of the values into the entity is required.
 		/// </returns>
-		protected virtual bool SubstituteValuesIfNecessary(object entity, object id, object[] values, IEntityPersister persister, ISessionImplementor source)
+		protected virtual async Task<bool> SubstituteValuesIfNecessary(object entity, object id, object[] values, IEntityPersister persister, ISessionImplementor source)
 		{
 			bool substitute = source.Interceptor.OnSave(entity, id, values, persister.PropertyNames, persister.PropertyTypes);
 
@@ -341,7 +341,7 @@ namespace NHibernate.Event.Default
 			{
 				// NH Specific feature (H3.2 use null value for versionProperty; NH ask to persister to know if a valueType mean unversioned)
 				object versionValue = values[persister.VersionProperty];
-				substitute |= Versioning.SeedVersion(values, persister.VersionProperty, persister.VersionType, persister.IsUnsavedVersion(versionValue), source);
+				substitute |= await Versioning.SeedVersion(values, persister.VersionProperty, persister.VersionType, persister.IsUnsavedVersion(versionValue), source);
 			}
 			return substitute;
 		}
@@ -351,13 +351,13 @@ namespace NHibernate.Event.Default
 		/// <param name="persister">The entity's persister instance. </param>
 		/// <param name="entity">The entity to be saved. </param>
 		/// <param name="anything">Generally cascade-specific data </param>
-		protected virtual void CascadeBeforeSave(IEventSource source, IEntityPersister persister, object entity, object anything)
+		protected virtual async Task CascadeBeforeSave(IEventSource source, IEntityPersister persister, object entity, object anything)
 		{
 			// cascade-save to many-to-one BEFORE the parent is saved
 			source.PersistenceContext.IncrementCascadeLevel();
 			try
 			{
-				new Cascade(CascadeAction, CascadePoint.BeforeInsertAfterDelete, source).CascadeOn(persister, entity, anything);
+				await new Cascade(CascadeAction, CascadePoint.BeforeInsertAfterDelete, source).CascadeOn(persister, entity, anything);
 			}
 			finally
 			{
@@ -370,13 +370,13 @@ namespace NHibernate.Event.Default
 		/// <param name="persister">The entity's persister instance. </param>
 		/// <param name="entity">The entity being saved. </param>
 		/// <param name="anything">Generally cascade-specific data </param>
-		protected virtual void CascadeAfterSave(IEventSource source, IEntityPersister persister, object entity, object anything)
+		protected virtual async Task CascadeAfterSave(IEventSource source, IEntityPersister persister, object entity, object anything)
 		{
 			// cascade-save to collections AFTER the collection owner was saved
 			source.PersistenceContext.IncrementCascadeLevel();
 			try
 			{
-				new Cascade(CascadeAction, CascadePoint.AfterInsertBeforeDelete, source).CascadeOn(persister, entity, anything);
+				await new Cascade(CascadeAction, CascadePoint.AfterInsertBeforeDelete, source).CascadeOn(persister, entity, anything);
 			}
 			finally
 			{
@@ -392,7 +392,7 @@ namespace NHibernate.Event.Default
 		/// <param name="entry">The entity's entry in the persistence context </param>
 		/// <param name="source">The originating session. </param>
 		/// <returns> The state. </returns>
-		protected virtual EntityState GetEntityState(object entity, string entityName, EntityEntry entry, ISessionImplementor source)
+		protected virtual async Task<EntityState> GetEntityState(object entity, string entityName, EntityEntry entry, ISessionImplementor source)
 		{
 			if (entry != null)
 			{
@@ -422,7 +422,7 @@ namespace NHibernate.Event.Default
 				//the object is transient or detached
 				//the entity is not associated with the session, so
 				//try interceptor and unsaved-value
-				if (ForeignKeys.IsTransient(entityName, entity, AssumedUnsaved, source))
+				if (await ForeignKeys.IsTransient(entityName, entity, AssumedUnsaved, source))
 				{
 					if (log.IsDebugEnabled)
 					{

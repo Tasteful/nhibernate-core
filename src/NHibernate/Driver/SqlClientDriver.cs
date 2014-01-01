@@ -1,5 +1,6 @@
 using System.Data;
 using System.Data.SqlClient;
+using System.Threading.Tasks;
 using NHibernate.AdoNet;
 using NHibernate.Dialect;
 using NHibernate.Engine;
@@ -183,6 +184,24 @@ namespace NHibernate.Driver
 		public override bool SupportsMultipleQueries
 		{
 			get { return true; }
+		}
+
+		public override Task<int> ExecuteNonQueryAsync(IDbCommand command)
+		{
+			var cmd = (System.Data.SqlClient.SqlCommand)command;
+			return cmd.ExecuteNonQueryAsync();
+		}
+
+		public override async Task<IDataReader> ExecuteReaderAsync(IDbCommand command)
+		{
+			var cmd = (System.Data.SqlClient.SqlCommand)command;
+			return await cmd.ExecuteReaderAsync();
+		}
+
+		public override Task<object> ExecuteScalarAsync(IDbCommand command)
+		{
+			var cmd = (System.Data.SqlClient.SqlCommand)command;
+			return cmd.ExecuteScalarAsync();
 		}
 	}
 }

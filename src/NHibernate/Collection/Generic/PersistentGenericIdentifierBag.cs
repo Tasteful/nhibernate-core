@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.Data;
 using System.Diagnostics;
 using System.Linq;
+using System.Threading.Tasks;
 using NHibernate.DebugHelpers;
 using NHibernate.Engine;
 using NHibernate.Id;
@@ -67,15 +68,15 @@ namespace NHibernate.Collection.Generic
 		/// <param name="persister">The CollectionPersister to use to reassemble the PersistentIdentifierBag.</param>
 		/// <param name="disassembled">The disassembled PersistentIdentifierBag.</param>
 		/// <param name="owner">The owner object.</param>
-		public override void InitializeFromCache(ICollectionPersister persister, object disassembled, object owner)
+		public override async Task InitializeFromCache(ICollectionPersister persister, object disassembled, object owner)
 		{
 			object[] array = (object[])disassembled;
 			int size = array.Length;
 			BeforeInitialize(persister, size);
 			for (int i = 0; i < size; i += 2)
 			{
-				identifiers[i / 2] = persister.IdentifierType.Assemble(array[i], Session, owner);
-				values.Add((T) persister.ElementType.Assemble(array[i + 1], Session, owner));
+				identifiers[i / 2] = await persister.IdentifierType.Assemble(array[i], Session, owner);
+				values.Add((T) await persister.ElementType.Assemble(array[i + 1], Session, owner));
 			}
 		}
 
@@ -97,7 +98,7 @@ namespace NHibernate.Collection.Generic
 			return values == collection;
 		}
 
-		public override object Disassemble(ICollectionPersister persister)
+		public override async Task<object> Disassemble(ICollectionPersister persister)
 		{
 			object[] result = new object[values.Count * 2];
 
@@ -105,8 +106,8 @@ namespace NHibernate.Collection.Generic
 			for (int j = 0; j < values.Count; j++)
 			{
 				object val = values[j];
-				result[i++] = persister.IdentifierType.Disassemble(identifiers[j], Session, null);
-				result[i++] = persister.ElementType.Disassemble(val, Session, null);
+				result[i++] = await persister.IdentifierType.Disassemble(identifiers[j], Session, null);
+				result[i++] = await persister.ElementType.Disassemble(val, Session, null);
 			}
 
 			return result;
@@ -127,7 +128,7 @@ namespace NHibernate.Collection.Generic
 			return entry != null;
 		}
 
-		public override bool EqualsSnapshot(ICollectionPersister persister)
+		public override async Task<bool> EqualsSnapshot(ICollectionPersister persister)
 		{
 			IType elementType = persister.ElementType;
 			var snap = (ISet<SnapshotElement>)GetSnapshot();
@@ -140,7 +141,7 @@ namespace NHibernate.Collection.Generic
 				object val = values[i];
 				object id = GetIdentifier(i);
 				object old = snap.Where(x => Equals(x.Id, id)).Select(x => x.Value).FirstOrDefault();
-				if (elementType.IsDirty(old, val, Session))
+				if (await elementType.IsDirty(old, val, Session))
 				{
 					return false;
 				}
@@ -154,7 +155,7 @@ namespace NHibernate.Collection.Generic
 			return ((ISet<SnapshotElement>)snapshot).Count == 0;
 		}
 
-		public override IEnumerable GetDeletes(ICollectionPersister persister, bool indexIsFormula)
+		public override Task<IEnumerable> GetDeletes(ICollectionPersister persister, bool indexIsFormula)
 		{
 			var snap = (ISet<SnapshotElement>)GetSnapshot();
 			ArrayList deletes = new ArrayList(snap.Select(x => x.Id).ToArray());
@@ -165,7 +166,7 @@ namespace NHibernate.Collection.Generic
 					deletes.Remove(GetIdentifier(i));
 				}
 			}
-			return deletes;
+			return Task.FromResult<IEnumerable>(deletes);
 		}
 
 		public override object GetIndex(object entry, int i, ICollectionPersister persister)
@@ -185,16 +186,16 @@ namespace NHibernate.Collection.Generic
 			return snap.Where(x => Equals(x.Id, id)).Select(x => x.Value).FirstOrDefault();
 		}
 
-		public override bool NeedsInserting(object entry, int i, IType elemType)
+		public override Task<bool> NeedsInserting(object entry, int i, IType elemType)
 		{
 			var snap = (ISet<SnapshotElement>)GetSnapshot();
 			object id = GetIdentifier(i);
 			object valueFound = snap.Where(x => Equals(x.Id, id)).Select(x => x.Value).FirstOrDefault();
 
-			return entry != null && (id == null || valueFound == null);
+			return Task.FromResult(entry != null && (id == null || valueFound == null));
 		}
 
-		public override bool NeedsUpdating(object entry, int i, IType elemType)
+		public override async Task<bool> NeedsUpdating(object entry, int i, IType elemType)
 		{
 			if (entry == null)
 			{
@@ -209,13 +210,13 @@ namespace NHibernate.Collection.Generic
 			}
 
 			object old = snap.Where(x => Equals(x.Id, id)).Select(x => x.Value).FirstOrDefault();
-			return old != null && elemType.IsDirty(old, entry, Session);
+			return old != null && await elemType.IsDirty(old, entry, Session);
 		}
 
-		public override object ReadFrom(IDataReader reader, ICollectionPersister persister, ICollectionAliases descriptor, object owner)
+		public override async Task<object> ReadFrom(IDataReader reader, ICollectionPersister persister, ICollectionAliases descriptor, object owner)
 		{
-			object element = persister.ReadElement(reader, owner, descriptor.SuffixedElementAliases, Session);
-			object id = persister.ReadIdentifier(reader, descriptor.SuffixedIdentifierAlias, Session);
+			object element = await persister.ReadElement(reader, owner, descriptor.SuffixedElementAliases, Session);
+			object id = await persister.ReadIdentifier(reader, descriptor.SuffixedIdentifierAlias, Session);
 
 			// eliminate duplication if loaded in a cartesian product
 			if (!identifiers.ContainsValue(id))
@@ -226,7 +227,7 @@ namespace NHibernate.Collection.Generic
 			return element;
 		}
 
-		public override object GetSnapshot(ICollectionPersister persister)
+		public override async Task<object> GetSnapshot(ICollectionPersister persister)
 		{
 			EntityMode entityMode = Session.EntityMode;
 
@@ -236,19 +237,19 @@ namespace NHibernate.Collection.Generic
 			{
 				object id;
 				identifiers.TryGetValue(i++, out id);
-				var valueCopy = persister.ElementType.DeepCopy(value, entityMode, persister.Factory);
+				var valueCopy = await persister.ElementType.DeepCopy(value, entityMode, persister.Factory);
 				map.Add(new SnapshotElement { Id = id, Value = valueCopy });
 			}
 			return map;
 		}
 
-		public override ICollection GetOrphans(object snapshot, string entityName)
+		public override Task<ICollection> GetOrphans(object snapshot, string entityName)
 		{
 			var sn = (ISet<SnapshotElement>)GetSnapshot();
 			return GetOrphans(sn.Select(x => x.Value).ToArray(), (ICollection) values, entityName, Session);
 		}
 
-		public override void PreInsert(ICollectionPersister persister)
+		public override async Task PreInsert(ICollectionPersister persister)
 		{
 			if ((persister.IdentifierGenerator as IPostInsertIdentifierGenerator) != null)
 			{
@@ -263,7 +264,7 @@ namespace NHibernate.Collection.Generic
 					int loc = i++;
 					if (!identifiers.ContainsKey(loc)) // TODO: native ids
 					{
-						object id = persister.IdentifierGenerator.Generate(Session, entry);
+						object id = await persister.IdentifierGenerator.Generate(Session, entry);
 						identifiers[loc] = id;
 					}
 				}
@@ -328,7 +329,7 @@ namespace NHibernate.Collection.Generic
 
 		public void Clear()
 		{
-			Initialize(true);
+			Initialize(true).WaitAndUnwrapException();
 			if (values.Count > 0 || identifiers.Count > 0)
 			{
 				values.Clear();
@@ -457,7 +458,7 @@ namespace NHibernate.Collection.Generic
 
 		public bool Remove(T item)
 		{
-			Initialize(true);
+			Initialize(true).WaitAndUnwrapException();
 			int index = values.IndexOf(item);
 			if (index >= 0)
 			{

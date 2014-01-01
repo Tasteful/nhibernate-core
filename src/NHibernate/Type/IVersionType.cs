@@ -1,4 +1,5 @@
 using System.Collections;
+using System.Threading.Tasks;
 using NHibernate.Engine;
 
 namespace NHibernate.Type
@@ -14,14 +15,14 @@ namespace NHibernate.Type
 		/// <param name="current">The current version</param>
 		/// <param name="session">The current session, if available.</param>
 		/// <returns>an instance of the <see cref="IType"/> that has been incremented.</returns>
-		object Next(object current, ISessionImplementor session);
+		Task<object> Next(object current, ISessionImplementor session);
 
 		/// <summary>
 		/// When implemented by a class, gets an initial version.
 		/// </summary>
 		/// <param name="session">The current session, if available.</param>
 		/// <returns>An instance of the type.</returns>
-		object Seed(ISessionImplementor session);
+		Task<object> Seed(ISessionImplementor session);
 
 		/// <summary> 
 		/// Are the two version values considered equal? 

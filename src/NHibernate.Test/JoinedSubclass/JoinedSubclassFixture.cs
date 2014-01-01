@@ -1,5 +1,6 @@
 using System;
 using System.Collections;
+using System.Threading.Tasks;
 using NHibernate.Criterion;
 using NUnit.Framework;
 
@@ -127,7 +128,7 @@ namespace NHibernate.Test.JoinedSubclass
 			// get a proxied - initialized version of manager
 			s = OpenSession();
 			pointyhair = (Employee) s.Load(typeof(Employee), pointyhair.Id);
-			NHibernateUtil.Initialize(pointyhair);
+			NHibernateUtil.Initialize(pointyhair).Wait();
 			s.Close();
 
 			s = OpenSession();

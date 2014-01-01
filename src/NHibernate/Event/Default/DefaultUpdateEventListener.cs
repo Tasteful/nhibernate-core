@@ -1,4 +1,5 @@
 using System;
+using System.Threading.Tasks;
 using NHibernate.Engine;
 using NHibernate.Persister.Entity;
 
@@ -8,7 +9,7 @@ namespace NHibernate.Event.Default
 	[Serializable]
 	public class DefaultUpdateEventListener : DefaultSaveOrUpdateEventListener
 	{
-		protected override object PerformSaveOrUpdate(SaveOrUpdateEvent @event)
+		protected override async Task<object> PerformSaveOrUpdate(SaveOrUpdateEvent @event)
 		{
 			// this implementation is supposed to tolerate incorrect unsaved-value
 			// mappings, for the purpose of backward-compatibility
@@ -26,12 +27,12 @@ namespace NHibernate.Event.Default
 			}
 			else
 			{
-				EntityIsDetached(@event);
+				await EntityIsDetached(@event);
 				return null;
 			}
 		}
 
-		protected override object SaveWithGeneratedOrRequestedId(SaveOrUpdateEvent @event)
+		protected override Task<object> SaveWithGeneratedOrRequestedId(SaveOrUpdateEvent @event)
 		{
 			return SaveWithGeneratedId(@event.Entity, @event.EntityName, null, @event.Session, true);
 		}

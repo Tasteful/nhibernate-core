@@ -1,6 +1,7 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Threading.Tasks;
 using NHibernate.Criterion;
 using NHibernate.Test.SecondLevelCacheTests;
 using NUnit.Framework;
@@ -241,7 +242,7 @@ namespace NHibernate.Test.QueryTest
 		}
 
 		[Test]
-		public void CanAddCriteriaWithKeyAndRetrieveResultsWithKey()
+		public async Task CanAddCriteriaWithKeyAndRetrieveResultsWithKey()
 		{
 			CreateItems();
 
@@ -257,15 +258,15 @@ namespace NHibernate.Test.QueryTest
 				multiCriteria.Add("firstCriteria", firstCriteria);
 				multiCriteria.Add("secondCriteria", secondCriteria);
 
-				var secondResult = (IList)multiCriteria.GetResult("secondCriteria");
-				var firstResult = (IList)multiCriteria.GetResult("firstCriteria");
+				var secondResult = (IList)await multiCriteria.GetResult("secondCriteria");
+				var firstResult = (IList)await multiCriteria.GetResult("firstCriteria");
 
 				Assert.Greater(secondResult.Count, firstResult.Count);
 			}
 		}
 
 		[Test]
-		public void CanAddDetachedCriteriaWithKeyAndRetrieveResultsWithKey()
+		public async Task CanAddDetachedCriteriaWithKeyAndRetrieveResultsWithKey()
 		{
 			CreateItems();
 
@@ -281,8 +282,8 @@ namespace NHibernate.Test.QueryTest
 				multiCriteria.Add("firstCriteria", firstCriteria);
 				multiCriteria.Add("secondCriteria", secondCriteria);
 
-				var secondResult = (IList)multiCriteria.GetResult("secondCriteria");
-				var firstResult = (IList)multiCriteria.GetResult("firstCriteria");
+				var secondResult = (IList)await multiCriteria.GetResult("secondCriteria");
+				var firstResult = (IList)await multiCriteria.GetResult("firstCriteria");
 
 				Assert.Greater(secondResult.Count, firstResult.Count);
 			}
@@ -347,7 +348,7 @@ namespace NHibernate.Test.QueryTest
 		}
 
 		[Test]
-		public void CanNotRetrieveCriteriaResultWithUnknownKey()
+		public async Task CanNotRetrieveCriteriaResultWithUnknownKey()
 		{
 			CreateItems();
 
@@ -362,7 +363,7 @@ namespace NHibernate.Test.QueryTest
 
 				try
 				{
-					multiCriteria.GetResult("unknownKey");
+					await multiCriteria.GetResult("unknownKey");
 					Assert.Fail("This should've thrown an InvalidOperationException");
 				}
 				catch (InvalidOperationException)
@@ -376,7 +377,7 @@ namespace NHibernate.Test.QueryTest
 		}
 
 		[Test]
-		public void CanNotRetrieveDetachedCriteriaResultWithUnknownKey()
+		public async Task CanNotRetrieveDetachedCriteriaResultWithUnknownKey()
 		{
 			CreateItems();
 
@@ -391,7 +392,7 @@ namespace NHibernate.Test.QueryTest
 
 				try
 				{
-					multiCriteria.GetResult("unknownKey");
+					await multiCriteria.GetResult("unknownKey");
 					Assert.Fail("This should've thrown an InvalidOperationException");
 				}
 				catch (InvalidOperationException)

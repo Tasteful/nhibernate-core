@@ -1,3 +1,4 @@
+using System.Threading.Tasks;
 using NHibernate.Cache;
 using NHibernate.Cache.Entry;
 using NHibernate.Engine;
@@ -282,7 +283,7 @@ namespace NHibernate.Persister.Entity
 		/// <param name="entity">The entity for which we are checking state dirtiness. </param>
 		/// <param name="session">The session in which the check is ccurring. </param>
 		/// <returns> <see langword="null" /> or the indices of the dirty properties </returns>
-		int[] FindDirty(object[] currentState, object[] previousState, object entity, ISessionImplementor session);
+		Task<int[]> FindDirty(object[] currentState, object[] previousState, object entity, ISessionImplementor session);
 
 		/// <summary> Locate the property-indices of all properties considered to be dirty. </summary>
 		/// <param name="old">The old state of the entity.</param>
@@ -290,7 +291,7 @@ namespace NHibernate.Persister.Entity
 		/// <param name="entity">The entity for which we are checking state modification. </param>
 		/// <param name="session">The session in which the check is ccurring. </param>
 		/// <returns>return <see langword="null" /> or the indicies of the modified properties</returns>
-		int[] FindModified(object[] old, object[] current, object entity, ISessionImplementor session);
+		Task<int[]> FindModified(object[] old, object[] current, object entity, ISessionImplementor session);
 
 		/// <summary>
 		/// Does the class have a property holding the identifier value?
@@ -327,7 +328,7 @@ namespace NHibernate.Persister.Entity
 		/// The session from which the request originated.
 		/// </param>
 		/// <returns> The natural-id snapshot. </returns>
-		object[] GetNaturalIdentifierSnapshot(object id, ISessionImplementor session);
+		Task<object[]> GetNaturalIdentifierSnapshot(object id, ISessionImplementor session);
 
 		/// <summary> 
 		/// Determine whether this entity defines any lazy properties (ala
@@ -341,27 +342,27 @@ namespace NHibernate.Persister.Entity
 		/// <summary>
 		/// Load an instance of the persistent class.
 		/// </summary>
-		object Load(object id, object optionalObject, LockMode lockMode, ISessionImplementor session);
+		Task<object> Load(object id, object optionalObject, LockMode lockMode, ISessionImplementor session);
 
 		/// <summary>
 		/// Do a version check (optional operation)
 		/// </summary>
-		void Lock(object id, object version, object obj, LockMode lockMode, ISessionImplementor session);
+		Task Lock(object id, object version, object obj, LockMode lockMode, ISessionImplementor session);
 
 		/// <summary>
 		/// Persist an instance
 		/// </summary>
-		void Insert(object id, object[] fields, object obj, ISessionImplementor session);
+		Task Insert(object id, object[] fields, object obj, ISessionImplementor session);
 
 		/// <summary>
 		/// Persist an instance, using a natively generated identifier (optional operation)
 		/// </summary>
-		object Insert(object[] fields, object obj, ISessionImplementor session);
+		Task<object> Insert(object[] fields, object obj, ISessionImplementor session);
 
 		/// <summary>
 		/// Delete a persistent instance
 		/// </summary>
-		void Delete(object id, object version, object obj, ISessionImplementor session);
+		Task Delete(object id, object version, object obj, ISessionImplementor session);
 
 		/// <summary>
 		/// Update a persistent instance
@@ -375,7 +376,7 @@ namespace NHibernate.Persister.Entity
 		/// <param name="obj">The obj.</param>
 		/// <param name="rowId">The rowId</param>
 		/// <param name="session">The session.</param>
-		void Update(object id, object[] fields, int[] dirtyFields, bool hasDirtyCollection, object[] oldFields,
+		Task Update(object id, object[] fields, int[] dirtyFields, bool hasDirtyCollection, object[] oldFields,
 								object oldVersion, object obj, object rowId, ISessionImplementor session);
 
 		/// <summary>
@@ -398,7 +399,7 @@ namespace NHibernate.Persister.Entity
 		/// <param name="id"></param>
 		/// <param name="session"></param>
 		/// <returns><see langword="null" /> if select-before-update is not enabled or not supported</returns>
-		object[] GetDatabaseSnapshot(object id, ISessionImplementor session);
+		Task<object[]> GetDatabaseSnapshot(object id, ISessionImplementor session);
 
 		/// <summary>
 		/// Get the current version of the object, or return null if there is no row for
@@ -408,9 +409,9 @@ namespace NHibernate.Persister.Entity
 		/// <param name="id"></param>
 		/// <param name="session"></param>
 		/// <returns></returns>
-		object GetCurrentVersion(object id, ISessionImplementor session);
+		Task<object> GetCurrentVersion(object id, ISessionImplementor session);
 
-		object ForceVersionIncrement(object id, object currentVersion, ISessionImplementor session);
+		Task<object> ForceVersionIncrement(object id, object currentVersion, ISessionImplementor session);
 
 		/// <summary> Try to discover the entity mode from the entity instance</summary>
 		EntityMode? GuessEntityMode(object obj);
@@ -466,7 +467,7 @@ namespace NHibernate.Persister.Entity
 		/// <param name="entity">The entity for which to get the state.</param>
 		/// <param name="state">The entity state (at the time of Save).</param>
 		/// <param name="session">The session.</param>
-		void ProcessInsertGeneratedProperties(object id, object entity, object[] state, ISessionImplementor session);
+		Task ProcessInsertGeneratedProperties(object id, object entity, object[] state, ISessionImplementor session);
 
 		/// <summary>
 		/// Perform a select to retrieve the values of any generated properties
@@ -482,7 +483,7 @@ namespace NHibernate.Persister.Entity
 		/// <param name="entity">The entity for which to get the state.</param>
 		/// <param name="state">The entity state (at the time of Save).</param>
 		/// <param name="session">The session.</param>
-		void ProcessUpdateGeneratedProperties(object id, object entity, object[] state, ISessionImplementor session);
+		Task ProcessUpdateGeneratedProperties(object id, object entity, object[] state, ISessionImplementor session);
 
 		#endregion
 

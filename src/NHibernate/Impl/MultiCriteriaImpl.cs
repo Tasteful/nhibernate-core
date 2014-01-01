@@ -2,6 +2,7 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.Threading.Tasks;
 using NHibernate.Cache;
 using NHibernate.Criterion;
 using NHibernate.Driver;
@@ -60,6 +61,10 @@ namespace NHibernate.Impl
 
 		public IList List()
 		{
+			return ListAsync().WaitAndUnwrapException();
+		}
+		public async Task<IList> ListAsync()
+		{
 			using (new SessionIdLoggingContext(session.SessionId))
 			{
 				bool cacheable = session.Factory.Settings.IsQueryCacheEnabled && isCacheable;
@@ -78,18 +83,18 @@ namespace NHibernate.Impl
 
 				if (cacheable)
 				{
-					criteriaResults = ListUsingQueryCache();
+					criteriaResults = await ListUsingQueryCache();
 				}
 				else
 				{
-					criteriaResults = ListIgnoreQueryCache();
+					criteriaResults = await ListIgnoreQueryCache();
 				}
 
 				return criteriaResults;
 			}
 		}
 
-		private IList ListUsingQueryCache()
+		private async Task<IList> ListUsingQueryCache()
 		{
 			IQueryCache queryCache = session.Factory.GetQueryCache(cacheRegion);
 
@@ -114,7 +119,7 @@ namespace NHibernate.Impl
 				.SetMaxRows(maxRows);
 
 			IList result =
-				assembler.GetResultFromQueryCache(session,
+				await assembler.GetResultFromQueryCache(session,
 												  combinedParameters,
 												  querySpaces,
 												  queryCache,
@@ -123,17 +128,17 @@ namespace NHibernate.Impl
 			if (result == null)
 			{
 				log.Debug("Cache miss for multi criteria query");
-				IList list = DoList();
-				queryCache.Put(key, new ICacheAssembler[] { assembler }, new object[] { list }, combinedParameters.NaturalKeyLookup, session);
+				IList list = await DoList();
+				await queryCache.Put(key, new ICacheAssembler[] { assembler }, new object[] { list }, combinedParameters.NaturalKeyLookup, session);
 				result = list;
 			}
 
 			return GetResultList(result);
 		}
 
-		private IList ListIgnoreQueryCache()
+		private async Task<IList> ListIgnoreQueryCache()
 		{
-			return GetResultList(DoList());
+			return GetResultList(await DoList());
 		}
 
 		protected virtual IList GetResultList(IList results)
@@ -170,10 +175,10 @@ namespace NHibernate.Impl
 			return resultCollections;
 		}
 
-		private IList DoList()
+		private async Task<IList> DoList()
 		{
 			List<IList> results = new List<IList>();
-			GetResultsFromDatabase(results);
+			await GetResultsFromDatabase(results);
 			return results;
 		}
 
@@ -190,7 +195,7 @@ namespace NHibernate.Impl
 			}
 		}
 
-		private void GetResultsFromDatabase(IList results)
+		private async Task GetResultsFromDatabase(IList results)
 		{
 			bool statsEnabled = session.Factory.Statistics.IsStatisticsEnabled;
 			var stopWatch = new Stopwatch();
@@ -202,7 +207,7 @@ namespace NHibernate.Impl
 
 			try
 			{
-				using (var reader = resultSetsCommand.GetReader(null))
+				using (var reader = await resultSetsCommand.GetReader(null))
 				{
 					var hydratedObjects = new List<object>[loaders.Count];
 					List<EntityKey[]>[] subselectResultKeys = new List<EntityKey[]>[loaders.Count];
@@ -230,7 +235,7 @@ namespace NHibernate.Impl
 							rowCount++;
 
 							object o =
-								loader.GetRowFromResultSet(reader, session, queryParameters, loader.GetLockModes(queryParameters.LockModes),
+								await loader.GetRowFromResultSet(reader, session, queryParameters, loader.GetLockModes(queryParameters.LockModes),
 																					 null, hydratedObjects[i], keys, true);
 							if (createSubselects[i])
 							{
@@ -247,7 +252,7 @@ namespace NHibernate.Impl
 					for (int i = 0; i < loaders.Count; i++)
 					{
 						CriteriaLoader loader = loaders[i];
-						loader.InitializeEntitiesAndCollections(hydratedObjects[i], reader, session, false);
+						await loader.InitializeEntitiesAndCollections(hydratedObjects[i], reader, session, false);
 
 						if (createSubselects[i])
 						{
@@ -409,9 +414,9 @@ namespace NHibernate.Impl
 			return this;
 		}
 
-		public object GetResult(string key)
+		public async Task<object> GetResult(string key)
 		{
-			if (criteriaResults == null) List();
+			if (criteriaResults == null) await ListAsync();
 
 			int criteriaResultPosition;
 			if (!criteriaResultPositions.TryGetValue(key, out criteriaResultPosition))

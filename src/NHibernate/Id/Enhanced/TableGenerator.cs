@@ -2,6 +2,7 @@
 using System.Data;
 using System.Collections.Generic;
 using System.Runtime.CompilerServices;
+using System.Threading.Tasks;
 using NHibernate.Engine;
 using NHibernate.Mapping;
 using NHibernate.Type;
@@ -241,9 +242,11 @@ namespace NHibernate.Id.Enhanced
 
 
 		/// <summary>
-		///  Determine the table name to use for the generator values. Called during configuration.
+		/// Determine the table name to use for the generator values. Called during configuration.
 		/// </summary>
 		/// <param name="parms">The parameters supplied in the generator config (plus some standard useful extras).</param>
+		/// <param name="dialect">The dialect.</param>
+		/// <returns>System.String.</returns>
 		protected string DetermineGeneratorTableName(IDictionary<string, string> parms, Dialect.Dialect dialect)
 		{
 			string name = PropertiesHelper.GetString(TableParam, parms, DefaultTable);
@@ -277,6 +280,8 @@ namespace NHibernate.Id.Enhanced
 		/// Called during configuration.
 		/// </summary>
 		/// <param name="parms">The parameters supplied in the generator config (plus some standard useful extras).</param>
+		/// <param name="dialect">The dialect.</param>
+		/// <returns>System.String.</returns>
 		protected string DetermineSegmentColumnName(IDictionary<string, string> parms, Dialect.Dialect dialect)
 		{
 			// NHibernate doesn't seem to have anything resembling this ObjectNameNormalizer. Ignore that for now.
@@ -402,7 +407,7 @@ namespace NHibernate.Id.Enhanced
 
 
 		[MethodImpl(MethodImplOptions.Synchronized)]
-		public virtual object Generate(ISessionImplementor session, object obj)
+		public virtual Task<object> Generate(ISessionImplementor session, object obj)
 		{
 			return Optimizer.Generate(new TableAccessCallback(session, this));
 		}
@@ -421,16 +426,16 @@ namespace NHibernate.Id.Enhanced
 
 			#region IAccessCallback Members
 
-			public long GetNextValue()
+			public async Task<long> GetNextValue()
 			{
-				return Convert.ToInt64(owner.DoWorkInNewTransaction(session));
+				return Convert.ToInt64(await owner.DoWorkInNewTransaction(session));
 			}
 
 			#endregion
 		}
 
 
-		public override object DoWorkInCurrentTransaction(ISessionImplementor session, System.Data.IDbConnection conn, System.Data.IDbTransaction transaction)
+		public override async Task<object> DoWorkInCurrentTransaction(ISessionImplementor session, System.Data.IDbConnection conn, System.Data.IDbTransaction transaction)
 		{
 			long result;
 			int updatedRows;
@@ -449,8 +454,7 @@ namespace NHibernate.Id.Enhanced
 						string s = selectCmd.CommandText;
 						((IDataParameter)selectCmd.Parameters[0]).Value = SegmentValue;
 						PersistentIdGeneratorParmsNames.SqlStatementLogger.LogCommand(selectCmd, FormatStyle.Basic);
-
-						selectedValue = selectCmd.ExecuteScalar();
+						selectedValue = await session.Factory.ConnectionProvider.Driver.ExecuteScalarAsync(selectCmd);
 					}
 
 					if (selectedValue == null)
@@ -467,7 +471,7 @@ namespace NHibernate.Id.Enhanced
 							((IDataParameter)insertCmd.Parameters[1]).Value = result;
 
 							PersistentIdGeneratorParmsNames.SqlStatementLogger.LogCommand(insertCmd, FormatStyle.Basic);
-							insertCmd.ExecuteNonQuery();
+							await session.Factory.ConnectionProvider.Driver.ExecuteNonQueryAsync(insertCmd);
 						}
 					}
 					else
@@ -495,7 +499,7 @@ namespace NHibernate.Id.Enhanced
 						((IDataParameter)updateCmd.Parameters[1]).Value = result;
 						((IDataParameter)updateCmd.Parameters[2]).Value = SegmentValue;
 						PersistentIdGeneratorParmsNames.SqlStatementLogger.LogCommand(updateCmd, FormatStyle.Basic);
-						updatedRows = updateCmd.ExecuteNonQuery();
+						updatedRows = await session.Factory.ConnectionProvider.Driver.ExecuteNonQueryAsync(updateCmd);
 					}
 				}
 				catch (Exception ex)

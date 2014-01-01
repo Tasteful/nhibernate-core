@@ -3,6 +3,7 @@ using System.Collections;
 using System.Collections.Generic;
 using System.IO;
 using System.Reflection;
+using System.Threading.Tasks;
 using NHibernate;
 using NHibernate.Cfg;
 using NHibernate.Criterion;
@@ -332,7 +333,7 @@ namespace NHibernate.Test.Component.Basic
 			using (ITransaction t = s.BeginTransaction())
 			{
 				emp = (Employee)s.Get(typeof(Employee), emp.Id);
-				NHibernateUtil.Initialize(emp.DirectReports);
+				NHibernateUtil.Initialize(emp.DirectReports).Wait();
 				t.Commit();
 				s.Close();
 			}
@@ -358,7 +359,7 @@ namespace NHibernate.Test.Component.Basic
 			using (ITransaction t = s.BeginTransaction())
 			{
 				emp = (Employee)s.Get(typeof(Employee), emp.Id);
-				NHibernateUtil.Initialize(emp.DirectReports);
+				NHibernateUtil.Initialize(emp.DirectReports).Wait();
 				t.Commit();
 				s.Close();
 			}
@@ -386,7 +387,7 @@ namespace NHibernate.Test.Component.Basic
 			using (ITransaction t = s.BeginTransaction())
 			{
 				emp = (Employee)s.Get(typeof(Employee), emp.Id);
-				NHibernateUtil.Initialize(emp.DirectReports);
+				NHibernateUtil.Initialize(emp.DirectReports).Wait();
 				t.Commit();
 				s.Close();
 			}
@@ -414,7 +415,7 @@ namespace NHibernate.Test.Component.Basic
 			using (ITransaction t = s.BeginTransaction())
 			{
 				emp = (Employee)s.Get(typeof(Employee), emp.Id);
-				NHibernateUtil.Initialize(emp.DirectReports);
+				NHibernateUtil.Initialize(emp.DirectReports).Wait();
 				t.Commit();
 				s.Close();
 			}

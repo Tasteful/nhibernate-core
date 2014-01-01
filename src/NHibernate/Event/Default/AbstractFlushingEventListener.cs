@@ -2,7 +2,7 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Text;
-
+using System.Threading.Tasks;
 using NHibernate.Action;
 using NHibernate.Collection;
 using NHibernate.Engine;
@@ -36,7 +36,7 @@ namespace NHibernate.Event.Default
 		/// entities and collections to their respective execution queues. 
 		/// </summary>
 		/// <param name="event">The flush event.</param>
-		protected virtual void FlushEverythingToExecutions(FlushEvent @event)
+		protected virtual async Task FlushEverythingToExecutions(FlushEvent @event)
 		{
 			log.Debug("flushing session");
 
@@ -45,11 +45,11 @@ namespace NHibernate.Event.Default
 
 			session.Interceptor.PreFlush((ICollection) persistenceContext.EntitiesByKey.Values);
 
-			PrepareEntityFlushes(session);
+			await PrepareEntityFlushes(session);
 			// we could move this inside if we wanted to
 			// tolerate collection initializations during
 			// collection dirty checking:
-			PrepareCollectionFlushes(session);
+			await PrepareCollectionFlushes(session);
 			// now, any collections that are initialized
 			// inside this block do not get updated - they
 			// are ignored until the next flush
@@ -57,8 +57,8 @@ namespace NHibernate.Event.Default
 			persistenceContext.Flushing = true;
 			try
 			{
-				FlushEntities(@event);
-				FlushCollections(session);
+				await FlushEntities(@event);
+				await FlushCollections(session);
 			}
 			finally
 			{
@@ -84,7 +84,7 @@ namespace NHibernate.Event.Default
 			}
 		}
 
-		protected virtual void FlushCollections(IEventSource session)
+		protected virtual async Task FlushCollections(IEventSource session)
 		{
 			log.Debug("Processing unreferenced collections");
 
@@ -94,7 +94,7 @@ namespace NHibernate.Event.Default
 				CollectionEntry ce = (CollectionEntry) me.Value;
 				if (!ce.IsReached && !ce.IsIgnore)
 				{
-					Collections.ProcessUnreachableCollection((IPersistentCollection) me.Key, session);
+					await Collections.ProcessUnreachableCollection((IPersistentCollection) me.Key, session);
 				}
 			}
 
@@ -133,7 +133,7 @@ namespace NHibernate.Event.Default
 		// 1. detect any dirty entities
 		// 2. schedule any entity updates
 		// 3. search out any reachable collections
-		protected virtual void FlushEntities(FlushEvent @event)
+		protected virtual async Task FlushEntities(FlushEvent @event)
 		{
 			log.Debug("Flushing entities and processing referenced collections");
 
@@ -158,7 +158,7 @@ namespace NHibernate.Event.Default
 					IFlushEntityEventListener[] listeners = source.Listeners.FlushEntityEventListeners;
 					foreach (IFlushEntityEventListener listener in listeners)
 					{
-						listener.OnFlushEntity(entityEvent);
+						await listener.OnFlushEntity(entityEvent);
 					}
 				}
 			}
@@ -166,7 +166,7 @@ namespace NHibernate.Event.Default
 		}
 
 		// Initialize the flags of the CollectionEntry, including the dirty check.
-		protected virtual void PrepareCollectionFlushes(ISessionImplementor session)
+		protected virtual async Task PrepareCollectionFlushes(ISessionImplementor session)
 		{
 			// Initialize dirty flags for arrays + collections with composite elements
 			// and reset reached, doupdate, etc.
@@ -175,14 +175,14 @@ namespace NHibernate.Event.Default
 			ICollection list = IdentityMap.Entries(session.PersistenceContext.CollectionEntries);
 			foreach (DictionaryEntry entry in list)
 			{
-				((CollectionEntry) entry.Value).PreFlush((IPersistentCollection) entry.Key);
+				await ((CollectionEntry) entry.Value).PreFlush((IPersistentCollection) entry.Key);
 			}
 		}
 
 		//process cascade save/update at the start of a flush to discover
 		//any newly referenced entity that must be passed to saveOrUpdate(),
 		//and also apply orphan delete
-		protected virtual void PrepareEntityFlushes(IEventSource session)
+		protected virtual async Task PrepareEntityFlushes(IEventSource session)
 		{
 			log.Debug("processing flush-time cascades");
 
@@ -194,17 +194,17 @@ namespace NHibernate.Event.Default
 				Status status = entry.Status;
 				if (status == Status.Loaded || status == Status.Saving || status == Status.ReadOnly)
 				{
-					CascadeOnFlush(session, entry.Persister, me.Key, Anything);
+					await CascadeOnFlush(session, entry.Persister, me.Key, Anything);
 				}
 			}
 		}
 
-		protected virtual void CascadeOnFlush(IEventSource session, IEntityPersister persister, object key, object anything)
+		protected virtual async Task CascadeOnFlush(IEventSource session, IEntityPersister persister, object key, object anything)
 		{
 			session.PersistenceContext.IncrementCascadeLevel();
 			try
 			{
-				new Cascade(CascadingAction, CascadePoint.BeforeFlush, session).CascadeOn(persister, key, anything);
+				await new Cascade(CascadingAction, CascadePoint.BeforeFlush, session).CascadeOn(persister, key, anything);
 			}
 			finally
 			{
@@ -224,7 +224,7 @@ namespace NHibernate.Event.Default
 		/// <item> <description>Deletes, in the order they were performed</description> </item>
 		/// </list>
 		/// </summary>
-		protected virtual void PerformExecutions(IEventSource session)
+		protected virtual async Task PerformExecutions(IEventSource session)
 		{
 			if (log.IsDebugEnabled)
 			{
@@ -238,7 +238,7 @@ namespace NHibernate.Event.Default
 				// executing entity inserts/updates in order to
 				// account for bidi associations
 				session.ActionQueue.PrepareActions();
-				session.ActionQueue.ExecuteActions();
+				await session.ActionQueue.ExecuteActions();
 			}
 			catch (HibernateException he)
 			{

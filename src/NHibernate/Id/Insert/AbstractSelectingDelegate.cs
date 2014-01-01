@@ -1,5 +1,6 @@
 using System.Data;
 using System.Data.Common;
+using System.Threading.Tasks;
 using NHibernate.Engine;
 using NHibernate.Exceptions;
 using NHibernate.Impl;
@@ -26,7 +27,7 @@ namespace NHibernate.Id.Insert
 
 		public abstract IdentifierGeneratingInsert PrepareIdentifierGeneratingInsert();
 
-		public object PerformInsert(SqlCommandInfo insertSQL, ISessionImplementor session, IBinder binder)
+		public async Task<object> PerformInsert(SqlCommandInfo insertSQL, ISessionImplementor session, IBinder binder)
 		{
 			try
 			{
@@ -34,8 +35,8 @@ namespace NHibernate.Id.Insert
 				IDbCommand insert = session.Batcher.PrepareCommand(insertSQL.CommandType, insertSQL.Text, insertSQL.ParameterTypes);
 				try
 				{
-					binder.BindValues(insert);
-					session.Batcher.ExecuteNonQuery(insert);
+					await binder.BindValues(insert);
+					await session.Batcher.ExecuteNonQuery(insert);
 				}
 				finally
 				{
@@ -56,11 +57,11 @@ namespace NHibernate.Id.Insert
 				IDbCommand idSelect = session.Batcher.PrepareCommand(CommandType.Text, selectSQL, ParametersTypes);
 				try
 				{
-					BindParameters(session, idSelect, binder.Entity);
-					IDataReader rs = session.Batcher.ExecuteReader(idSelect);
+					await BindParameters(session, idSelect, binder.Entity);
+					IDataReader rs = await session.Batcher.ExecuteReader(idSelect);
 					try
 					{
-						return GetResult(session, rs, binder.Entity);
+						return await GetResult(session, rs, binder.Entity);
 					}
 					finally
 					{
@@ -91,13 +92,16 @@ namespace NHibernate.Id.Insert
 		/// <param name="rs">The result set containing the generated primay key values. </param>
 		/// <param name="entity">The entity being saved. </param>
 		/// <returns> The generated identifier </returns>
-		protected internal abstract object GetResult(ISessionImplementor session, IDataReader rs, object entity);
+		protected internal abstract Task<object> GetResult(ISessionImplementor session, IDataReader rs, object entity);
 
 		/// <summary> Bind any required parameter values into the SQL command <see cref="SelectSQL"/>. </summary>
 		/// <param name="session">The session </param>
 		/// <param name="ps">The prepared <see cref="SelectSQL"/> command </param>
 		/// <param name="entity">The entity being saved. </param>
-		protected internal virtual void BindParameters(ISessionImplementor session, IDbCommand ps, object entity) { }
+		protected internal virtual Task BindParameters(ISessionImplementor session, IDbCommand ps, object entity)
+		{
+			return Task.FromResult(0);
+		}
 
 		#region NH Specific
 

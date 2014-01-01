@@ -1,5 +1,6 @@
 using System;
 using System.Collections;
+using System.Threading.Tasks;
 using NHibernate.Collection;
 using NHibernate.Impl;
 using NHibernate.Intercept;
@@ -358,7 +359,7 @@ namespace NHibernate
 		/// </summary>
 		/// <param name="proxy">a persistable object, proxy, persistent collection or null</param>
 		/// <exception cref="HibernateException">if we can't initialize the proxy at this time, eg. the Session was closed</exception>
-		public static void Initialize(object proxy)
+		public static async Task Initialize(object proxy)
 		{
 			if (proxy == null)
 			{
@@ -370,7 +371,7 @@ namespace NHibernate
 			}
 			else if (proxy is IPersistentCollection)
 			{
-				((IPersistentCollection)proxy).ForceInitialization();
+				await ((IPersistentCollection)proxy).ForceInitialization();
 			}
 		}
 

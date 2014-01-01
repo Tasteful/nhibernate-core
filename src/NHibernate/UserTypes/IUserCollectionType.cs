@@ -1,4 +1,5 @@
 using System.Collections;
+using System.Threading.Tasks;
 using NHibernate.Collection;
 using NHibernate.Engine;
 using NHibernate.Persister.Collection;
@@ -36,8 +37,7 @@ namespace NHibernate.UserTypes
 		/// <summary>
 		/// Replace the elements of a collection with the elements of another collection
 		/// </summary>
-		object ReplaceElements(object original, object target, ICollectionPersister persister, object owner,
-		                       IDictionary copyCache, ISessionImplementor session);
+		Task<object> ReplaceElements(object original, object target, ICollectionPersister persister, object owner, IDictionary copyCache, ISessionImplementor session);
 
 		/// <summary> 
 		/// Instantiate an empty instance of the "underlying" collection (not a wrapper),

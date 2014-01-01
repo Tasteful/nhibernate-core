@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Data;
 using System.Data.Common;
 using System.Linq;
+using System.Threading.Tasks;
 using NHibernate.Engine;
 using NHibernate.Exceptions;
 using NHibernate.Hql.Ast.ANTLR.Tree;
@@ -88,11 +89,11 @@ namespace NHibernate.Hql.Ast.ANTLR.Exec
 			get { return updates; }
 		}
 
-		public override int Execute(QueryParameters parameters, ISessionImplementor session)
+		public override async Task<int> Execute(QueryParameters parameters, ISessionImplementor session)
 		{
 			CoordinateSharedCacheCleanup(session);
 
-			CreateTemporaryTableIfNecessary(persister, session);
+			await CreateTemporaryTableIfNecessary(persister, session);
 
 			try
 			{
@@ -116,10 +117,10 @@ namespace NHibernate.Hql.Ast.ANTLR.Exec
 						ps = session.Batcher.PrepareCommand(CommandType.Text, idInsertSelect, parameterTypes);
 						foreach (var parameterSpecification in whereParams)
 						{
-							parameterSpecification.Bind(ps, sqlQueryParametersList, parameters, session);
+							await parameterSpecification.Bind(ps, sqlQueryParametersList, parameters, session);
 						}
 
-						resultCount = session.Batcher.ExecuteNonQuery(ps);
+						resultCount = await session.Batcher.ExecuteNonQuery(ps);
 					}
 					finally
 					{
@@ -153,10 +154,10 @@ namespace NHibernate.Hql.Ast.ANTLR.Exec
 							ps = session.Batcher.PrepareCommand(CommandType.Text, updates[i], parameterTypes);
 							foreach (var parameterSpecification in paramsSpec)
 							{
-								parameterSpecification.Bind(ps, sqlQueryParametersList, parameters, session);
+								await parameterSpecification.Bind(ps, sqlQueryParametersList, parameters, session);
 							}
 
-							session.Batcher.ExecuteNonQuery(ps);
+							await session.Batcher.ExecuteNonQuery(ps);
 						}
 						finally
 						{
@@ -176,7 +177,7 @@ namespace NHibernate.Hql.Ast.ANTLR.Exec
 			}
 			finally
 			{
-				DropTemporaryTableIfNecessary(persister, session);
+				DropTemporaryTableIfNecessary(persister, session).WaitAndUnwrapException();
 			}
 		}
 

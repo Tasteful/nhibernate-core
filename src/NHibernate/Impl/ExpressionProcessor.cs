@@ -107,6 +107,7 @@ namespace NHibernate.Impl
 
 		static ExpressionProcessor()
 		{
+			// ReSharper disable InvokeAsExtensionMethod
 			_simpleExpressionCreators = new Dictionary<ExpressionType, Func<ProjectionInfo, object, ICriterion>>();
 			_simpleExpressionCreators[ExpressionType.Equal] = Eq;
 			_simpleExpressionCreators[ExpressionType.NotEqual] = Ne;
@@ -173,6 +174,7 @@ namespace NHibernate.Impl
 		    RegisterCustomProjection(() => default(DateTimeOffset).Second, e => ProjectionsExtensions.ProcessSecond(e.Expression));
 		    RegisterCustomProjection(() => default(DateTimeOffset).Date, e => ProjectionsExtensions.ProcessDate(e.Expression));
 
+#pragma warning disable 618
 			RegisterCustomProjection(() => ProjectionsExtensions.YearPart(default(DateTime)), e => ProjectionsExtensions.ProcessYear(e.Arguments[0]));
 			RegisterCustomProjection(() => ProjectionsExtensions.DayPart(default(DateTime)), e => ProjectionsExtensions.ProcessDay(e.Arguments[0]));
 			RegisterCustomProjection(() => ProjectionsExtensions.MonthPart(default(DateTime)), e => ProjectionsExtensions.ProcessMonth(e.Arguments[0]));
@@ -180,8 +182,9 @@ namespace NHibernate.Impl
 			RegisterCustomProjection(() => ProjectionsExtensions.MinutePart(default(DateTime)), e => ProjectionsExtensions.ProcessMinute(e.Arguments[0]));
 			RegisterCustomProjection(() => ProjectionsExtensions.SecondPart(default(DateTime)), e => ProjectionsExtensions.ProcessSecond(e.Arguments[0]));
 			RegisterCustomProjection(() => ProjectionsExtensions.DatePart(default(DateTime)), e => ProjectionsExtensions.ProcessDate(e.Arguments[0]));
+#pragma warning restore 618
 
-            RegisterCustomProjection(() => ProjectionsExtensions.Sqrt(default(int)), ProjectionsExtensions.ProcessSqrt);
+			RegisterCustomProjection(() => ProjectionsExtensions.Sqrt(default(int)), ProjectionsExtensions.ProcessSqrt);
 			RegisterCustomProjection(() => ProjectionsExtensions.Sqrt(default(double)), ProjectionsExtensions.ProcessSqrt);
 			RegisterCustomProjection(() => ProjectionsExtensions.Sqrt(default(decimal)), ProjectionsExtensions.ProcessSqrt);
 			RegisterCustomProjection(() => ProjectionsExtensions.Sqrt(default(byte)), ProjectionsExtensions.ProcessSqrt);
@@ -200,6 +203,7 @@ namespace NHibernate.Impl
 			RegisterCustomProjection(() => ProjectionsExtensions.Abs(default(int)), ProjectionsExtensions.ProcessIntAbs);
 			RegisterCustomProjection(() => ProjectionsExtensions.Abs(default(double)), ProjectionsExtensions.ProcessDoubleAbs);
 			RegisterCustomProjection(() => ProjectionsExtensions.Abs(default(Int64)), ProjectionsExtensions.ProcessInt64Abs);
+			// ReSharper restore InvokeAsExtensionMethod
 		}
 
 		private static ICriterion Eq(ProjectionInfo property, object value)

@@ -1,3 +1,4 @@
+
 namespace NHibernate.Classic
 {
 	/// <summary>

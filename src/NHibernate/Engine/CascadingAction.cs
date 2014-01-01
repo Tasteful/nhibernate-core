@@ -1,6 +1,7 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Threading.Tasks;
 using NHibernate.Collection;
 using NHibernate.Event;
 using NHibernate.Persister.Entity;
@@ -57,8 +58,9 @@ namespace NHibernate.Engine
 		/// <param name="parent">The property value owner </param>
 		/// <param name="persister">The entity persister for the owner </param>
 		/// <param name="propertyIndex">The index of the property within the owner. </param>
-		public virtual void NoCascade(IEventSource session, object child, object parent, IEntityPersister persister, int propertyIndex)
+		public virtual Task NoCascade(IEventSource session, object child, object parent, IEntityPersister persister, int propertyIndex)
 		{
+			return Task.FromResult(0);
 		}
 
 		/// <summary> Should this action be performed (or noCascade consulted) in the case of lazy properties.</summary>
@@ -332,7 +334,7 @@ namespace NHibernate.Engine
 				get { return true; }
 			}
 
-			public override void NoCascade(IEventSource session, object child, object parent, IEntityPersister persister, int propertyIndex)
+			public override async Task NoCascade(IEventSource session, object child, object parent, IEntityPersister persister, int propertyIndex)
 			{
 				if (child == null)
 				{
@@ -343,7 +345,7 @@ namespace NHibernate.Engine
 				{
 					string childEntityName = ((EntityType)type).GetAssociatedEntityName(session.Factory);
 
-					if (!IsInManagedState(child, session) && !(child.IsProxy()) && ForeignKeys.IsTransient(childEntityName, child, null, session))
+					if (!IsInManagedState(child, session) && !(child.IsProxy()) && await ForeignKeys.IsTransient(childEntityName, child, null, session))
 					{
 						string parentEntiytName = persister.EntityName;
 						string propertyName = persister.PropertyNames[propertyIndex];

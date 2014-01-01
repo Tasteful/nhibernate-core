@@ -2,6 +2,7 @@ using System;
 using System.Collections;
 using System.Data;
 using System.Text;
+using System.Threading.Tasks;
 using NHibernate.Engine;
 using NHibernate.SqlTypes;
 using NHibernate.Util;
@@ -28,14 +29,14 @@ namespace NHibernate.Type
 		//      TIMESTAMP datatype supported by Sybase and SQL Server, which
 		//      are completely db-generated values...
 
-		public object Next(object current, ISessionImplementor session)
+		public Task<object> Next(object current, ISessionImplementor session)
 		{
-			return current;
+			return Task.FromResult(current);
 		}
 
-		public object Seed(ISessionImplementor session)
+		public Task<object> Seed(ISessionImplementor session)
 		{
-			return null;
+			return Task.FromResult<object>(null);
 		}
 
 		public override bool IsEqual(object x, object y)
@@ -151,12 +152,12 @@ namespace NHibernate.Type
 			return buf.ToString();
 		}
 
-		public override object DeepCopyNotNull(object value)
+		public override Task<object> DeepCopyNotNull(object value)
 		{
 			byte[] bytes = ToInternalFormat(value);
 			byte[] result = new byte[bytes.Length];
 			Array.Copy(bytes, 0, result, 0, bytes.Length);
-			return ToExternalFormat(result);
+			return Task.FromResult(ToExternalFormat(result));
 		}
 
 		public override object FromStringValue(string xml)

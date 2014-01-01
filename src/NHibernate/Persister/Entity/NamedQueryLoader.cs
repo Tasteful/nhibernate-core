@@ -1,4 +1,5 @@
 
+using System.Threading.Tasks;
 using NHibernate.Engine;
 using NHibernate.Impl;
 using NHibernate.Loader.Entity;
@@ -21,7 +22,7 @@ namespace NHibernate.Persister.Entity
 			this.persister = persister;
 		}
 
-		public object Load(object id, object optionalObject, ISessionImplementor session)
+		public Task<object> Load(object id, object optionalObject, ISessionImplementor session)
 		{
 			if (log.IsDebugEnabled)
 			{
@@ -46,7 +47,7 @@ namespace NHibernate.Persister.Entity
 			// now look up the object we are really interested in!
 			// (this lets us correctly handle proxies and multi-row
 			// or multi-column queries)
-			return session.PersistenceContext.GetEntity(session.GenerateEntityKey(id, persister));
+			return Task.FromResult(session.PersistenceContext.GetEntity(session.GenerateEntityKey(id, persister)));
 		}
 	}
 }

@@ -1,3 +1,4 @@
+using System.Threading.Tasks;
 using NHibernate.Persister.Entity;
 using NHibernate.Type;
 
@@ -24,18 +25,18 @@ namespace NHibernate.Event.Default
 		/// <summary> Dispatch each property value to ProcessValue(). </summary>
 		/// <param name="values"> </param>
 		/// <param name="types"> </param>
-		internal void ProcessValues(object[] values, IType[] types)
+		internal async Task ProcessValues(object[] values, IType[] types)
 		{
 			for (int i = 0; i < types.Length; i++)
 			{
 				if (IncludeProperty(values, i))
-					ProcessValue(i, values, types);
+					await ProcessValue(i, values, types);
 			}
 		}
 
-		internal virtual void ProcessValue(int i, object[] values, IType[] types)
+		internal virtual async Task ProcessValue(int i, object[] values, IType[] types)
 		{
-			ProcessValue(values[i], types[i]);
+			await ProcessValue(values[i], types[i]);
 		}
 
 		/// <summary> 
@@ -43,20 +44,20 @@ namespace NHibernate.Event.Default
 		/// </summary>
 		/// <param name="value"> </param>
 		/// <param name="type"> </param>
-		internal object ProcessValue(object value, IType type)
+		internal async Task<object> ProcessValue(object value, IType type)
 		{
 			if (type.IsCollectionType)
 			{
 				//even process null collections
-				return ProcessCollection(value, (CollectionType)type);
+				return await ProcessCollection(value, (CollectionType)type);
 			}
 			else if (type.IsEntityType)
 			{
-				return ProcessEntity(value, (EntityType)type);
+				return await ProcessEntity(value, (EntityType)type);
 			}
 			else if (type.IsComponentType)
 			{
-				return ProcessComponent(value, (IAbstractComponentType)type);
+				return await ProcessComponent(value, (IAbstractComponentType)type);
 			}
 			else
 			{
@@ -70,11 +71,11 @@ namespace NHibernate.Event.Default
 		/// <param name="component"></param>
 		/// <param name="componentType"></param>
 		/// <returns></returns>
-		internal virtual object ProcessComponent(object component, IAbstractComponentType componentType)
+		internal virtual async Task<object> ProcessComponent(object component, IAbstractComponentType componentType)
 		{
 			if (component != null)
 			{
-				ProcessValues(componentType.GetPropertyValues(component, session), componentType.Subtypes);
+				await ProcessValues(await componentType.GetPropertyValues(component, session), componentType.Subtypes);
 			}
 			return null;
 		}
@@ -85,9 +86,9 @@ namespace NHibernate.Event.Default
 		/// <param name="value"></param>
 		/// <param name="entityType"></param>
 		/// <returns></returns>
-		internal virtual object ProcessEntity(object value, EntityType entityType)
+		internal virtual Task<object> ProcessEntity(object value, EntityType entityType)
 		{
-			return null;
+			return Task.FromResult<object>(null);
 		}
 
 		/// <summary>
@@ -96,9 +97,9 @@ namespace NHibernate.Event.Default
 		/// <param name="value"></param>
 		/// <param name="collectionType"></param>
 		/// <returns></returns>
-		internal virtual object ProcessCollection(object value, CollectionType collectionType)
+		internal virtual Task<object> ProcessCollection(object value, CollectionType collectionType)
 		{
-			return null;
+			return Task.FromResult<object>(null);
 		}
 
 		/// <summary>
@@ -106,18 +107,18 @@ namespace NHibernate.Event.Default
 		/// </summary>
 		/// <param name="obj"></param>
 		/// <param name="persister"></param>
-		internal virtual void Process(object obj, IEntityPersister persister)
+		internal virtual async Task Process(object obj, IEntityPersister persister)
 		{
-			ProcessEntityPropertyValues(persister.GetPropertyValues(obj, Session.EntityMode), persister.PropertyTypes);
+			await ProcessEntityPropertyValues(persister.GetPropertyValues(obj, Session.EntityMode), persister.PropertyTypes);
 		}
 
-		public void ProcessEntityPropertyValues(object[] values, IType[] types)
+		public async Task ProcessEntityPropertyValues(object[] values, IType[] types)
 		{
 			for (int i = 0; i < types.Length; i++)
 			{
 				if (IncludeEntityProperty(values, i))
 				{
-					ProcessValue(i, values, types);
+					await ProcessValue(i, values, types);
 				}
 			}
 		}

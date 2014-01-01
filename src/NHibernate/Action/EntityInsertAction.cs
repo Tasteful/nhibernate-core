@@ -1,5 +1,6 @@
 using System;
 using System.Diagnostics;
+using System.Threading.Tasks;
 using NHibernate.Cache;
 using NHibernate.Cache.Entry;
 using NHibernate.Engine;
@@ -35,7 +36,7 @@ namespace NHibernate.Action
 			}
 		}
 
-		public override void Execute()
+		public override async Task Execute()
 		{
 			IEntityPersister persister = Persister;
 			ISessionImplementor session = Session;
@@ -56,7 +57,7 @@ namespace NHibernate.Action
 			if (!veto)
 			{
 
-				persister.Insert(id, state, instance, Session);
+				await persister.Insert(id, state, instance, Session);
 
 				EntityEntry entry = Session.PersistenceContext.GetEntry(instance);
 				if (entry == null)
@@ -68,7 +69,7 @@ namespace NHibernate.Action
 
 				if (persister.HasInsertGeneratedProperties)
 				{
-					persister.ProcessInsertGeneratedProperties(id, instance, state, Session);
+					await persister.ProcessInsertGeneratedProperties(id, instance, state, Session);
 					if (persister.IsVersionPropertyGenerated)
 					{
 						version = Versioning.GetVersion(state, persister);
@@ -81,7 +82,7 @@ namespace NHibernate.Action
 
 			if (IsCachePutEnabled(persister))
 			{
-				CacheEntry ce = new CacheEntry(state, persister, persister.HasUninitializedLazyProperties(instance, session.EntityMode), version, session, instance);
+				CacheEntry ce = await CacheEntry.Create(state, persister, persister.HasUninitializedLazyProperties(instance, session.EntityMode), version, session, instance);
 				cacheEntry = persister.CacheEntryStructure.Structure(ce);
 
 				CacheKey ck = Session.GenerateCacheKey(id, persister.IdentifierType, persister.RootEntityName);

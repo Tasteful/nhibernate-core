@@ -1,6 +1,6 @@
 using System;
 using System.Collections;
-using System.Collections.Generic;
+using System.Threading.Tasks;
 using NHibernate.Collection;
 using NHibernate.Engine;
 using NHibernate.Persister.Collection;
@@ -17,7 +17,7 @@ namespace NHibernate.Test.UserCollection
 
 		public IPersistentCollection Wrap(ISessionImplementor session, object collection)
 		{
-			return new PersistentMylist(session, (IList<Email>) collection);
+			return new PersistentMylist(session, (IList) collection);
 		}
 
 		public IEnumerable GetElements(object collection)
@@ -27,32 +27,24 @@ namespace NHibernate.Test.UserCollection
 
 		public bool Contains(object collection, object entity)
 		{
-			var email = entity as Email;
-			if (entity != null && email == null)
-				return false;
-
-			return ((IList<Email>) collection).Contains(email);
+			return ((IList) collection).Contains(entity);
 		}
 
 		public object IndexOf(object collection, object entity)
 		{
-			var email = entity as Email;
-			if (entity != null && email == null)
-				return -1;
-
-			return ((IList<Email>)collection).IndexOf(email);
+			return ((IList) collection).IndexOf(entity);
 		}
 
-		public object ReplaceElements(object original, object target, ICollectionPersister persister, object owner,
+		public Task<object> ReplaceElements(object original, object target, ICollectionPersister persister, object owner,
 		                              IDictionary copyCache, ISessionImplementor session)
 		{
-			IList<Email> result = (IList<Email>) target;
+			IList result = (IList) target;
 			result.Clear();
-
 			foreach (object o in ((IEnumerable) original))
-				result.Add((Email) o);
-
-			return result;
+			{
+				result.Add(o);
+			}
+			return Task.FromResult<object>(result);
 		}
 
 		public object Instantiate(int anticipatedSize)

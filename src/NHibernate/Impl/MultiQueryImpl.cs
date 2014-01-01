@@ -2,6 +2,7 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.Threading.Tasks;
 using NHibernate.Cache;
 using NHibernate.Driver;
 using NHibernate.Engine;
@@ -393,6 +394,10 @@ namespace NHibernate.Impl
 		/// </summary>
 		public IList List()
 		{
+			return ListAsync().WaitAndUnwrapException();
+		}
+		public async Task<IList> ListAsync()
+		{
 			using (new SessionIdLoggingContext(session.SessionId))
 			{
 				bool cacheable = session.Factory.Settings.IsQueryCacheEnabled && isCacheable;
@@ -410,7 +415,7 @@ namespace NHibernate.Impl
 				try
 				{
 					Before();
-					return cacheable ? ListUsingQueryCache() : ListIgnoreQueryCache();
+					return cacheable ? await ListUsingQueryCache() : await ListIgnoreQueryCache();
 				}
 				finally
 				{
@@ -499,7 +504,7 @@ namespace NHibernate.Impl
 			return resultTransformer != null;
 		}
 
-		protected List<object> DoList()
+		protected async Task<List<object>> DoList()
 		{
 			bool statsEnabled = session.Factory.Statistics.IsStatisticsEnabled;
 			var stopWatch = new Stopwatch();
@@ -517,7 +522,7 @@ namespace NHibernate.Impl
 
 			try
 			{
-				using (var reader = resultSetsCommand.GetReader(commandTimeout != RowSelection.NoValue ? commandTimeout : (int?)null))
+				using (var reader = await resultSetsCommand.GetReader(commandTimeout != RowSelection.NoValue ? commandTimeout : (int?)null))
 				{
 					if (log.IsDebugEnabled)
 					{
@@ -561,7 +566,7 @@ namespace NHibernate.Impl
 							}
 
 							rowCount++;
-							object result = translator.Loader.GetRowFromResultSet(
+							object result = await translator.Loader.GetRowFromResultSet(
 								reader, session, parameter, lockModeArray, optionalObjectKey, hydratedObjects[i], keys, true);
 							tempResults.Add(result);
 
@@ -592,7 +597,7 @@ namespace NHibernate.Impl
 						ITranslator translator = translators[i];
 						QueryParameters parameter = parameters[i];
 
-						translator.Loader.InitializeEntitiesAndCollections(hydratedObjects[i], reader, session, false);
+						await translator.Loader.InitializeEntitiesAndCollections(hydratedObjects[i], reader, session, false);
 
 						if (createSubselects[i])
 						{
@@ -648,9 +653,13 @@ namespace NHibernate.Impl
 
 		public object GetResult(string key)
 		{
+			return GetResultAsync(key).WaitAndUnwrapException();
+		}
+		public async Task<object> GetResultAsync(string key)
+		{
 			if (queryResults == null)
 			{
-				queryResults = List();
+				queryResults = await ListAsync();
 			}
 
 			int queryResultPosition;
@@ -667,12 +676,12 @@ namespace NHibernate.Impl
 
 		#region Implementation
 
-		private IList ListIgnoreQueryCache()
+		private async Task<IList> ListIgnoreQueryCache()
 		{
-			return GetResultList(DoList());
+			return GetResultList(await DoList());
 		}
 
-		private IList ListUsingQueryCache()
+		private async Task<IList> ListUsingQueryCache()
 		{
 			IQueryCache queryCache = session.Factory.GetQueryCache(cacheRegion);
 
@@ -701,13 +710,13 @@ namespace NHibernate.Impl
 				.SetFirstRows(firstRows)
 				.SetMaxRows(maxRows);
 
-			IList result = assembler.GetResultFromQueryCache(session, combinedParameters, querySpaces, queryCache, key);
+			IList result = await assembler.GetResultFromQueryCache(session, combinedParameters, querySpaces, queryCache, key);
 
 			if (result == null)
 			{
 				log.Debug("Cache miss for multi query");
-				var list = DoList();
-				queryCache.Put(key, new ICacheAssembler[] { assembler }, new object[] { list }, false, session);
+				var list = await DoList();
+				await queryCache.Put(key, new ICacheAssembler[] { assembler }, new object[] { list }, false, session);
 				result = list;
 			}
 

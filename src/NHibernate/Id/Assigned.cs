@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using System.Threading.Tasks;
 using NHibernate.Collection;
 using NHibernate.Engine;
 using NHibernate.Type;
@@ -32,7 +33,7 @@ namespace NHibernate.Id
 		/// Thrown when a <see cref="IPersistentCollection"/> is passed in as the <c>obj</c> or
 		/// if the identifier of <c>obj</c> is null.
 		/// </exception>
-		public object Generate(ISessionImplementor session, object obj)
+		public Task<object> Generate(ISessionImplementor session, object obj)
 		{
 			if (obj is IPersistentCollection)
 			{
@@ -45,7 +46,7 @@ namespace NHibernate.Id
 				throw new IdentifierGenerationException("ids for this class must be manually assigned before calling save(): "
 																								+ obj.GetType().FullName);
 			}
-			return id;
+			return Task.FromResult(id);
 		}
 
 		#endregion

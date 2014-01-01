@@ -1,4 +1,5 @@
 using System.Collections;
+using System.Threading.Tasks;
 using NHibernate.Collection;
 using NHibernate.Engine;
 using NHibernate.Persister.Collection;
@@ -27,7 +28,7 @@ namespace NHibernate.Test.UserCollection.Parameterized
 			}
 			else
 			{
-				return new PersistentDefaultableList(session, (IList<string>)collection);
+				return new PersistentDefaultableList(session, (IList)collection);
 			}
 		}
 
@@ -38,32 +39,24 @@ namespace NHibernate.Test.UserCollection.Parameterized
 
 		public bool Contains(object collection, object entity)
 		{
-			var item = entity as string;
-			if (entity != null && item == null)
-				return false;
-
-			return ((IDefaultableList)collection).Contains(item);
+			return ((IDefaultableList)collection).Contains(entity);
 		}
 
 		public object IndexOf(object collection, object entity)
 		{
-			var item = entity as string;
-			if (entity != null && item == null)
-				return null;
-
-			int index = ((IDefaultableList)collection).IndexOf(item);
+			int index = ((IDefaultableList)collection).IndexOf(entity);
 			return index >= 0 ? (object) index : null;
 		}
 
-		public object ReplaceElements(object original, object target, ICollectionPersister persister, object owner, IDictionary copyCache, ISessionImplementor session)
+		public Task<object> ReplaceElements(object original, object target, ICollectionPersister persister, object owner, IDictionary copyCache, ISessionImplementor session)
 		{
 			IDefaultableList result = (IDefaultableList)target;
 			result.Clear();
-
-			foreach (string o in (IDefaultableList) original)
+			foreach (object o in (IDefaultableList)original)
+			{
 				result.Add(o);
-
-			return result;
+			}
+			return Task.FromResult<object>(result);
 		}
 
 		public object Instantiate(int anticipatedSize)

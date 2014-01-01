@@ -1,4 +1,5 @@
 using System;
+using System.Threading.Tasks;
 using NHibernate.Engine;
 
 namespace NHibernate.Event.Default
@@ -7,14 +8,14 @@ namespace NHibernate.Event.Default
 	[Serializable]
 	public class DefaultSaveEventListener : DefaultSaveOrUpdateEventListener
 	{
-		protected override object PerformSaveOrUpdate(SaveOrUpdateEvent @event)
+		protected override Task<object> PerformSaveOrUpdate(SaveOrUpdateEvent @event)
 		{
 			// this implementation is supposed to tolerate incorrect unsaved-value
 			// mappings, for the purpose of backward-compatibility
 			EntityEntry entry = @event.Session.PersistenceContext.GetEntry(@event.Entity);
 			if (entry != null && entry.Status != Status.Deleted)
 			{
-				return EntityIsPersistent(@event);
+				return Task.FromResult(EntityIsPersistent(@event));
 			}
 			else
 			{

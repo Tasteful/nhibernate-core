@@ -1,5 +1,6 @@
 using System;
 using System.Data;
+using System.Threading.Tasks;
 using NHibernate.SqlTypes;
 using NHibernate.UserTypes;
 
@@ -34,7 +35,7 @@ namespace NHibernate.Test.NHSpecificTest.DataReaderWrapperTest
 
 		public void NullSafeSet(IDbCommand cmd, object value, int index)
 		{
-			NHibernateUtil.String.NullSafeSet(cmd, value, index);
+			NHibernateUtil.String.NullSafeSet(cmd, value, index).RunSynchronously();
 		}
 
 		public object DeepCopy(object value)

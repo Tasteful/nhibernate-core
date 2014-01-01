@@ -1,3 +1,4 @@
+using System.Threading.Tasks;
 using NHibernate.Collection;
 using NHibernate.Engine;
 using NHibernate.Persister.Collection;
@@ -15,7 +16,7 @@ namespace NHibernate.Event.Default
 	{
 		public OnLockVisitor(IEventSource session, object ownerIdentifier, object owner) : base(session, ownerIdentifier, owner) { }
 
-		internal override object ProcessCollection(object collection, CollectionType type)
+		internal override async Task<object> ProcessCollection(object collection, CollectionType type)
 		{
 			ISessionImplementor session = Session;
 			ICollectionPersister persister = session.Factory.GetCollectionPersister(type.Role);
@@ -38,7 +39,7 @@ namespace NHibernate.Event.Default
 							{
 								throw new HibernateException("reassociated object has dirty collection: " + persistentCollection.Role);
 							}
-							ReattachCollection(persistentCollection, type);
+							await ReattachCollection(persistentCollection, type);
 						}
 						else
 						{

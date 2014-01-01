@@ -1,3 +1,4 @@
+using System.Threading.Tasks;
 using NUnit.Framework;
 
 namespace NHibernate.Test.NHSpecificTest.NH1632
@@ -24,7 +25,7 @@ namespace NHibernate.Test.NHSpecificTest.NH1632
 		}
 
 		[Test]
-		public void When_using_DTC_HiLo_knows_to_create_isolated_DTC_transaction()
+		public async Task When_using_DTC_HiLo_knows_to_create_isolated_DTC_transaction()
 		{
 			object scalar1, scalar2;
 
@@ -42,7 +43,7 @@ namespace NHibernate.Test.NHSpecificTest.NH1632
 
 				using(var session = sessions.OpenSession())
 				{
-					var id = generator.Generate((ISessionImplementor) session, new Person());
+					var id = await generator.Generate((ISessionImplementor) session, new Person());
 				}
 
 				// intentionally dispose without committing

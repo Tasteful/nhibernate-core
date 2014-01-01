@@ -1,3 +1,4 @@
+using System.Threading.Tasks;
 using NHibernate.Collection;
 using NHibernate.Persister.Collection;
 using NHibernate.Type;
@@ -14,7 +15,7 @@ namespace NHibernate.Event.Default
 	{
 		public OnUpdateVisitor(IEventSource session, object ownerIdentifier, object owner) : base(session, ownerIdentifier, owner) { }
 
-		internal override object ProcessCollection(object collection, CollectionType type)
+		internal override async Task<object> ProcessCollection(object collection, CollectionType type)
 		{
 			if (collection == CollectionType.UnfetchedCollection)
 			{
@@ -37,7 +38,7 @@ namespace NHibernate.Event.Default
 						// clean up the existing state of the collection
 						RemoveCollection(persister, collectionKey, session);
 					}
-					ReattachCollection(wrapper, type);
+					await ReattachCollection(wrapper, type);
 				}
 				else
 				{

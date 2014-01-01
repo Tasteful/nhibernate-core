@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using System.Threading.Tasks;
 using NHibernate.Engine;
 using NHibernate.Persister.Entity;
 using NHibernate.Type;
@@ -39,7 +40,7 @@ namespace NHibernate.Loader.Entity
 			log.Debug("Static select for entity " + entityName + ": " + SqlString);
 		}
 
-		public object LoadByUniqueKey(ISessionImplementor session, object key)
+		public Task<object> LoadByUniqueKey(ISessionImplementor session, object key)
 		{
 			return Load(session, key, null, null);
 		}

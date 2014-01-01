@@ -1,5 +1,5 @@
 using System.Diagnostics;
-
+using System.Threading.Tasks;
 using NHibernate.Cache;
 using NHibernate.Cache.Entry;
 using NHibernate.Event;
@@ -46,7 +46,7 @@ namespace NHibernate.Engine
 		/// between the entities which were instantiated and had their state
 		/// "hydrated" into an array
 		/// </summary>
-		public static void InitializeEntity(object entity, bool readOnly, ISessionImplementor session, PreLoadEvent preLoadEvent, PostLoadEvent postLoadEvent)
+		public static async Task InitializeEntity(object entity, bool readOnly, ISessionImplementor session, PreLoadEvent preLoadEvent, PostLoadEvent postLoadEvent)
 		{
 			//TODO: Should this be an InitializeEntityEventListener??? (watch out for performance!)
 
@@ -76,7 +76,7 @@ namespace NHibernate.Engine
 				object value = hydratedState[i];
 				if (!Equals(LazyPropertyInitializer.UnfetchedProperty, value) && !(Equals(BackrefPropertyAccessor.Unknown, value)))
 				{
-					hydratedState[i] = types[i].ResolveIdentifier(value, session, entity);
+					hydratedState[i] = await types[i].ResolveIdentifier(value, session, entity);
 				}
 			}
 
@@ -105,7 +105,7 @@ namespace NHibernate.Engine
 
 				object version = Versioning.GetVersion(hydratedState, persister);
 				CacheEntry entry =
-					new CacheEntry(hydratedState, persister, entityEntry.LoadedWithLazyPropertiesUnfetched, version, session, entity);
+					await CacheEntry.Create(hydratedState, persister, entityEntry.LoadedWithLazyPropertiesUnfetched, version, session, entity);
 				CacheKey cacheKey = session.GenerateCacheKey(id, persister.IdentifierType, persister.RootEntityName);
 				bool put =
 					persister.Cache.Put(cacheKey, persister.CacheEntryStructure.Structure(entry), session.Timestamp, version,
@@ -146,7 +146,7 @@ namespace NHibernate.Engine
 			else
 			{
 				//take a snapshot
-				TypeHelper.DeepCopy(hydratedState, persister.PropertyTypes, persister.PropertyUpdateability, hydratedState, session);
+				await TypeHelper.DeepCopy(hydratedState, persister.PropertyTypes, persister.PropertyUpdateability, hydratedState, session);
 				persistenceContext.SetEntryStatus(entityEntry, Status.Loaded);
 			}
 
@@ -160,7 +160,7 @@ namespace NHibernate.Engine
 				IPostLoadEventListener[] listeners = session.Listeners.PostLoadEventListeners;
 				for (int i = 0; i < listeners.Length; i++)
 				{
-					listeners[i].OnPostLoad(postLoadEvent);
+					await listeners[i].OnPostLoad(postLoadEvent);
 				}
 			}
 

@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.Data;
 using System.Data.Common;
 using System.Text;
+using System.Threading.Tasks;
 using NHibernate.AdoNet;
 using NHibernate.Cache;
 using NHibernate.Cfg;
@@ -150,7 +151,7 @@ namespace NHibernate.Persister.Collection
 			return true;
 		}
 
-		protected override int DoUpdateRows(object id, IPersistentCollection collection, ISessionImplementor session)
+		protected override async Task<int> DoUpdateRows(object id, IPersistentCollection collection, ISessionImplementor session)
 		{
 			// we finish all the "removes" first to take care of possible unique 
 			// constraints and so that we can take better advantage of batching
@@ -161,41 +162,47 @@ namespace NHibernate.Persister.Collection
 
 				if (RowDeleteEnabled)
 				{
-					IExpectation deleteExpectation = Expectations.AppropriateExpectation(DeleteCheckStyle);
-					bool useBatch = deleteExpectation.CanBeBatched;
-					SqlCommandInfo sql = SqlDeleteRowString;
+					bool useBatch = true;
 					IDbCommand st = null;
 					// update removed rows fks to null
 					try
 					{
 						int i = 0;
 						IEnumerable entries = collection.Entries(this);
+						IExpectation expectation = Expectations.None;
 
 						foreach (object entry in entries)
 						{
-							if (collection.NeedsUpdating(entry, i, ElementType))
+							if (await collection.NeedsUpdating(entry, i, ElementType))
 							{
 								// will still be issued when it used to be null
-								if (useBatch)
+								if (st == null)
 								{
-									st = session.Batcher.PrepareBatchCommand(SqlDeleteRowString.CommandType, sql.Text,
-																			 SqlDeleteRowString.ParameterTypes);
-								}
-								else
-								{
-									st = session.Batcher.PrepareCommand(SqlDeleteRowString.CommandType, sql.Text,
-																		SqlDeleteRowString.ParameterTypes);
+									SqlCommandInfo sql = SqlDeleteRowString;
+									if (DeleteCallable)
+									{
+										expectation = Expectations.AppropriateExpectation(DeleteCheckStyle);
+										useBatch = expectation.CanBeBatched;
+										st = useBatch
+												? session.Batcher.PrepareBatchCommand(SqlDeleteRowString.CommandType, sql.Text, SqlDeleteRowString.ParameterTypes)
+												: session.Batcher.PrepareCommand(SqlDeleteRowString.CommandType, sql.Text, SqlDeleteRowString.ParameterTypes);
+										//offset += expectation.prepare(st);
+									}
+									else
+									{
+										st = session.Batcher.PrepareBatchCommand(SqlDeleteRowString.CommandType, sql.Text, SqlDeleteRowString.ParameterTypes);
+									}
 								}
 
-								int loc = WriteKey(st, id, offset, session);
+								int loc = await WriteKey(st, id, offset, session);
 								WriteElementToWhere(st, collection.GetSnapshotElement(entry, i), loc, session);
 								if (useBatch)
 								{
-									session.Batcher.AddToBatch(deleteExpectation);
+									session.Batcher.AddToBatch(expectation);
 								}
 								else
 								{
-									deleteExpectation.VerifyOutcomeNonBatched(session.Batcher.ExecuteNonQuery(st), st);
+									expectation.VerifyOutcomeNonBatched(await session.Batcher.ExecuteNonQuery(st), st);
 								}
 								count++;
 							}
@@ -221,9 +228,9 @@ namespace NHibernate.Persister.Collection
 
 				if (RowInsertEnabled)
 				{
-					IExpectation insertExpectation = Expectations.AppropriateExpectation(InsertCheckStyle);
+					IExpectation expectation = Expectations.AppropriateExpectation(InsertCheckStyle);
 					//bool callable = InsertCallable;
-					bool useBatch = insertExpectation.CanBeBatched;
+					bool useBatch = expectation.CanBeBatched;
 					SqlCommandInfo sql = SqlInsertRowString;
 					IDbCommand st = null;
 
@@ -234,33 +241,34 @@ namespace NHibernate.Persister.Collection
 						IEnumerable entries = collection.Entries(this);
 						foreach (object entry in entries)
 						{
-							if (collection.NeedsUpdating(entry, i, ElementType))
+							if (await collection.NeedsUpdating(entry, i, ElementType))
 							{
 								if (useBatch)
 								{
-									st = session.Batcher.PrepareBatchCommand(SqlInsertRowString.CommandType, sql.Text,
-																			 SqlInsertRowString.ParameterTypes);
+									if (st == null)
+									{
+										st = session.Batcher.PrepareBatchCommand(SqlInsertRowString.CommandType, sql.Text, SqlInsertRowString.ParameterTypes);
+									}
 								}
 								else
 								{
-									st = session.Batcher.PrepareCommand(SqlInsertRowString.CommandType, sql.Text,
-																		SqlInsertRowString.ParameterTypes);
+									st = session.Batcher.PrepareCommand(SqlInsertRowString.CommandType, sql.Text, SqlInsertRowString.ParameterTypes);
 								}
 
-								//offset += insertExpectation.Prepare(st, Factory.ConnectionProvider.Driver);
-								int loc = WriteKey(st, id, offset, session);
+								//offset += expectation.Prepare(st, Factory.ConnectionProvider.Driver);
+								int loc = await WriteKey(st, id, offset, session);
 								if (HasIndex && !indexContainsFormula)
 								{
-									loc = WriteIndexToWhere(st, collection.GetIndex(entry, i, this), loc, session);
+									loc = await WriteIndexToWhere(st, collection.GetIndex(entry, i, this), loc, session);
 								}
 								WriteElementToWhere(st, collection.GetElement(entry), loc, session);
 								if (useBatch)
 								{
-									session.Batcher.AddToBatch(insertExpectation);
+									session.Batcher.AddToBatch(expectation);
 								}
 								else
 								{
-									insertExpectation.VerifyOutcomeNonBatched(session.Batcher.ExecuteNonQuery(st), st);
+									expectation.VerifyOutcomeNonBatched(await session.Batcher.ExecuteNonQuery(st), st);
 								}
 								count++;
 							}
@@ -368,9 +376,9 @@ namespace NHibernate.Persister.Collection
 				session.EnabledFilters);
 		}
 
-		public override object GetElementByIndex(object key, object index, ISessionImplementor session, object owner)
+		public override async Task<object> GetElementByIndex(object key, object index, ISessionImplementor session, object owner)
 		{
-			return new CollectionElementLoader(this, Factory, session.EnabledFilters).LoadElement(session, key, IncrementIndexByBase(index)) ?? NotFoundObject;
+			return await new CollectionElementLoader(this, Factory, session.EnabledFilters).LoadElement(session, key, IncrementIndexByBase(index)) ?? NotFoundObject;
 		}
 
 		#region NH Specific

@@ -1,5 +1,6 @@
 using System;
 using System.Diagnostics;
+using System.Threading.Tasks;
 using NHibernate.Cache;
 using NHibernate.Cache.Access;
 using NHibernate.Cache.Entry;
@@ -41,7 +42,7 @@ namespace NHibernate.Action
 			get { return Session.Listeners.PostCommitUpdateEventListeners.Length > 0; }
 		}
 
-		public override void Execute()
+		public override async Task Execute()
 		{
 			ISessionImplementor session = Session;
 			object id = Id;
@@ -76,7 +77,7 @@ namespace NHibernate.Action
 
 			if (!veto)
 			{
-				persister.Update(id, state, dirtyFields, hasDirtyCollection, previousState, previousVersion, instance, null, session);
+				await persister.Update(id, state, dirtyFields, hasDirtyCollection, previousState, previousVersion, instance, null, session);
 			}
 
 			EntityEntry entry = Session.PersistenceContext.GetEntry(instance);
@@ -90,12 +91,12 @@ namespace NHibernate.Action
 				// get the updated snapshot of the entity state by cloning current state;
 				// it is safe to copy in place, since by this time no-one else (should have)
 				// has a reference  to the array
-				TypeHelper.DeepCopy(state, persister.PropertyTypes, persister.PropertyCheckability, state, Session);
+				await TypeHelper.DeepCopy(state, persister.PropertyTypes, persister.PropertyCheckability, state, Session);
 				if (persister.HasUpdateGeneratedProperties)
 				{
 					// this entity defines property generation, so process those generated
 					// values...
-					persister.ProcessUpdateGeneratedProperties(id, instance, state, Session);
+					await persister.ProcessUpdateGeneratedProperties(id, instance, state, Session);
 					if (persister.IsVersionPropertyGenerated)
 					{
 						nextVersion = Versioning.GetVersion(state, persister);
@@ -114,7 +115,7 @@ namespace NHibernate.Action
 				}
 				else
 				{
-					CacheEntry ce = new CacheEntry(state, persister, persister.HasUninitializedLazyProperties(instance, session.EntityMode), nextVersion, Session, instance);
+					CacheEntry ce = await CacheEntry.Create(state, persister, persister.HasUninitializedLazyProperties(instance, session.EntityMode), nextVersion, Session, instance);
 					cacheEntry = persister.CacheEntryStructure.Structure(ce);
 
 					bool put = persister.Cache.Update(ck, cacheEntry, nextVersion, previousVersion);

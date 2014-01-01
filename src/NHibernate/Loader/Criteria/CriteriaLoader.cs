@@ -2,6 +2,7 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Data;
+using System.Threading.Tasks;
 using NHibernate.Engine;
 using NHibernate.Impl;
 using NHibernate.Param;
@@ -70,12 +71,12 @@ namespace NHibernate.Loader.Criteria
 			get { return resultTypes; }
 		}
 
-		public IList List(ISessionImplementor session)
+		public Task<IList> List(ISessionImplementor session)
 		{
 			return List(session, translator.GetQueryParameters(), querySpaces, resultTypes);
 		}
 
-		protected override object GetResultColumnOrRow(object[] row, IResultTransformer customResultTransformer, IDataReader rs,
+		protected override async Task<object> GetResultColumnOrRow(object[] row, IResultTransformer customResultTransformer, IDataReader rs,
 													   ISessionImplementor session)
 		{
 			object[] result;
@@ -93,11 +94,11 @@ namespace NHibernate.Loader.Criteria
 					if ( numColumns > 1 ) 
 					{
 						string[] typeColumnAliases = ArrayHelper.Slice(columnAliases, position, numColumns);
-						result[i] = types[i].NullSafeGet(rs, typeColumnAliases, session, null);
+						result[i] = await types[i].NullSafeGet(rs, typeColumnAliases, session, null);
 					}
 					else
 					{
-						result[i] = types[i].NullSafeGet(rs, columnAliases[position], session, null);
+						result[i] = await types[i].NullSafeGet(rs, columnAliases[position], session, null);
 					}
 					position += numColumns;
 				}

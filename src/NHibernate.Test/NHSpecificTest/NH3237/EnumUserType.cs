@@ -1,6 +1,7 @@
 using System.Linq;
 using System;
 using System.Data;
+using System.Threading.Tasks;
 using NHibernate.SqlTypes;
 using NHibernate.UserTypes;
 using NHibernate.Type;
@@ -46,7 +47,7 @@ namespace NHibernate.Test.NHSpecificTest.NH3237
 		{
 			if (value == null)
 			{
-				NHibernateUtil.DateTime.NullSafeSet(cmd, null, index);
+				NHibernateUtil.DateTime.NullSafeSet(cmd, null, index).RunSynchronously();
 			}
 			else
 			{

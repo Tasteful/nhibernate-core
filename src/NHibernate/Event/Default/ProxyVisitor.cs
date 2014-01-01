@@ -1,3 +1,4 @@
+using System.Threading.Tasks;
 using NHibernate.Collection;
 using NHibernate.Persister.Collection;
 using NHibernate.Type;
@@ -17,7 +18,7 @@ namespace NHibernate.Event.Default
 		/// <param name="value"></param>
 		/// <param name="entityType"></param>
 		/// <returns></returns>
-		internal override object ProcessEntity(object value, EntityType entityType)
+		internal override Task<object> ProcessEntity(object value, EntityType entityType)
 		{
 
 			if (value != null)
@@ -27,7 +28,7 @@ namespace NHibernate.Event.Default
 				// handle it later on
 			}
 
-			return null;
+			return Task.FromResult<object>(null);
 		}
 
 		/// <summary> 
@@ -47,12 +48,12 @@ namespace NHibernate.Event.Default
 		/// Reattach a detached (disassociated) initialized or uninitialized
 		/// collection wrapper, using a snapshot carried with the collection wrapper
 		/// </summary>
-		protected internal void ReattachCollection(IPersistentCollection collection, CollectionType type)
+		protected internal async Task ReattachCollection(IPersistentCollection collection, CollectionType type)
 		{
 			if (collection.WasInitialized)
 			{
 				ICollectionPersister collectionPersister = Session.Factory.GetCollectionPersister(type.Role);
-				Session.PersistenceContext.AddInitializedDetachedCollection(collectionPersister, collection);
+				await Session.PersistenceContext.AddInitializedDetachedCollection(collectionPersister, collection);
 			}
 			else
 			{

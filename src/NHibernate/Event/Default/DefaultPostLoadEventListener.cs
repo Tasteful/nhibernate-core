@@ -1,4 +1,5 @@
 using System;
+using System.Threading.Tasks;
 using NHibernate.Classic;
 
 namespace NHibernate.Event.Default
@@ -7,13 +8,14 @@ namespace NHibernate.Event.Default
 	[Serializable]
 	public class DefaultPostLoadEventListener : IPostLoadEventListener
 	{
-		public virtual void OnPostLoad(PostLoadEvent @event)
+		public virtual Task OnPostLoad(PostLoadEvent @event)
 		{
 			if (@event.Persister.ImplementsLifecycle(@event.Session.EntityMode))
 			{
 				//log.debug( "calling onLoad()" );
 				((ILifecycle)@event.Entity).OnLoad(@event.Session, @event.Id);
 			}
+			return Task.FromResult(0);
 		}
 	}
 }

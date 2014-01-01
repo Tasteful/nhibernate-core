@@ -2,6 +2,8 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Data;
+using System.ServiceModel.Channels;
+using System.Threading.Tasks;
 using NHibernate.AdoNet;
 using NHibernate.Cache;
 using NHibernate.Collection;
@@ -68,9 +70,19 @@ namespace NHibernate.Impl
 			}
 		}
 
-		public abstract void InitializeCollection(IPersistentCollection collection, bool writing);
-		public abstract object InternalLoad(string entityName, object id, bool eager, bool isNullable);
-		public abstract object ImmediateLoad(string entityName, object id);
+		public abstract Task InitializeCollection(IPersistentCollection collection, bool writing);
+
+		public object InternalLoad(string entityName, object id, bool eager, bool isNullable)
+		{
+			return InternalLoadAsync(entityName, id, eager, isNullable).WaitAndUnwrapException();
+		}
+		public abstract Task<object> InternalLoadAsync(string entityName, object id, bool eager, bool isNullable);
+
+		public object ImmediateLoad(string entityName, object id)
+		{
+			return ImmediateLoadAsync(entityName, id).WaitAndUnwrapException();
+		}
+		public abstract Task<object> ImmediateLoadAsync(string entityName, object id);
 		public abstract long Timestamp { get; }
 
 		public EntityKey GenerateEntityKey(object id, IEntityPersister persister)
@@ -125,7 +137,11 @@ namespace NHibernate.Impl
 			return results;
 		}
 
-		public abstract void List(IQueryExpression queryExpression, QueryParameters queryParameters, IList results);
+		public void List(IQueryExpression queryExpression, QueryParameters queryParameters, IList results)
+		{
+			ListAsync(queryExpression, queryParameters, results).WaitAndUnwrapException();
+		}
+		public abstract Task ListAsync(IQueryExpression queryExpression, QueryParameters queryParameters, IList results);
 
 		public virtual IList<T> List<T>(IQueryExpression query, QueryParameters parameters)
 		{
@@ -147,7 +163,7 @@ namespace NHibernate.Impl
 			}
 		}
 
-		public abstract void List(CriteriaImpl criteria, IList results);
+		public abstract Task List(CriteriaImpl criteria, IList results);
 		
 		public virtual IList List(CriteriaImpl criteria)
 		{
@@ -159,10 +175,29 @@ namespace NHibernate.Impl
 			}
 		}
 
-		public abstract IList ListFilter(object collection, string filter, QueryParameters parameters);
-		public abstract IList<T> ListFilter<T>(object collection, string filter, QueryParameters parameters);
-		public abstract IEnumerable EnumerableFilter(object collection, string filter, QueryParameters parameters);
-		public abstract IEnumerable<T> EnumerableFilter<T>(object collection, string filter, QueryParameters parameters);
+		public IList ListFilter(object collection, string filter, QueryParameters parameters)
+		{
+			return ListFilterAsync(collection, filter, parameters).WaitAndUnwrapException();
+		}
+		public abstract Task<IList> ListFilterAsync(object collection, string filter, QueryParameters parameters);
+
+		public IList<T> ListFilter<T>(object collection, string filter, QueryParameters parameters)
+		{
+			return ListFilterAsync<T>(collection, filter, parameters).WaitAndUnwrapException();
+		}
+		public abstract Task<IList<T>> ListFilterAsync<T>(object collection, string filter, QueryParameters parameters);
+
+		public IEnumerable EnumerableFilter(object collection, string filter, QueryParameters parameters)
+		{
+			return EnumerableFilterAsync(collection, filter, parameters).WaitAndUnwrapException();
+		}
+		public abstract Task<IEnumerable> EnumerableFilterAsync(object collection, string filter, QueryParameters parameters);
+
+		public IEnumerable<T> EnumerableFilter<T>(object collection, string filter, QueryParameters parameters)
+		{
+			return EnumerableFilterAsync<T>(collection, filter, parameters).WaitAndUnwrapException();
+		}
+		public abstract Task<IEnumerable<T>> EnumerableFilterAsync<T>(object collection, string filter, QueryParameters parameters);
 		public abstract IEntityPersister GetEntityPersister(string entityName, object obj);
 		public abstract void AfterTransactionBegin(ITransaction tx);
 		public abstract void BeforeTransactionCompletion(ITransaction tx);
@@ -203,7 +238,7 @@ namespace NHibernate.Impl
 			}
 		}
 
-		public abstract void ListCustomQuery(ICustomQuery customQuery, QueryParameters queryParameters, IList results);
+		public abstract Task ListCustomQuery(ICustomQuery customQuery, QueryParameters queryParameters, IList results);
 
 		public virtual IList<T> ListCustomQuery<T>(ICustomQuery customQuery, QueryParameters queryParameters)
 		{
@@ -259,7 +294,7 @@ namespace NHibernate.Impl
 		public abstract string BestGuessEntityName(object entity);
 		public abstract string GuessEntityName(object entity);
 		public abstract IDbConnection Connection { get; }
-		public abstract int ExecuteNativeUpdate(NativeSQLQuerySpecification specification, QueryParameters queryParameters);
+		public abstract Task<int> ExecuteNativeUpdate(NativeSQLQuerySpecification specification, QueryParameters queryParameters);
 		public abstract FutureCriteriaBatch FutureCriteriaBatch { get; internal set; }
 		public abstract FutureQueryBatch FutureQueryBatch { get; internal set; }
 
@@ -318,7 +353,11 @@ namespace NHibernate.Impl
 			set { isAlreadyDisposed = value; }
 		}
 
-		public abstract void Flush();
+		public void Flush()
+		{
+			FlushAsync().WaitAndUnwrapException();
+		}
+		public abstract Task FlushAsync();
 
 		public abstract bool TransactionInProgress { get; }
 
@@ -458,7 +497,11 @@ namespace NHibernate.Impl
 			}
 		}
 
-		public abstract IEnumerable Enumerable(IQueryExpression queryExpression, QueryParameters queryParameters);
+		public IEnumerable Enumerable(IQueryExpression queryExpression, QueryParameters queryParameters)
+		{
+			return EnumerableAsync(queryExpression, queryParameters).WaitAndUnwrapException();
+		}
+		public abstract Task<IEnumerable> EnumerableAsync(IQueryExpression queryExpression, QueryParameters queryParameters);
 
 		[Obsolete("Use overload with IQueryExpression")]
 		public virtual IEnumerable Enumerable(string query, QueryParameters queryParameters)
@@ -472,14 +515,18 @@ namespace NHibernate.Impl
 			return Enumerable<T>(query.ToQueryExpression(), queryParameters);
 		}
 
-		public abstract IEnumerable<T> Enumerable<T>(IQueryExpression queryExpression, QueryParameters queryParameters);
+		public IEnumerable<T> Enumerable<T>(IQueryExpression queryExpression, QueryParameters queryParameters)
+		{
+			return EnumerableAsync<T>(queryExpression, queryParameters).WaitAndUnwrapException();
+		}
+		public abstract Task<IEnumerable<T>> EnumerableAsync<T>(IQueryExpression queryExpression, QueryParameters queryParameters);
 
 		[Obsolete("Use overload with IQueryExpression")]
-		public virtual int ExecuteUpdate(string query, QueryParameters queryParameters)
+		public virtual Task<int> ExecuteUpdate(string query, QueryParameters queryParameters)
 		{
 			return ExecuteUpdate(query.ToQueryExpression(), queryParameters);
 		}
 
-		public abstract int ExecuteUpdate(IQueryExpression queryExpression, QueryParameters queryParameters);
+		public abstract Task<int> ExecuteUpdate(IQueryExpression queryExpression, QueryParameters queryParameters);
 	}
 }

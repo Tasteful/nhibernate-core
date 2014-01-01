@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Data;
 using System.Diagnostics;
 using System.Threading;
-
+using System.Threading.Tasks;
 using NHibernate.Driver;
 using NHibernate.Engine;
 using NHibernate.Exceptions;
@@ -183,7 +183,7 @@ namespace NHibernate.AdoNet
 			_batchCommandParameterTypes = null;
 		}
 
-		public int ExecuteNonQuery(IDbCommand cmd)
+		public async Task<int> ExecuteNonQuery(IDbCommand cmd)
 		{
 			CheckReaders();
 			LogCommand(cmd);
@@ -193,7 +193,7 @@ namespace NHibernate.AdoNet
 				duration = Stopwatch.StartNew();
 			try
 			{
-				return cmd.ExecuteNonQuery();
+				return await Driver.ExecuteNonQueryAsync(cmd);
 			}
 			catch (Exception e)
 			{
@@ -208,7 +208,7 @@ namespace NHibernate.AdoNet
 			}
 		}
 
-		public virtual IDataReader ExecuteReader(IDbCommand cmd)
+		public virtual async Task<IDataReader> ExecuteReader(IDbCommand cmd)
 		{
 			CheckReaders();
 			LogCommand(cmd);
@@ -219,7 +219,7 @@ namespace NHibernate.AdoNet
 			IDataReader reader = null;
 			try
 			{
-				reader = cmd.ExecuteReader();
+				reader = await Driver.ExecuteReaderAsync(cmd);
 			}
 			catch (Exception e)
 			{

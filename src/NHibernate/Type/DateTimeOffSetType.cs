@@ -2,6 +2,7 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Data;
+using System.Threading.Tasks;
 using NHibernate.Engine;
 using NHibernate.SqlTypes;
 
@@ -70,14 +71,14 @@ namespace NHibernate.Type
 			return Get(rs, rs.GetOrdinal(name));
 		}
 
-		public object Next(object current, ISessionImplementor session)
+		public Task<object> Next(object current, ISessionImplementor session)
 		{
 			return Seed(session);
 		}
 
-		public object Seed(ISessionImplementor session)
+		public Task<object> Seed(ISessionImplementor session)
 		{
-			return DateTimeOffset.Now;
+			return Task.FromResult<object>(DateTimeOffset.Now);
 		}
 
 		public override bool IsEqual(object x, object y)

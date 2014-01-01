@@ -1,4 +1,5 @@
 
+using System.Threading.Tasks;
 using NHibernate.Action;
 using NHibernate.Impl;
 using NHibernate.Persister.Collection;
@@ -32,16 +33,16 @@ namespace NHibernate.Event.Default
 			get { return owner; }
 		}
 
-		internal override object ProcessComponent(object component, IAbstractComponentType componentType)
+		internal override async Task<object> ProcessComponent(object component, IAbstractComponentType componentType)
 		{
 			IType[] types = componentType.Subtypes;
 			if (component == null)
 			{
-				ProcessValues(new object[types.Length], types);
+				await ProcessValues(new object[types.Length], types);
 			}
 			else
 			{
-				base.ProcessComponent(component, componentType);
+				await base.ProcessComponent(component, componentType);
 			}
 
 			return null;

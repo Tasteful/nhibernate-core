@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.Data;
 using System.Diagnostics;
 using System.ServiceModel.Security;
+using System.Threading.Tasks;
 using NHibernate.DebugHelpers;
 using NHibernate.Engine;
 using NHibernate.Loader;
@@ -46,25 +47,25 @@ namespace NHibernate.Collection.Generic
 			IsDirectlyAccessible = true;
 		}
 
-		public override object GetSnapshot(ICollectionPersister persister)
+		public override async Task<object> GetSnapshot(ICollectionPersister persister)
 		{
 			EntityMode entityMode = Session.EntityMode;
 			Dictionary<TKey, TValue> clonedMap = new Dictionary<TKey, TValue>(gmap.Count);
 			foreach (KeyValuePair<TKey, TValue> e in gmap)
 			{
-				object copy = persister.ElementType.DeepCopy(e.Value, entityMode, persister.Factory);
+				object copy = await persister.ElementType.DeepCopy(e.Value, entityMode, persister.Factory);
 				clonedMap[e.Key] = (TValue)copy;
 			}
 			return clonedMap;
 		}
 
-		public override ICollection GetOrphans(object snapshot, string entityName)
+		public override Task<ICollection> GetOrphans(object snapshot, string entityName)
 		{
 			var sn = (IDictionary<TKey, TValue>) snapshot;
 			return GetOrphans((ICollection)sn.Values, (ICollection)gmap.Values, entityName, Session);
 		}
 
-		public override bool EqualsSnapshot(ICollectionPersister persister)
+		public override async Task<bool> EqualsSnapshot(ICollectionPersister persister)
 		{
 			IType elementType = persister.ElementType;
 			var xmap = (IDictionary<TKey, TValue>)GetSnapshot();
@@ -74,7 +75,7 @@ namespace NHibernate.Collection.Generic
 			}
 			foreach (KeyValuePair<TKey, TValue> entry in gmap)
 			{
-				if (elementType.IsDirty(entry.Value, xmap[entry.Key], Session))
+				if (await elementType.IsDirty(entry.Value, xmap[entry.Key], Session))
 				{
 					return false;
 				}
@@ -108,10 +109,10 @@ namespace NHibernate.Collection.Generic
 			return StringHelper.CollectionToString(gmap);
 		}
 
-		public override object ReadFrom(IDataReader rs, ICollectionPersister role, ICollectionAliases descriptor, object owner)
+		public override async Task<object> ReadFrom(IDataReader rs, ICollectionPersister role, ICollectionAliases descriptor, object owner)
 		{
-			object element = role.ReadElement(rs, owner, descriptor.SuffixedElementAliases, Session);
-			object index = role.ReadIndex(rs, descriptor.SuffixedIndexAliases, Session);
+			object element = await role.ReadElement(rs, owner, descriptor.SuffixedElementAliases, Session);
+			object index = await role.ReadIndex(rs, descriptor.SuffixedIndexAliases, Session);
 
 			AddDuringInitialize(index, element);
 			return element;
@@ -133,31 +134,31 @@ namespace NHibernate.Collection.Generic
 		/// <param name="persister">The CollectionPersister to use to reassemble the PersistentGenericMap.</param>
 		/// <param name="disassembled">The disassembled PersistentGenericMap.</param>
 		/// <param name="owner">The owner object.</param>
-		public override void InitializeFromCache(ICollectionPersister persister, object disassembled, object owner)
+		public override async Task InitializeFromCache(ICollectionPersister persister, object disassembled, object owner)
 		{
 			object[] array = (object[])disassembled;
 			int size = array.Length;
 			BeforeInitialize(persister, size);
 			for (int i = 0; i < size; i += 2)
 			{
-				gmap[(TKey)persister.IndexType.Assemble(array[i], Session, owner)] =
-					(TValue)persister.ElementType.Assemble(array[i + 1], Session, owner);
+				gmap[(TKey)await persister.IndexType.Assemble(array[i], Session, owner)] =
+					(TValue)await persister.ElementType.Assemble(array[i + 1], Session, owner);
 			}
 		}
 
-		public override object Disassemble(ICollectionPersister persister)
+		public override async Task<object> Disassemble(ICollectionPersister persister)
 		{
 			object[] result = new object[gmap.Count * 2];
 			int i = 0;
 			foreach (KeyValuePair<TKey, TValue> e in gmap)
 			{
-				result[i++] = persister.IndexType.Disassemble(e.Key, Session, null);
-				result[i++] = persister.ElementType.Disassemble(e.Value, Session, null);
+				result[i++] = await persister.IndexType.Disassemble(e.Key, Session, null);
+				result[i++] = await persister.ElementType.Disassemble(e.Value, Session, null);
 			}
 			return result;
 		}
 
-		public override IEnumerable GetDeletes(ICollectionPersister persister, bool indexIsFormula)
+		public override Task<IEnumerable> GetDeletes(ICollectionPersister persister, bool indexIsFormula)
 		{
 			IList deletes = new List<object>();
 			var sn = (IDictionary<TKey, TValue>)GetSnapshot();
@@ -169,23 +170,23 @@ namespace NHibernate.Collection.Generic
 					deletes.Add(indexIsFormula ? e.Value : key);
 				}
 			}
-			return deletes;
+			return Task.FromResult<IEnumerable>(deletes);
 		}
 
-		public override bool NeedsInserting(object entry, int i, IType elemType)
+		public override Task<bool> NeedsInserting(object entry, int i, IType elemType)
 		{
 			var sn = (IDictionary)GetSnapshot();
 			var e = (KeyValuePair<TKey, TValue>)entry;
-			return !sn.Contains(e.Key);
+			return Task.FromResult(!sn.Contains(e.Key));
 		}
 
-		public override bool NeedsUpdating(object entry, int i, IType elemType)
+		public override async Task<bool> NeedsUpdating(object entry, int i, IType elemType)
 		{
 			var sn = (IDictionary)GetSnapshot();
 			var e = (KeyValuePair<TKey, TValue>)entry;
 			var snValue = sn[e.Key];
 			var isNew = !sn.Contains(e.Key);
-			return e.Value != null && snValue != null && elemType.IsDirty(snValue, e.Value, Session)
+			return e.Value != null && snValue != null && await elemType.IsDirty(snValue, e.Value, Session)
 				|| (!isNew && ((e.Value == null) != (snValue == null)));
 		}
 
@@ -232,7 +233,7 @@ namespace NHibernate.Collection.Generic
 
 		public bool ContainsKey(TKey key)
 		{
-			bool? exists = ReadIndexExistence(key);
+			bool? exists = ReadIndexExistence(key).WaitAndUnwrapException();
 			return !exists.HasValue ? gmap.ContainsKey(key) : exists.Value;
 		}
 
@@ -251,7 +252,7 @@ namespace NHibernate.Collection.Generic
 					return;
 				}
 			}
-			Initialize(true);
+			Initialize(true).WaitAndUnwrapException();
 			gmap.Add(key, value);
 			Dirty();
 		}
@@ -261,7 +262,7 @@ namespace NHibernate.Collection.Generic
 			object old = PutQueueEnabled ? ReadElementByIndex(key) : Unknown;
 			if (old == Unknown) // queue is not enabled for 'puts', or element not found
 			{
-				Initialize(true);
+				Initialize(true).WaitAndUnwrapException();
 				bool contained = gmap.Remove(key);
 				if (contained)
 				{
@@ -320,7 +321,7 @@ namespace NHibernate.Collection.Generic
 						return;
 					}
 				}
-				Initialize(true);
+				Initialize(true).WaitAndUnwrapException();
 				TValue tempObject;
 				gmap.TryGetValue(key, out tempObject);
 				gmap[key] = value;
@@ -371,7 +372,7 @@ namespace NHibernate.Collection.Generic
 			}
 			else
 			{
-				Initialize(true);
+				Initialize(true).WaitAndUnwrapException();
 				if (gmap.Count != 0)
 				{
 					Dirty();
@@ -382,7 +383,7 @@ namespace NHibernate.Collection.Generic
 
 		public bool Contains(KeyValuePair<TKey, TValue> item)
 		{
-			bool? exists = ReadIndexExistence(item.Key);
+			bool? exists = ReadIndexExistence(item.Key).WaitAndUnwrapException();
 			if (!exists.HasValue)
 			{
 				return gmap.Contains(item);

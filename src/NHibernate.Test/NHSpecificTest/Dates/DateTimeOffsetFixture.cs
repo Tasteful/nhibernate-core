@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections;
 using System.Data;
+using System.Threading.Tasks;
 using NHibernate.Driver;
 using NHibernate.Type;
 using NUnit.Framework;
@@ -86,20 +87,20 @@ namespace NHibernate.Test.NHSpecificTest.Dates
 		}
 
 		[Test]
-		public void Next()
+		public async Task Next()
 		{
 			var type = (DateTimeOffsetType)NHibernateUtil.DateTimeOffset;
 			var current = DateTimeOffset.Now.AddTicks(-1);
-			object next = type.Next(current, null);
+			object next = await type.Next(current, null);
 
 			next.Should().Be.OfType<DateTimeOffset>().And.ValueOf.Ticks.Should().Be.GreaterThan(current.Ticks);
 		}
 
 		[Test]
-		public void Seed()
+		public async Task Seed()
 		{
 			var type = (DateTimeOffsetType)NHibernateUtil.DateTimeOffset;
-			type.Seed(null).Should().Be.OfType<DateTimeOffset>();
+			(await type.Seed(null)).Should().Be.OfType<DateTimeOffset>();
 		}
 
 	}

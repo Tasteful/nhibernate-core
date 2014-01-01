@@ -78,7 +78,7 @@ namespace NHibernate.Test.NHSpecificTest.NH995
 				{
 					IList<ClassC> c_list = s.CreateCriteria(typeof (ClassC)).List<ClassC>();
 					// make sure we initialize B
-					NHibernateUtil.Initialize(c_list[0].B);
+					NHibernateUtil.Initialize(c_list[0].B).Wait();
 
 					Assert.AreEqual(1, sqlLogSpy.Appender.GetEvents().Length,
 					                "Only one SQL should have been issued");

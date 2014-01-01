@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.Data;
 using System.Diagnostics;
 using System.Linq;
+using System.Threading.Tasks;
 using NHibernate.Collection.Generic.SetHelpers;
 using NHibernate.DebugHelpers;
 using NHibernate.Engine;
@@ -77,7 +78,7 @@ namespace NHibernate.Collection.Generic
 			get { return false; }
 		}
 
-		public override object GetSnapshot(ICollectionPersister persister)
+		public override async Task<object> GetSnapshot(ICollectionPersister persister)
 		{
 			var entityMode = Session.EntityMode;
 			var clonedSet = new SetSnapShot<T>(set.Count);
@@ -85,22 +86,22 @@ namespace NHibernate.Collection.Generic
 							 select persister.ElementType.DeepCopy(current, entityMode, persister.Factory);
 			foreach (var copied in enumerable)
 			{
-				clonedSet.Add((T)copied);
+				clonedSet.Add((T)await copied);
 			}
 			return clonedSet;
 		}
 
-		public override ICollection GetOrphans(object snapshot, string entityName)
+		public override async Task<ICollection> GetOrphans(object snapshot, string entityName)
 		{
 			var sn = new SetSnapShot<T>((IEnumerable<T>)snapshot);
 
 			// TODO: Avoid duplicating shortcuts and array copy, by making base class GetOrphans() more flexible
 			if (set.Count == 0) return sn;
 			if (((ICollection)sn).Count == 0) return sn;
-			return GetOrphans(sn, set.ToArray(), entityName, Session);
+			return await GetOrphans(sn, set.ToArray(), entityName, Session);
 		}
 
-		public override bool EqualsSnapshot(ICollectionPersister persister)
+		public override async Task<bool> EqualsSnapshot(ICollectionPersister persister)
 		{
 			var elementType = persister.ElementType;
 			var snapshot = (ISetSnapshot<T>)GetSnapshot();
@@ -109,10 +110,21 @@ namespace NHibernate.Collection.Generic
 				return false;
 			}
 
-			return !(from object obj in set
-					 let oldValue = snapshot[(T)obj]
-					 where oldValue == null || elementType.IsDirty(oldValue, obj, Session)
-					 select obj).Any();
+			//return !(from object obj in set
+			//		 let oldValue = snapshot[(T)obj]
+			//		 where oldValue == null || elementType.IsDirty(oldValue, obj, Session)
+			//		 select obj).Any();
+			bool any = false;
+			foreach (object obj in set)
+			{
+				T oldValue = snapshot[(T)obj];
+				if (oldValue == null || await elementType.IsDirty(oldValue, obj, Session))
+				{
+					any = true;
+					break;
+				}
+			}
+			return !any;
 		}
 
 		public override bool IsSnapshotEmpty(object snapshot)
@@ -131,14 +143,14 @@ namespace NHibernate.Collection.Generic
 		/// <param name="persister">The CollectionPersister to use to reassemble the PersistentSet.</param>
 		/// <param name="disassembled">The disassembled PersistentSet.</param>
 		/// <param name="owner">The owner object.</param>
-		public override void InitializeFromCache(ICollectionPersister persister, object disassembled, object owner)
+		public override async Task InitializeFromCache(ICollectionPersister persister, object disassembled, object owner)
 		{
 			var array = (object[])disassembled;
 			int size = array.Length;
 			BeforeInitialize(persister, size);
 			for (int i = 0; i < size; i++)
 			{
-				var element = (T)persister.ElementType.Assemble(array[i], Session, owner);
+				var element = (T)await persister.ElementType.Assemble(array[i], Session, owner);
 				if (element != null)
 				{
 					set.Add(element);
@@ -158,9 +170,9 @@ namespace NHibernate.Collection.Generic
 			return StringHelper.CollectionToString(set);
 		}
 
-		public override object ReadFrom(IDataReader rs, ICollectionPersister role, ICollectionAliases descriptor, object owner)
+		public override async Task<object> ReadFrom(IDataReader rs, ICollectionPersister role, ICollectionAliases descriptor, object owner)
 		{
-			var element = (T)role.ReadElement(rs, owner, descriptor.SuffixedElementAliases, Session);
+			var element = (T)await role.ReadElement(rs, owner, descriptor.SuffixedElementAliases, Session);
 			if (element != null)
 			{
 				_tempList.Add(element);
@@ -199,19 +211,19 @@ namespace NHibernate.Collection.Generic
 			return set;
 		}
 
-		public override object Disassemble(ICollectionPersister persister)
+		public override async Task<object> Disassemble(ICollectionPersister persister)
 		{
 			var result = new object[set.Count];
 			int i = 0;
 
 			foreach (object obj in set)
 			{
-				result[i++] = persister.ElementType.Disassemble(obj, Session, null);
+				result[i++] = await persister.ElementType.Disassemble(obj, Session, null);
 			}
 			return result;
 		}
 
-		public override IEnumerable GetDeletes(ICollectionPersister persister, bool indexIsFormula)
+		public override async Task<IEnumerable> GetDeletes(ICollectionPersister persister, bool indexIsFormula)
 		{
 			IType elementType = persister.ElementType;
 			var sn = (ISetSnapshot<T>)GetSnapshot();
@@ -219,27 +231,36 @@ namespace NHibernate.Collection.Generic
 
 			deletes.AddRange(sn.Where(obj => !set.Contains(obj)));
 
-			deletes.AddRange(from obj in set
-							 let oldValue = sn[obj]
-							 where oldValue != null && elementType.IsDirty(obj, oldValue, Session)
-							 select oldValue);
+			//deletes.AddRange(from obj in set
+			//				 let oldValue = sn[obj]
+			//				 where oldValue != null && elementType.IsDirty(obj, oldValue, Session)
+			//				 select oldValue);
+
+			foreach (var obj in set)
+			{
+				var oldValue = sn[obj];
+				if (oldValue != null && await elementType.IsDirty(obj, oldValue, Session))
+				{
+					deletes.Add(oldValue);
+				}
+			}
 
 			return deletes;
 		}
 
-		public override bool NeedsInserting(object entry, int i, IType elemType)
+		public override async Task<bool> NeedsInserting(object entry, int i, IType elemType)
 		{
 			var sn = (ISetSnapshot<T>)GetSnapshot();
 			object oldKey = sn[(T)entry];
 			// note that it might be better to iterate the snapshot but this is safe,
 			// assuming the user implements equals() properly, as required by the PersistentSet
 			// contract!
-			return oldKey == null || elemType.IsDirty(oldKey, entry, Session);
+			return oldKey == null || await elemType.IsDirty(oldKey, entry, Session);
 		}
 
-		public override bool NeedsUpdating(object entry, int i, IType elemType)
+		public override Task<bool> NeedsUpdating(object entry, int i, IType elemType)
 		{
-			return false;
+			return Task.FromResult(false);
 		}
 
 		public override object GetIndex(object entry, int i, ICollectionPersister persister)
@@ -289,17 +310,17 @@ namespace NHibernate.Collection.Generic
 
 		public bool Contains(T item)
 		{
-			bool? exists = ReadElementExistence(item);
+			bool? exists = ReadElementExistence(item).WaitAndUnwrapException();
 			return exists == null ? set.Contains(item) : exists.Value;
 		}
 
 
 		public bool Add(T o)
 		{
-			bool? exists = IsOperationQueueEnabled ? ReadElementExistence(o) : null;
+			bool? exists = IsOperationQueueEnabled ? ReadElementExistence(o).WaitAndUnwrapException() : null;
 			if (!exists.HasValue)
 			{
-				Initialize(true);
+				Initialize(true).WaitAndUnwrapException();
 				if (set.Add(o))
 				{
 					Dirty();
@@ -322,7 +343,7 @@ namespace NHibernate.Collection.Generic
 			if (collection.Count == 0)
 				return;
 
-			Initialize(true);
+			Initialize(true).WaitAndUnwrapException();
 
 			var oldCount = set.Count;
 			set.UnionWith(collection);
@@ -335,7 +356,7 @@ namespace NHibernate.Collection.Generic
 
 		public void IntersectWith(IEnumerable<T> other)
 		{
-			Initialize(true);
+			Initialize(true).WaitAndUnwrapException();
 
 			var oldCount = set.Count;
 			set.IntersectWith(other);
@@ -352,7 +373,7 @@ namespace NHibernate.Collection.Generic
 			if (collection.Count == 0)
 				return;
 
-			Initialize(true);
+			Initialize(true).WaitAndUnwrapException();
 
 			var oldCount = set.Count;
 			set.ExceptWith(collection);
@@ -369,7 +390,7 @@ namespace NHibernate.Collection.Generic
 			if (collection.Count == 0)
 				return;
 
-			Initialize(true);
+			Initialize(true).WaitAndUnwrapException();
 
 			set.SymmetricExceptWith(collection);
 
@@ -416,10 +437,10 @@ namespace NHibernate.Collection.Generic
 
 		public bool Remove(T o)
 		{
-			bool? exists = PutQueueEnabled ? ReadElementExistence(o) : null;
+			bool? exists = PutQueueEnabled ? ReadElementExistence(o).WaitAndUnwrapException() : null;
 			if (!exists.HasValue)
 			{
-				Initialize(true);
+				Initialize(true).WaitAndUnwrapException();
 				if (set.Remove(o))
 				{
 					Dirty();
@@ -444,7 +465,7 @@ namespace NHibernate.Collection.Generic
 			}
 			else
 			{
-				Initialize(true);
+				Initialize(true).WaitAndUnwrapException();
 				if (set.Count != 0)
 				{
 					set.Clear();

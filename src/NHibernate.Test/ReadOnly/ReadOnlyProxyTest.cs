@@ -118,7 +118,7 @@ namespace NHibernate.Test.ReadOnly
 			Assert.That(dp, Is.InstanceOf<INHibernateProxy>());
 			CheckReadOnly(s, dp, false);
 			Assert.That(NHibernateUtil.IsInitialized(dp), Is.False);
-			NHibernateUtil.Initialize(dp);
+			NHibernateUtil.Initialize(dp).Wait();
 			Assert.That(NHibernateUtil.IsInitialized(dp), Is.True);
 			CheckReadOnly(s, dp, false);
 			s.Transaction.Commit();
@@ -133,7 +133,7 @@ namespace NHibernate.Test.ReadOnly
 			s.SetReadOnly(dp, true);
 			CheckReadOnly(s, dp, true);
 			Assert.That(NHibernateUtil.IsInitialized(dp), Is.False);
-			NHibernateUtil.Initialize(dp);
+			NHibernateUtil.Initialize(dp).Wait();
 			Assert.That(NHibernateUtil.IsInitialized(dp), Is.True);
 			CheckReadOnly(s, dp, true);
 			s.Transaction.Commit();
@@ -150,7 +150,7 @@ namespace NHibernate.Test.ReadOnly
 			s.SetReadOnly(dp, false);
 			CheckReadOnly(s, dp, false);
 			Assert.That(NHibernateUtil.IsInitialized(dp), Is.False);
-			NHibernateUtil.Initialize(dp);
+			NHibernateUtil.Initialize(dp).Wait();
 			Assert.That(NHibernateUtil.IsInitialized(dp), Is.True);
 			CheckReadOnly(s, dp, false);
 			s.Transaction.Commit();
@@ -181,7 +181,7 @@ namespace NHibernate.Test.ReadOnly
 			ILazyInitializer dpLI = ((INHibernateProxy)dp).HibernateLazyInitializer;
 			CheckReadOnly(s, dp, false);
 			Assert.That(dpLI.IsUninitialized);
-			NHibernateUtil.Initialize(dp);
+			NHibernateUtil.Initialize(dp).Wait();
 			Assert.That(dpLI.IsUninitialized, Is.False);
 			CheckReadOnly(s, dp, false);
 			s.Transaction.Commit();
@@ -196,7 +196,7 @@ namespace NHibernate.Test.ReadOnly
 			dpLI.ReadOnly = true;
 			CheckReadOnly(s, dp, true);
 			Assert.That(dpLI.IsUninitialized);
-			NHibernateUtil.Initialize(dp);
+			NHibernateUtil.Initialize(dp).Wait();
 			Assert.That(dpLI.IsUninitialized, Is.False);
 			CheckReadOnly(s, dp, true);
 			s.Transaction.Commit();
@@ -214,7 +214,7 @@ namespace NHibernate.Test.ReadOnly
 			dpLI.ReadOnly = false;
 			CheckReadOnly(s, dp, false);
 			Assert.That(dpLI.IsUninitialized);
-			NHibernateUtil.Initialize(dp);
+			NHibernateUtil.Initialize(dp).Wait();
 			Assert.That(dpLI.IsUninitialized, Is.False);
 			CheckReadOnly(s, dp, false);
 			s.Transaction.Commit();
@@ -760,7 +760,7 @@ namespace NHibernate.Test.ReadOnly
 			s.SetReadOnly(dp, true);
 			CheckReadOnly(s, dp, true);
 			Assert.That(NHibernateUtil.IsInitialized(dp), Is.False);
-			NHibernateUtil.Initialize(dp);
+			NHibernateUtil.Initialize(dp).Wait();
 			Assert.That(NHibernateUtil.IsInitialized(dp), Is.True);
 			CheckReadOnly(s, dp, true);
 			s.SetReadOnly(dp, false);
@@ -954,7 +954,7 @@ namespace NHibernate.Test.ReadOnly
 			{
 				s.Refresh(dpProxy);
 				Assert.That(NHibernateUtil.IsInitialized(dpProxy), Is.False);
-				NHibernateUtil.Initialize(dpProxy);
+				NHibernateUtil.Initialize(dpProxy).Wait();
 				Assert.Fail("should have thrown UnresolvableObjectException");
 			}
 			catch (UnresolvableObjectException)
@@ -1016,7 +1016,7 @@ namespace NHibernate.Test.ReadOnly
 			Assert.That(dp, Is.InstanceOf<INHibernateProxy>());
 			CheckReadOnly(s, dp, false);
 			Assert.That(NHibernateUtil.IsInitialized(dp), Is.False);
-			NHibernateUtil.Initialize(dp);
+			NHibernateUtil.Initialize(dp).Wait();
 			Assert.That(NHibernateUtil.IsInitialized(dp), Is.True);
 			s.Transaction.Commit();
 			s.Close();
@@ -1066,7 +1066,7 @@ namespace NHibernate.Test.ReadOnly
 			Assert.That(dp, Is.InstanceOf<INHibernateProxy>());
 			CheckReadOnly(s, dp, false);
 			Assert.That(NHibernateUtil.IsInitialized(dp), Is.False);
-			NHibernateUtil.Initialize(dp);
+			NHibernateUtil.Initialize(dp).Wait();
 			Assert.That(NHibernateUtil.IsInitialized(dp), Is.True);
 			s.Transaction.Commit();
 			s.Close();
@@ -1080,7 +1080,7 @@ namespace NHibernate.Test.ReadOnly
 			DataPoint dpLoaded = s.Load<DataPoint>(dpOrig.Id);
 			Assert.That(dpLoaded, Is.InstanceOf<INHibernateProxy>());
 			Assert.That(NHibernateUtil.IsInitialized(dpLoaded), Is.False);
-			NHibernateUtil.Initialize(dpLoaded);
+			NHibernateUtil.Initialize(dpLoaded).Wait();
 			Assert.That(NHibernateUtil.IsInitialized(dpLoaded), Is.True);
 			CheckReadOnly(s, dpLoaded, false);
 			s.SetReadOnly(dpLoaded, true);
@@ -1117,7 +1117,7 @@ namespace NHibernate.Test.ReadOnly
 			Assert.That(dp, Is.InstanceOf<INHibernateProxy>());
 			CheckReadOnly(s, dp, false);
 			Assert.That(NHibernateUtil.IsInitialized(dp), Is.False);
-			NHibernateUtil.Initialize(dp);
+			NHibernateUtil.Initialize(dp).Wait();
 			Assert.That(NHibernateUtil.IsInitialized(dp), Is.True);
 			s.Transaction.Commit();
 			s.Close();
@@ -1168,7 +1168,7 @@ namespace NHibernate.Test.ReadOnly
 			Assert.That(dp, Is.InstanceOf<INHibernateProxy>());
 			CheckReadOnly(s, dp, false);
 			Assert.That(NHibernateUtil.IsInitialized(dp), Is.False);
-			NHibernateUtil.Initialize(dp);
+			NHibernateUtil.Initialize(dp).Wait();
 			Assert.That(NHibernateUtil.IsInitialized(dp), Is.True);
 			s.Transaction.Commit();
 			s.Close();
@@ -1183,7 +1183,7 @@ namespace NHibernate.Test.ReadOnly
 			DataPoint dpLoaded = s.Load<DataPoint>(dpOrig.Id);
 			Assert.That(dpLoaded, Is.InstanceOf<INHibernateProxy>());
 			Assert.That(NHibernateUtil.IsInitialized(dpLoaded), Is.False);
-			NHibernateUtil.Initialize(dpLoaded);
+			NHibernateUtil.Initialize(dpLoaded).Wait();
 			Assert.That(NHibernateUtil.IsInitialized(dpLoaded), Is.True);
 			CheckReadOnly(s, dpLoaded, false);
 			s.SetReadOnly(dpLoaded, true);
@@ -1220,7 +1220,7 @@ namespace NHibernate.Test.ReadOnly
 			Assert.That(dp, Is.InstanceOf<INHibernateProxy>());
 			CheckReadOnly(s, dp, false);
 			Assert.That(NHibernateUtil.IsInitialized(dp), Is.False);
-			NHibernateUtil.Initialize(dp);
+			NHibernateUtil.Initialize(dp).Wait();
 			Assert.That(NHibernateUtil.IsInitialized(dp), Is.True);
 			s.Transaction.Commit();
 			s.Close();

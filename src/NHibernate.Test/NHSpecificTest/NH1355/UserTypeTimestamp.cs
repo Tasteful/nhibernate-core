@@ -1,4 +1,5 @@
 using System.Data;
+using System.Threading.Tasks;
 using NHibernate.Engine;
 using NHibernate.SqlTypes;
 using NHibernate.UserTypes;
@@ -55,7 +56,7 @@ namespace NHibernate.Test.NHSpecificTest.NH1355
 
 		public void NullSafeSet(IDbCommand cmd, object value, int index)
 		{
-			NHibernateUtil.Binary.NullSafeSet(cmd, value, index);
+			NHibernateUtil.Binary.NullSafeSet(cmd, value, index).RunSynchronously();
 		}
 
 		public object Replace(object original, object target, object owner)

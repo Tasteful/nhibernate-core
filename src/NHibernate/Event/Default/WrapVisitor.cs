@@ -1,4 +1,5 @@
 
+using System.Threading.Tasks;
 using NHibernate.Collection;
 using NHibernate.Engine;
 using NHibernate.Persister.Collection;
@@ -22,19 +23,19 @@ namespace NHibernate.Event.Default
 			get { return substitute; }
 		}
 
-		internal override void Process(object obj, IEntityPersister persister)
+		internal override async Task Process(object obj, IEntityPersister persister)
 		{
 			EntityMode entityMode = Session.EntityMode;
 			object[] values = persister.GetPropertyValues(obj, entityMode);
 			IType[] types = persister.PropertyTypes;
-			ProcessEntityPropertyValues(values, types);
+			await ProcessEntityPropertyValues(values, types);
 			if (SubstitutionRequired)
 			{
 				persister.SetPropertyValues(obj, values, entityMode);
 			}
 		}
 
-		internal override object ProcessCollection(object collection, CollectionType collectionType)
+		internal override async Task<object> ProcessCollection(object collection, CollectionType collectionType)
 		{
 			IPersistentCollection coll = collection as IPersistentCollection;
 			if (coll != null)
@@ -42,17 +43,17 @@ namespace NHibernate.Event.Default
 				ISessionImplementor session = Session;
 				if (coll.SetCurrentSession(session))
 				{
-					ReattachCollection(coll, collectionType);
+					await ReattachCollection(coll, collectionType);
 				}
 				return null;
 			}
 			else
 			{
-				return ProcessArrayOrNewCollection(collection, collectionType);
+				return await ProcessArrayOrNewCollection(collection, collectionType);
 			}
 		}
 
-		private object ProcessArrayOrNewCollection(object collection, CollectionType collectionType)
+		private async Task<object> ProcessArrayOrNewCollection(object collection, CollectionType collectionType)
 		{
 			if (collection == null)
 			{
@@ -76,7 +77,7 @@ namespace NHibernate.Event.Default
 				if (ah == null)
 				{
 					ah = collectionType.Wrap(session, collection);
-					persistenceContext.AddNewCollection(persister, ah);
+					await persistenceContext.AddNewCollection(persister, ah);
 					persistenceContext.AddCollectionHolder(ah);
 				}
 				return null;
@@ -84,7 +85,7 @@ namespace NHibernate.Event.Default
 			else
 			{
 				IPersistentCollection persistentCollection = collectionType.Wrap(session, collection);
-				persistenceContext.AddNewCollection(persister, persistentCollection);
+				await persistenceContext.AddNewCollection(persister, persistentCollection);
 
 				if (log.IsDebugEnabled)
 					log.Debug("Wrapped collection in role: " + collectionType.Role);
@@ -93,9 +94,9 @@ namespace NHibernate.Event.Default
 			}
 		}
 
-		internal override void ProcessValue(int i, object[] values, IType[] types)
+		internal override async Task ProcessValue(int i, object[] values, IType[] types)
 		{
-			object result = ProcessValue(values[i], types[i]);
+			object result = await ProcessValue(values[i], types[i]);
 			if (result != null)
 			{
 				substitute = true;
@@ -103,16 +104,16 @@ namespace NHibernate.Event.Default
 			}
 		}
 
-		internal override object ProcessComponent(object component, IAbstractComponentType componentType)
+		internal override async Task<object> ProcessComponent(object component, IAbstractComponentType componentType)
 		{
 			if (component != null)
 			{
-				object[] values = componentType.GetPropertyValues(component, Session);
+				object[] values = await componentType.GetPropertyValues(component, Session);
 				IType[] types = componentType.Subtypes;
 				bool substituteComponent = false;
 				for (int i = 0; i < types.Length; i++)
 				{
-					object result = ProcessValue(values[i], types[i]);
+					object result = await ProcessValue(values[i], types[i]);
 					if (result != null)
 					{
 						values[i] = result;

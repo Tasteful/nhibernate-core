@@ -1,5 +1,5 @@
 using System;
-
+using System.Threading.Tasks;
 using NHibernate.Action;
 using NHibernate.Classic;
 using NHibernate.Engine;
@@ -21,7 +21,7 @@ namespace NHibernate.Event.Default
 		/// <summary>
 		/// Flushes a single entity's state to the database, by scheduling an update action, if necessary
 		/// </summary>
-		public virtual void OnFlushEntity(FlushEntityEvent @event)
+		public virtual async Task OnFlushEntity(FlushEntityEvent @event)
 		{
 			object entity = @event.Entity;
 			EntityEntry entry = @event.EntityEntry;
@@ -33,16 +33,16 @@ namespace NHibernate.Event.Default
 
 			bool mightBeDirty = entry.RequiresDirtyCheck(entity);
 
-			object[] values = GetValues(entity, entry, entityMode, mightBeDirty, session);
+			object[] values = await GetValues(entity, entry, entityMode, mightBeDirty, session);
 
 			@event.PropertyValues = values;
 
 			//TODO: avoid this for non-new instances where mightBeDirty==false
-			bool substitute = WrapCollections(session, persister, types, values);
+			bool substitute = await WrapCollections(session, persister, types, values);
 
-			if (IsUpdateNecessary(@event, mightBeDirty))
+			if (await IsUpdateNecessary(@event, mightBeDirty))
 			{
-				substitute = ScheduleUpdate(@event) || substitute;
+				substitute = await ScheduleUpdate(@event) || substitute;
 			}
 
 			if (status != Status.Deleted)
@@ -55,12 +55,12 @@ namespace NHibernate.Event.Default
 				// We don't want to touch collections reachable from a deleted object
 				if (persister.HasCollections)
 				{
-					new FlushVisitor(session, entity).ProcessEntityPropertyValues(values, types);
+					await new FlushVisitor(session, entity).ProcessEntityPropertyValues(values, types);
 				}
 			}
 		}
 
-		private object[] GetValues(object entity, EntityEntry entry, EntityMode entityMode, bool mightBeDirty, ISessionImplementor session)
+		private async Task<object[]> GetValues(object entity, EntityEntry entry, EntityMode entityMode, bool mightBeDirty, ISessionImplementor session)
 		{
 			object[] loadedState = entry.LoadedState;
 			Status status = entry.Status;
@@ -83,7 +83,7 @@ namespace NHibernate.Event.Default
 				// grab its current state
 				values = persister.GetPropertyValues(entity, entityMode);
 
-				CheckNaturalId(persister, entry, values, loadedState, entityMode, session);
+				await CheckNaturalId(persister, entry, values, loadedState, entityMode, session);
 			}
 			return values;
 		}
@@ -119,7 +119,7 @@ namespace NHibernate.Event.Default
 			}
 		}
 
-		private void CheckNaturalId(IEntityPersister persister, EntityEntry entry, object[] current, object[] loaded, EntityMode entityMode, ISessionImplementor session)
+		private async Task CheckNaturalId(IEntityPersister persister, EntityEntry entry, object[] current, object[] loaded, EntityMode entityMode, ISessionImplementor session)
 		{
 			if (persister.HasNaturalIdentifier && entry.Status != Status.ReadOnly)
 			{
@@ -137,7 +137,7 @@ namespace NHibernate.Event.Default
 						{
 							if (snapshot == null)
 							{
-								snapshot = session.PersistenceContext.GetNaturalIdSnapshot(entry.Id, persister);
+								snapshot = await session.PersistenceContext.GetNaturalIdSnapshot(entry.Id, persister);
 							}
 							loadedVal = snapshot[i];
 						}
@@ -155,7 +155,7 @@ namespace NHibernate.Event.Default
 			}
 		}
 
-		private bool WrapCollections(IEventSource session, IEntityPersister persister, IType[] types, object[] values)
+		private async Task<bool> WrapCollections(IEventSource session, IEntityPersister persister, IType[] types, object[] values)
 		{
 			if (persister.HasCollections)
 			{
@@ -169,7 +169,7 @@ namespace NHibernate.Event.Default
 
 				WrapVisitor visitor = new WrapVisitor(session);
 				// substitutes into values by side-effect
-				visitor.ProcessEntityPropertyValues(values, types);
+				await visitor.ProcessEntityPropertyValues(values, types);
 				return visitor.SubstitutionRequired;
 			}
 			else
@@ -178,14 +178,14 @@ namespace NHibernate.Event.Default
 			}
 		}
 
-		private bool IsUpdateNecessary(FlushEntityEvent @event, bool mightBeDirty)
+		private async Task<bool> IsUpdateNecessary(FlushEntityEvent @event, bool mightBeDirty)
 		{
 			Status status = @event.EntityEntry.Status;
 			if (mightBeDirty || status == Status.Deleted)
 			{
 				// compare to cached state (ignoring collections unless versioned)
-				DirtyCheck(@event);
-				if (IsUpdateNecessary(@event))
+				await DirtyCheck(@event);
+				if (await IsUpdateNecessary(@event))
 				{
 					return true;
 				}
@@ -198,11 +198,11 @@ namespace NHibernate.Event.Default
 			}
 			else
 			{
-				return HasDirtyCollections(@event, @event.EntityEntry.Persister, status);
+				return await HasDirtyCollections(@event, @event.EntityEntry.Persister, status);
 			}
 		}
 
-		private bool ScheduleUpdate(FlushEntityEvent @event)
+		private async Task<bool> ScheduleUpdate(FlushEntityEvent @event)
 		{
 			EntityEntry entry = @event.EntityEntry;
 			IEventSource session = @event.Session;
@@ -241,7 +241,7 @@ namespace NHibernate.Event.Default
 			{
 				// give the Interceptor a chance to process property values, if the properties
 				// were modified by the Interceptor, we need to set them back to the object
-				intercepted = HandleInterception(@event);
+				intercepted = await HandleInterception(@event);
 			}
 			else
 			{
@@ -251,7 +251,7 @@ namespace NHibernate.Event.Default
 			Validate(entity, persister, status, entityMode);
 
 			// increment the version number (if necessary)
-			object nextVersion = GetNextVersion(@event);
+			object nextVersion = await GetNextVersion(@event);
 
 			// if it was dirtied by a collection only
 			int[] dirtyProperties = @event.DirtyProperties;
@@ -295,7 +295,7 @@ namespace NHibernate.Event.Default
 			}
 		}
 
-		protected virtual bool HandleInterception(FlushEntityEvent @event)
+		protected virtual async Task<bool> HandleInterception(FlushEntityEvent @event)
 		{
 			ISessionImplementor session = @event.Session;
 			EntityEntry entry = @event.EntityEntry;
@@ -312,11 +312,11 @@ namespace NHibernate.Event.Default
 				int[] dirtyProperties;
 				if (@event.HasDatabaseSnapshot)
 				{
-					dirtyProperties = persister.FindModified(@event.DatabaseSnapshot, values, entity, session);
+					dirtyProperties = await persister.FindModified(@event.DatabaseSnapshot, values, entity, session);
 				}
 				else
 				{
-					dirtyProperties = persister.FindDirty(values, entry.LoadedState, entity, session);
+					dirtyProperties = await persister.FindDirty(values, entry.LoadedState, entity, session);
 				}
 				@event.DirtyProperties = dirtyProperties;
 			}
@@ -329,7 +329,7 @@ namespace NHibernate.Event.Default
 			return session.Interceptor.OnFlushDirty(entity, entry.Id, values, entry.LoadedState, persister.PropertyNames, persister.PropertyTypes);
 		}
 
-		private object GetNextVersion(FlushEntityEvent @event)
+		private async Task<object> GetNextVersion(FlushEntityEvent @event)
 		{
 			// Convience method to retrieve an entities next version value
 			EntityEntry entry = @event.EntityEntry;
@@ -349,7 +349,7 @@ namespace NHibernate.Event.Default
 					bool isVersionIncrementRequired = IsVersionIncrementRequired(@event, entry, persister, dirtyProperties);
 
 					object nextVersion = isVersionIncrementRequired ?
-						Versioning.Increment(entry.Version, persister.VersionType, @event.Session) :
+						await Versioning.Increment(entry.Version, persister.VersionType, @event.Session) :
 						entry.Version; //use the current version
 
 					Versioning.SetVersion(values, nextVersion, persister);
@@ -381,7 +381,7 @@ namespace NHibernate.Event.Default
 		/// to synchronize its state to the database. Modifies the event by side-effect!
 		/// Note: this method is quite slow, avoid calling if possible!
 		/// </summary>
-		protected bool IsUpdateNecessary(FlushEntityEvent @event)
+		protected async Task<bool> IsUpdateNecessary(FlushEntityEvent @event)
 		{
 			IEntityPersister persister = @event.EntityEntry.Persister;
 			Status status = @event.EntityEntry.Status;
@@ -400,17 +400,17 @@ namespace NHibernate.Event.Default
 				}
 				else
 				{
-					return HasDirtyCollections(@event, persister, status);
+					return await HasDirtyCollections(@event, persister, status);
 				}
 			}
 		}
 
-		private bool HasDirtyCollections(FlushEntityEvent @event, IEntityPersister persister, Status status)
+		private async Task<bool> HasDirtyCollections(FlushEntityEvent @event, IEntityPersister persister, Status status)
 		{
 			if (IsCollectionDirtyCheckNecessary(persister, status))
 			{
 				DirtyCollectionSearchVisitor visitor = new DirtyCollectionSearchVisitor(@event.Session, persister.PropertyVersionability);
-				visitor.ProcessEntityPropertyValues(@event.PropertyValues, persister.PropertyTypes);
+				await visitor.ProcessEntityPropertyValues(@event.PropertyValues, persister.PropertyTypes);
 				bool hasDirtyCollections = visitor.WasDirtyCollectionFound;
 				@event.HasDirtyCollection = hasDirtyCollections;
 				return hasDirtyCollections;
@@ -427,7 +427,7 @@ namespace NHibernate.Event.Default
 		}
 
 		/// <summary> Perform a dirty check, and attach the results to the event</summary>
-		protected virtual void DirtyCheck(FlushEntityEvent @event)
+		protected virtual async Task DirtyCheck(FlushEntityEvent @event)
 		{
 			object entity = @event.Entity;
 			object[] values = @event.PropertyValues;
@@ -453,7 +453,7 @@ namespace NHibernate.Event.Default
 				if (!cannotDirtyCheck)
 				{
 					// dirty check against the usual snapshot of the entity
-					dirtyProperties = persister.FindDirty(values, loadedState, entity, session);
+					dirtyProperties = await persister.FindDirty(values, loadedState, entity, session);
 				}
 				else if (entry.Status == Status.Deleted && !@event.EntityEntry.IsModifiableEntity())
 				{
@@ -472,16 +472,16 @@ namespace NHibernate.Event.Default
 					//   references to transient entities set to null.
 					// - dirtyProperties will only contain properties that refer to transient entities
 					object[] currentState = persister.GetPropertyValues(@event.Entity, @event.Session.EntityMode);
-					dirtyProperties = persister.FindDirty(entry.DeletedState, currentState, entity, session);
+					dirtyProperties = await persister.FindDirty(entry.DeletedState, currentState, entity, session);
 					cannotDirtyCheck = false;
 				}
 				else
 				{
 					// dirty check against the database snapshot, if possible/necessary
-					object[] databaseSnapshot = GetDatabaseSnapshot(session, persister, id);
+					object[] databaseSnapshot = await GetDatabaseSnapshot(session, persister, id);
 					if (databaseSnapshot != null)
 					{
-						dirtyProperties = persister.FindModified(databaseSnapshot, values, entity, session);
+						dirtyProperties = await persister.FindModified(databaseSnapshot, values, entity, session);
 						cannotDirtyCheck = false;
 						@event.DatabaseSnapshot = databaseSnapshot;
 					}
@@ -500,11 +500,11 @@ namespace NHibernate.Event.Default
 		}
 
 
-		private object[] GetDatabaseSnapshot(ISessionImplementor session, IEntityPersister persister, object id)
+		private async Task<object[]> GetDatabaseSnapshot(ISessionImplementor session, IEntityPersister persister, object id)
 		{
 			if (persister.IsSelectBeforeUpdateRequired)
 			{
-				object[] snapshot = session.PersistenceContext.GetDatabaseSnapshot(id, persister);
+				object[] snapshot = await session.PersistenceContext.GetDatabaseSnapshot(id, persister);
 				if (snapshot == null)
 				{
 					//do we even really need this? the update will fail anyway....

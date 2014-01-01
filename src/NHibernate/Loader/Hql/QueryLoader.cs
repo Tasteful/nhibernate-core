@@ -3,6 +3,7 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Data;
 using System.Diagnostics;
+using System.Threading.Tasks;
 using NHibernate.Engine;
 using NHibernate.Event;
 using NHibernate.Hql;
@@ -283,7 +284,7 @@ namespace NHibernate.Loader.Hql
 			_defaultLockModes = ArrayHelper.Fill(LockMode.None, size);
 		}
 
-		public IList List(ISessionImplementor session, QueryParameters queryParameters)
+		public Task<IList> List(ISessionImplementor session, QueryParameters queryParameters)
 		{
 			CheckQuery(queryParameters);
 			return List(session, queryParameters, _queryTranslator.QuerySpaces, _queryReturnTypes);
@@ -319,7 +320,7 @@ namespace NHibernate.Loader.Hql
 			}
 		}
 
-		protected override object GetResultColumnOrRow(object[] row, IResultTransformer resultTransformer, IDataReader rs,
+		protected override async Task<object> GetResultColumnOrRow(object[] row, IResultTransformer resultTransformer, IDataReader rs,
 													   ISessionImplementor session)
 		{
 			row = ToResultRow(row);
@@ -332,14 +333,14 @@ namespace NHibernate.Loader.Hql
 
 				if (!hasTransform && queryCols == 1)
 				{
-					return _queryReturnTypes[0].NullSafeGet(rs, scalarColumns[0], session, null);
+					return await _queryReturnTypes[0].NullSafeGet(rs, scalarColumns[0], session, null);
 				}
 				else
 				{
 					row = new object[queryCols];
 					for (int i = 0; i < queryCols; i++)
 					{
-						row[i] = _queryReturnTypes[i].NullSafeGet(rs, scalarColumns[i], session, null);
+						row[i] = await _queryReturnTypes[i].NullSafeGet(rs, scalarColumns[i], session, null);
 					}
 					return row;
 				}
@@ -391,7 +392,7 @@ namespace NHibernate.Loader.Hql
 			get { return _queryReturnTypes; }
 		}
 
-		internal IEnumerable GetEnumerable(QueryParameters queryParameters, IEventSource session)
+		internal async Task<IEnumerable> GetEnumerable(QueryParameters queryParameters, IEventSource session)
 		{
 			CheckQuery(queryParameters);
 			bool statsEnabled = session.Factory.Statistics.IsStatisticsEnabled;
@@ -402,10 +403,10 @@ namespace NHibernate.Loader.Hql
 				stopWath.Start();
 			}
 
-			IDbCommand cmd = PrepareQueryCommand(queryParameters, false, session);
+			IDbCommand cmd = await PrepareQueryCommand(queryParameters, false, session);
 
 			// This IDataReader is disposed of in EnumerableImpl.Dispose
-			IDataReader rs = GetResultSet(cmd, queryParameters.HasAutoDiscoverScalarTypes, false, queryParameters.RowSelection, session);
+			IDataReader rs = await GetResultSet(cmd, queryParameters.HasAutoDiscoverScalarTypes, false, queryParameters.RowSelection, session);
 
 			HolderInstantiator hi = 
 				HolderInstantiator.GetHolderInstantiator(_selectNewTransformer, queryParameters.ResultTransformer, _queryReturnAliases);

@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using System.Data;
+using System.Threading.Tasks;
 using NHibernate.Engine;
 using NHibernate.SqlCommand;
 using NHibernate.SqlTypes;
@@ -117,5 +118,9 @@ namespace NHibernate.Driver
 		/// If you have to adjust parameters values/type (when the command is full filled) this is a good place where do it.
 		/// </remarks>
 		void AdjustCommand(IDbCommand command);
+
+		Task<IDataReader> ExecuteReaderAsync(IDbCommand command);
+		Task<int> ExecuteNonQueryAsync(IDbCommand command);
+		Task<object> ExecuteScalarAsync(IDbCommand selectCmd);
 	}
 }

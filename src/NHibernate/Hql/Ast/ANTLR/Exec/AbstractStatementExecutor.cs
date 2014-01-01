@@ -1,5 +1,6 @@
 using System;
 using System.Data;
+using System.Threading.Tasks;
 using Antlr.Runtime.Tree;
 using NHibernate.Action;
 using NHibernate.Engine;
@@ -33,7 +34,7 @@ namespace NHibernate.Hql.Ast.ANTLR.Exec
 
 		public abstract SqlString[] SqlStatements { get; }
 
-		public abstract int Execute(QueryParameters parameters, ISessionImplementor session);
+		public abstract Task<int> Execute(QueryParameters parameters, ISessionImplementor session);
 
 		protected abstract IQueryable[] AffectedQueryables { get; }
 
@@ -124,7 +125,7 @@ namespace NHibernate.Hql.Ast.ANTLR.Exec
 			return "select " + StringHelper.Join(", ", persister.IdentifierColumnNames) + " from " + persister.TemporaryIdTableName;
 		}
 
-		protected virtual void CreateTemporaryTableIfNecessary(IQueryable persister, ISessionImplementor session)
+		protected virtual async Task CreateTemporaryTableIfNecessary(IQueryable persister, ISessionImplementor session)
 		{
 			// Don't really know all the codes required to adequately decipher returned ADO exceptions here.
 			// simply allow the failure to be eaten and the subsequent insert-selects/deletes should fail
@@ -133,16 +134,16 @@ namespace NHibernate.Hql.Ast.ANTLR.Exec
 			{
 				if (Factory.Settings.IsDataDefinitionInTransactionSupported)
 				{
-					Isolater.DoIsolatedWork(work, session);
+					await Isolater.DoIsolatedWork(work, session);
 				}
 				else
 				{
-					Isolater.DoNonTransactedWork(work, session);
+					await Isolater.DoNonTransactedWork(work, session);
 				}
 			}
 			else
 			{
-				work.DoWork(session.ConnectionManager.GetConnection(), null);
+				await work.DoWork(session.ConnectionManager.GetConnection(), null);
 				session.ConnectionManager.AfterStatement();
 			}
 		}
@@ -157,7 +158,7 @@ namespace NHibernate.Hql.Ast.ANTLR.Exec
 			return Factory.Settings.IsDataDefinitionImplicitCommit;
 		}
 
-		protected virtual void DropTemporaryTableIfNecessary(IQueryable persister, ISessionImplementor session)
+		protected virtual async Task DropTemporaryTableIfNecessary(IQueryable persister, ISessionImplementor session)
 		{
 			if (Factory.Dialect.DropTemporaryTableAfterUse())
 			{
@@ -167,16 +168,16 @@ namespace NHibernate.Hql.Ast.ANTLR.Exec
 				{
 					if (Factory.Settings.IsDataDefinitionInTransactionSupported)
 					{
-						Isolater.DoIsolatedWork(work, session);
+						await Isolater.DoIsolatedWork(work, session);
 					}
 					else
 					{
-						Isolater.DoNonTransactedWork(work, session);
+						await Isolater.DoNonTransactedWork(work, session);
 					}
 				}
 				else
 				{
-					work.DoWork(session.ConnectionManager.GetConnection(), null);
+					await work.DoWork(session.ConnectionManager.GetConnection(), null);
 					session.ConnectionManager.AfterStatement();
 				}
 			}
@@ -188,7 +189,7 @@ namespace NHibernate.Hql.Ast.ANTLR.Exec
 				{
 					var commandText = new SqlString("delete from " + persister.TemporaryIdTableName);
 					ps = session.Batcher.PrepareCommand(CommandType.Text, commandText, new SqlType[0]);
-					session.Batcher.ExecuteNonQuery(ps);
+					await session.Batcher.ExecuteNonQuery(ps);
 				}
 				catch (Exception t)
 				{
@@ -224,14 +225,15 @@ namespace NHibernate.Hql.Ast.ANTLR.Exec
 				this.session = session;
 			}
 
-			public void DoWork(IDbConnection connection, IDbTransaction transaction)
+			public async Task DoWork(IDbConnection connection, IDbTransaction transaction)
 			{
 				IDbCommand stmnt = null;
 				try
 				{
 					stmnt = session.ConnectionManager.CreateCommand();
 					stmnt.CommandText = persister.TemporaryIdTableDDL;
-					stmnt.ExecuteNonQuery();
+					// TODO: Async
+					await session.Factory.ConnectionProvider.Driver.ExecuteNonQueryAsync(stmnt);
 					session.Factory.Settings.SqlStatementLogger.LogCommand(stmnt, FormatStyle.Ddl);
 				}
 				catch (Exception t)
@@ -268,14 +270,14 @@ namespace NHibernate.Hql.Ast.ANTLR.Exec
 			private readonly IInternalLogger log;
 			private readonly ISessionImplementor session;
 
-			public void DoWork(IDbConnection connection, IDbTransaction transaction)
+			public async Task DoWork(IDbConnection connection, IDbTransaction transaction)
 			{
 				IDbCommand stmnt = null;
 				try
 				{
 					stmnt = session.ConnectionManager.CreateCommand();
 					stmnt.CommandText = "drop table " + persister.TemporaryIdTableName;
-					stmnt.ExecuteNonQuery();
+					await session.Factory.ConnectionProvider.Driver.ExecuteNonQueryAsync(stmnt);
 					session.Factory.Settings.SqlStatementLogger.LogCommand(stmnt, FormatStyle.Ddl);
 				}
 				catch (Exception t)

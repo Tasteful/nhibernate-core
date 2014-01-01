@@ -1,6 +1,7 @@
 using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
+using System.Threading.Tasks;
 
 namespace NHibernate.Impl
 {
@@ -70,7 +71,7 @@ namespace NHibernate.Impl
 			{
 				AddTo(multiApproach, queries[i], resultTypes[i]);
 			}
-			results = GetResultsFrom(multiApproach);
+			results = GetResultsFrom(multiApproach).WaitAndUnwrapException();
 			ClearCurrentFutureBatch();
 		}
 
@@ -81,7 +82,7 @@ namespace NHibernate.Impl
 
 		protected abstract TMultiApproach CreateMultiApproach(bool isCacheable, string cacheRegion);
 		protected abstract void AddTo(TMultiApproach multiApproach, TQueryApproach query, System.Type resultType);
-		protected abstract IList GetResultsFrom(TMultiApproach multiApproach);
+		protected abstract Task<IList> GetResultsFrom(TMultiApproach multiApproach);
 		protected abstract void ClearCurrentFutureBatch();
 		protected abstract bool IsQueryCacheable(TQueryApproach query);
 		protected abstract string CacheRegion(TQueryApproach query);

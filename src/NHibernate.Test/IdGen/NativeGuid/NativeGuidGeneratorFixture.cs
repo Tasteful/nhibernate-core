@@ -1,4 +1,5 @@
 using System;
+using System.Threading.Tasks;
 using NHibernate.Cfg;
 using NHibernate.Engine;
 using NHibernate.Id;
@@ -23,7 +24,7 @@ namespace NHibernate.Test.IdGen.NativeGuid
 		}
 
 		[Test]
-		public void ReturnedValueIsGuid()
+		public async Task ReturnedValueIsGuid()
 		{
 			try
 			{
@@ -37,7 +38,7 @@ namespace NHibernate.Test.IdGen.NativeGuid
 			var gen = new NativeGuidGenerator();
 			using (ISession s = sessions.OpenSession())
 			{
-				object result = gen.Generate((ISessionImplementor)s, null);
+				object result = await gen.Generate((ISessionImplementor)s, null);
 				Assert.That(result, Is.TypeOf(typeof (Guid)));
 				Assert.That(result, Is.Not.EqualTo(Guid.Empty));
 			}

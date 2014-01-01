@@ -1,6 +1,7 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Threading.Tasks;
 using NHibernate.Type;
 using NUnit.Framework;
 using NHibernate.Engine;
@@ -14,25 +15,25 @@ namespace NHibernate.Test.TypesTest
 	public class Int64TypeFixture: TestCase
 	{
 		[Test]
-		public void Next()
+		public async Task Next()
 		{
 			Int64Type type = (Int64Type)NHibernateUtil.Int64;
 			object current = (long)1;
-			object next = type.Next(current, null);
+			object next = await type.Next(current, null);
 
 			Assert.IsTrue(next is Int64, "Next should be Int64");
 			Assert.AreEqual((long)2, (long)next, "current should have been incremented to 2");
 		}
 
 		[Test]
-		public void Seed()
+		public async Task Seed()
 		{
 			Int64Type type = (Int64Type)NHibernateUtil.Int64;
-			Assert.IsTrue(type.Seed(null) is Int64, "seed should be int64");
+			Assert.IsTrue(await type.Seed(null) is Int64, "seed should be int64");
 		}
 
 		[Test]
-		public void NullableWrapperDirty()
+		public async Task NullableWrapperDirty()
 		{
 			Int64Type type = (Int64Type)NHibernateUtil.Int64;
 
@@ -41,8 +42,8 @@ namespace NHibernate.Test.TypesTest
 			long? fiveAgain = 5;
 			using (ISession s = OpenSession())
 			{
-				Assert.IsTrue(type.IsDirty(nullLong, valueLong, (ISessionImplementor)s), "should be dirty - null to '5'");
-				Assert.IsFalse(type.IsDirty(valueLong, fiveAgain, (ISessionImplementor)s), "should not be dirty - 5 to 5");
+				Assert.IsTrue(await type.IsDirty(nullLong, valueLong, (ISessionImplementor)s), "should be dirty - null to '5'");
+				Assert.IsFalse(await type.IsDirty(valueLong, fiveAgain, (ISessionImplementor)s), "should not be dirty - 5 to 5");
 			}
 		}
 

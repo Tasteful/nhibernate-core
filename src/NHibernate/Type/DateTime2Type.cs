@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Data;
+using System.Threading.Tasks;
 using NHibernate.SqlTypes;
 
 namespace NHibernate.Type
@@ -52,14 +53,14 @@ namespace NHibernate.Type
 			return x.Equals(y);
 		}
 
-		public override object Next(object current, Engine.ISessionImplementor session)
+		public override Task<object> Next(object current, Engine.ISessionImplementor session)
 		{
 			return Seed(session);
 		}
 
-		public override object Seed(Engine.ISessionImplementor session)
+		public override Task<object> Seed(Engine.ISessionImplementor session)
 		{
-			return DateTime.Now;
+			return Task.FromResult<object>(DateTime.Now);
 		}
 	}
 }

@@ -1,5 +1,6 @@
 using System;
 using System.Reflection;
+using System.Threading.Tasks;
 using NHibernate.Engine;
 using NHibernate.Id;
 using NHibernate.Mapping;
@@ -51,11 +52,11 @@ namespace NHibernate.Tuple
 		/// <param name="property">The version mapping Property.</param>
 		/// <param name="lazyAvailable">Is property lazy loading currently available.</param>
 		/// <returns>The appropriate VersionProperty definition.</returns>
-		public static VersionProperty BuildVersionProperty(Mapping.Property property, bool lazyAvailable)
+		public static async Task<VersionProperty> BuildVersionProperty(Mapping.Property property, bool lazyAvailable)
 		{
 			String mappedUnsavedValue = ((IKeyValue) property.Value).NullValue;
 
-			VersionValue unsavedValue = UnsavedValueFactory.GetUnsavedVersionValue(
+			VersionValue unsavedValue = await UnsavedValueFactory.GetUnsavedVersionValue(
 				mappedUnsavedValue,
 				GetGetter(property),
 				(IVersionType) property.Type,

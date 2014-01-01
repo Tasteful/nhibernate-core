@@ -1,5 +1,6 @@
 using System;
 using System.Runtime.Serialization;
+using System.Threading.Tasks;
 using NHibernate.Cache;
 using NHibernate.Cache.Access;
 using NHibernate.Collection;
@@ -102,7 +103,7 @@ namespace NHibernate.Action
 		}
 
 		/// <summary>Execute this action</summary>
-		public abstract void Execute();
+		public abstract Task Execute();
 
 		public virtual BeforeTransactionCompletionProcessDelegate BeforeTransactionCompletionProcess
 		{

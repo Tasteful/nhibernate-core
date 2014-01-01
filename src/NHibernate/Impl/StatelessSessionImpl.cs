@@ -3,6 +3,7 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Data;
 using System.Linq.Expressions;
+using System.Threading.Tasks;
 using NHibernate.AdoNet;
 using NHibernate.Cache;
 using NHibernate.Collection;
@@ -51,7 +52,7 @@ namespace NHibernate.Impl
 			}
 		}
 
-		public override void InitializeCollection(IPersistentCollection collection, bool writing)
+		public override async Task InitializeCollection(IPersistentCollection collection, bool writing)
 		{
 			if (temporaryPersistenceContext.IsLoadFinished)
 			{
@@ -60,11 +61,11 @@ namespace NHibernate.Impl
 			CollectionEntry ce = temporaryPersistenceContext.GetCollectionEntry(collection);
 			if (!collection.WasInitialized)
 			{
-				ce.LoadedPersister.Initialize(ce.LoadedKey, this);
+				await ce.LoadedPersister.Initialize(ce.LoadedKey, this);
 			}
 		}
 
-		public override object InternalLoad(string entityName, object id, bool eager, bool isNullable)
+		public override Task<object> InternalLoadAsync(string entityName, object id, bool eager, bool isNullable)
 		{
 			using (new SessionIdLoggingContext(SessionId))
 			{
@@ -73,18 +74,18 @@ namespace NHibernate.Impl
 				object loaded = temporaryPersistenceContext.GetEntity(GenerateEntityKey(id, persister, EntityMode.Poco));
 				if (loaded != null)
 				{
-					return loaded;
+					return Task.FromResult(loaded);
 				}
 				if (!eager && persister.HasProxy)
 				{
-					return persister.CreateProxy(id, this);
+					return Task.FromResult(persister.CreateProxy(id, this));
 				}
 				//TODO: if not loaded, throw an exception
-				return Get(entityName, id);
+				return Task.FromResult(Get(entityName, id));
 			}
 		}
 
-		public override object ImmediateLoad(string entityName, object id)
+		public override Task<object> ImmediateLoadAsync(string entityName, object id)
 		{
 			throw new SessionException("proxies cannot be fetched by a stateless session");
 		}
@@ -108,7 +109,7 @@ namespace NHibernate.Impl
 			Dispose(true);
 		}
 
-		public override void List(IQueryExpression queryExpression, QueryParameters queryParameters, IList results)
+		public override async Task ListAsync(IQueryExpression queryExpression, QueryParameters queryParameters, IList results)
 		{
 			using (new SessionIdLoggingContext(SessionId))
 			{
@@ -119,7 +120,7 @@ namespace NHibernate.Impl
 				bool success = false;
 				try
 				{
-					plan.PerformList(queryParameters, this, results);
+					await plan.PerformList(queryParameters, this, results);
 					success = true;
 				}
 				catch (HibernateException)
@@ -139,7 +140,7 @@ namespace NHibernate.Impl
 			}
 		}
 
-		public override void List(CriteriaImpl criteria, IList results)
+		public override async Task List(CriteriaImpl criteria, IList results)
 		{
 			using (new SessionIdLoggingContext(SessionId))
 			{
@@ -159,7 +160,7 @@ namespace NHibernate.Impl
 				{
 					for (int i = size - 1; i >= 0; i--)
 					{
-						ArrayHelper.AddAll(results, loaders[i].List(this));
+						ArrayHelper.AddAll(results, await loaders[i].List(this));
 					}
 					success = true;
 				}
@@ -180,32 +181,32 @@ namespace NHibernate.Impl
 			}
 		}
 		
-		public override IEnumerable Enumerable(IQueryExpression queryExpression, QueryParameters queryParameters)
+		public override Task<IEnumerable> EnumerableAsync(IQueryExpression queryExpression, QueryParameters queryParameters)
 		{
 			throw new NotImplementedException();
 		}
 
-		public override IEnumerable<T> Enumerable<T>(IQueryExpression queryExpression, QueryParameters queryParameters)
+		public override Task<IEnumerable<T>> EnumerableAsync<T>(IQueryExpression queryExpression, QueryParameters queryParameters)
 		{
 			throw new NotImplementedException();
 		}
 
-		public override IList ListFilter(object collection, string filter, QueryParameters parameters)
+		public override Task<IList> ListFilterAsync(object collection, string filter, QueryParameters parameters)
 		{
 			throw new NotSupportedException();
 		}
 
-		public override IList<T> ListFilter<T>(object collection, string filter, QueryParameters parameters)
+		public override Task<IList<T>> ListFilterAsync<T>(object collection, string filter, QueryParameters parameters)
 		{
 			throw new NotSupportedException();
 		}
 
-		public override IEnumerable EnumerableFilter(object collection, string filter, QueryParameters parameters)
+		public override Task<IEnumerable> EnumerableFilterAsync(object collection, string filter, QueryParameters parameters)
 		{
 			throw new NotSupportedException();
 		}
 
-		public override IEnumerable<T> EnumerableFilter<T>(object collection, string filter, QueryParameters parameters)
+		public override Task<IEnumerable<T>> EnumerableFilterAsync<T>(object collection, string filter, QueryParameters parameters)
 		{
 			throw new NotSupportedException();
 		}
@@ -241,7 +242,7 @@ namespace NHibernate.Impl
 			}
 		}
 
-		public override void ListCustomQuery(ICustomQuery customQuery, QueryParameters queryParameters, IList results)
+		public override async Task ListCustomQuery(ICustomQuery customQuery, QueryParameters queryParameters, IList results)
 		{
 			using (new SessionIdLoggingContext(SessionId))
 			{
@@ -252,7 +253,7 @@ namespace NHibernate.Impl
 				var success = false;
 				try
 				{
-					ArrayHelper.AddAll(results, loader.List(this, queryParameters));
+					ArrayHelper.AddAll(results, await loader.List(this, queryParameters));
 					success = true;
 				}
 				finally
@@ -370,12 +371,13 @@ namespace NHibernate.Impl
 			return this;
 		}
 
-		public override void Flush()
+		public override Task FlushAsync()
 		{
 			using (new SessionIdLoggingContext(SessionId))
 			{
 				ManagedFlush(); // NH Different behavior since ADOContext.Context is not implemented
 			}
+			return Task.FromResult(0);
 		}
 
 		public void ManagedFlush()
@@ -459,10 +461,14 @@ namespace NHibernate.Impl
 		/// <returns> the identifier of the instance </returns>
 		public object Insert(object entity)
 		{
+			return InsertAsync(entity).WaitAndUnwrapException();
+		}
+		public async Task<object> InsertAsync(object entity)
+		{
 			using (new SessionIdLoggingContext(SessionId))
 			{
 				CheckAndUpdateSessionStatus();
-				return Insert(null, entity);
+				return await Insert(null, entity);
 			}
 		}
 
@@ -470,18 +476,18 @@ namespace NHibernate.Impl
 		/// <param name="entityName">The entityName for the entity to be inserted </param>
 		/// <param name="entity">a new transient instance </param>
 		/// <returns> the identifier of the instance </returns>
-		public object Insert(string entityName, object entity)
+		public async Task<object> Insert(string entityName, object entity)
 		{
 			using (new SessionIdLoggingContext(SessionId))
 			{
 				CheckAndUpdateSessionStatus();
 				IEntityPersister persister = GetEntityPersister(entityName, entity);
-				object id = persister.IdentifierGenerator.Generate(this, entity);
+				object id = await persister.IdentifierGenerator.Generate(this, entity);
 				object[] state = persister.GetPropertyValues(entity, EntityMode.Poco);
 				if (persister.IsVersioned)
 				{
 					object versionValue = state[persister.VersionProperty];
-					bool substitute = Versioning.SeedVersion(state, persister.VersionProperty, persister.VersionType,
+					bool substitute = await Versioning.SeedVersion(state, persister.VersionProperty, persister.VersionType,
 															 persister.IsUnsavedVersion(versionValue), this);
 					if (substitute)
 					{
@@ -490,11 +496,11 @@ namespace NHibernate.Impl
 				}
 				if (id == IdentifierGeneratorFactory.PostInsertIndicator)
 				{
-					id = persister.Insert(state, entity, this);
+					id = await persister.Insert(state, entity, this);
 				}
 				else
 				{
-					persister.Insert(id, state, entity, this);
+					await persister.Insert(id, state, entity, this);
 				}
 				persister.SetIdentifier(entity, id, EntityMode.Poco);
 				return id;
@@ -527,7 +533,7 @@ namespace NHibernate.Impl
 				if (persister.IsVersioned)
 				{
 					oldVersion = persister.GetVersion(entity, EntityMode.Poco);
-					object newVersion = Versioning.Increment(oldVersion, persister.VersionType, this);
+					object newVersion = Versioning.Increment(oldVersion, persister.VersionType, this).WaitAndUnwrapException();
 					Versioning.SetVersion(state, newVersion, persister);
 					persister.SetPropertyValues(entity, state, EntityMode.Poco);
 				}
@@ -605,7 +611,7 @@ namespace NHibernate.Impl
 			using (new SessionIdLoggingContext(SessionId))
 			{
 				CheckAndUpdateSessionStatus();
-				object result = Factory.GetEntityPersister(entityName).Load(id, null, lockMode, this);
+				object result = Factory.GetEntityPersister(entityName).Load(id, null, lockMode, this).WaitAndUnwrapException();
 				if (temporaryPersistenceContext.IsLoadFinished)
 				{
 					temporaryPersistenceContext.Clear();
@@ -701,7 +707,7 @@ namespace NHibernate.Impl
 				try
 				{
 					FetchProfile = "refresh";
-					result = persister.Load(id, entity, lockMode, this);
+					result = persister.Load(id, entity, lockMode, this).WaitAndUnwrapException();
 				}
 				finally
 				{
@@ -892,7 +898,7 @@ namespace NHibernate.Impl
 
 		#endregion
 
-		public override int ExecuteNativeUpdate(NativeSQLQuerySpecification nativeSQLQuerySpecification, QueryParameters queryParameters)
+		public override async Task<int> ExecuteNativeUpdate(NativeSQLQuerySpecification nativeSQLQuerySpecification, QueryParameters queryParameters)
 		{
 			using (new SessionIdLoggingContext(SessionId))
 			{
@@ -904,7 +910,7 @@ namespace NHibernate.Impl
 				int result;
 				try
 				{
-					result = plan.PerformExecuteUpdate(queryParameters, this);
+					result = await plan.PerformExecuteUpdate(queryParameters, this);
 					success = true;
 				}
 				finally
@@ -916,7 +922,7 @@ namespace NHibernate.Impl
 			}
 		}
 
-		public override int ExecuteUpdate(IQueryExpression queryExpression, QueryParameters queryParameters)
+		public override async Task<int> ExecuteUpdate(IQueryExpression queryExpression, QueryParameters queryParameters)
 		{
 			using (new SessionIdLoggingContext(SessionId))
 			{
@@ -927,7 +933,7 @@ namespace NHibernate.Impl
 				int result;
 				try
 				{
-					result = plan.PerformExecuteUpdate(queryParameters, this);
+					result = await plan.PerformExecuteUpdate(queryParameters, this);
 					success = true;
 				}
 				finally
