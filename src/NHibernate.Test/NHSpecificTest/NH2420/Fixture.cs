@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Configuration;
 using System.Data;
 using System.Data.Odbc;
 using System.Data.SqlClient;
@@ -27,6 +28,20 @@ namespace NHibernate.Test.NHSpecificTest.NH2420
 		public void ShouldBeAbleToReleaseSuppliedConnectionAfterDistributedTransaction()
 		{
 			string connectionString = cfg.GetProperty("connection.connection_string");
+			if (string.IsNullOrEmpty(connectionString))
+			{
+				var connectionStringName = cfg.GetProperty("connection.connection_string_name");
+				if (string.IsNullOrEmpty(connectionStringName))
+				{
+					Assert.Fail("No connection string is found.");
+				}
+				var cn = ConfigurationManager.ConnectionStrings[connectionStringName];
+				if (cn == null || string.IsNullOrEmpty(cn.ConnectionString))
+				{
+					Assert.Fail("No connection string is found.");
+				}
+				connectionString = cn.ConnectionString;
+			}
 			ISession s;
 
 			using (var ts = new TransactionScope())
