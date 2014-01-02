@@ -269,7 +269,7 @@ namespace NHibernate.DomainModel
 			}
 			else
 			{
-				return null;
+				return Task.FromResult<int[]>(null);
 			}
 		}
 
