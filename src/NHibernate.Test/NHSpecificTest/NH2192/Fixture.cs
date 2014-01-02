@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Data.SqlClient;
 using System.Threading;
 using NUnit.Framework;
 
@@ -20,6 +21,14 @@ namespace NHibernate.Test.NHSpecificTest.NH2192
 				s.Save(new ContentItem() { Name = "Test2" });
 				tx.Commit();
 			}
+
+			using (var s = OpenSession())
+			{
+				using (var cn = s.Connection)
+				{
+					_threadCount = new SqlConnectionStringBuilder(cn.ConnectionString).MaxPoolSize;
+				}
+			}	
 		}
 
 		protected override void OnTearDown()
@@ -34,7 +43,7 @@ namespace NHibernate.Test.NHSpecificTest.NH2192
 			base.OnTearDown();
 		}
 
-		private const int _threadCount = 150;
+		private int _threadCount = 150;
 
 		[Test]
 		public void HqlIsThreadsafe_UsingThreads()
