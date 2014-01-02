@@ -1,6 +1,7 @@
 using System.Data;
 using System.Data.Common;
 using System.Text;
+using System.Threading.Tasks;
 using NHibernate.AdoNet.Util;
 using NHibernate.Exceptions;
 
@@ -37,7 +38,7 @@ namespace NHibernate.AdoNet
 			get { return currentBatch.CountOfCommands; }
 		}
 
-		public override void AddToBatch(IExpectation expectation)
+		public override Task AddToBatch(IExpectation expectation)
 		{
 			totalExpectedRowsAffected += expectation.ExpectedRowCount;
 			IDbCommand batchUpdate = CurrentCommand;
@@ -65,6 +66,7 @@ namespace NHibernate.AdoNet
 			{
 				DoExecuteBatch(batchUpdate);
 			}
+			return Task.FromResult(0);
 		}
 
 		protected override void DoExecuteBatch(IDbCommand ps)

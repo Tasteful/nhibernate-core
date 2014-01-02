@@ -687,7 +687,7 @@ namespace NHibernate.Impl
 				CheckAndUpdateSessionStatus();
 				queryParameters.ValidateParameters();
 				var plan = GetHQLQueryPlan(queryExpression, false);
-				AutoFlushIfRequired(plan.QuerySpaces);
+				await AutoFlushIfRequired(plan.QuerySpaces);
 
 				bool success = false;
 				dontFlushFromFind++; //stops flush being called multiple times if this method is recursively called
@@ -713,12 +713,12 @@ namespace NHibernate.Impl
 			}
 		}
 
-		public override IQueryTranslator[] GetQueries(IQueryExpression query, bool scalar)
+		public override async Task<IQueryTranslator[]> GetQueries(IQueryExpression query, bool scalar)
 		{
 			using (new SessionIdLoggingContext(SessionId))
 			{
 				var plan = Factory.QueryPlanCache.GetHQLQueryPlan(query, scalar, enabledFilters);
-				AutoFlushIfRequired(plan.QuerySpaces);
+				await AutoFlushIfRequired(plan.QuerySpaces);
 				return plan.Translators;
 			}
 		}
@@ -730,7 +730,7 @@ namespace NHibernate.Impl
 				CheckAndUpdateSessionStatus();
 				queryParameters.ValidateParameters();
 				var plan = GetHQLQueryPlan(queryExpression, true);
-				AutoFlushIfRequired(plan.QuerySpaces);
+				await AutoFlushIfRequired(plan.QuerySpaces);
 
 				dontFlushFromFind++; //stops flush being called multiple times if this method is recursively called
 				try
@@ -751,7 +751,7 @@ namespace NHibernate.Impl
 				CheckAndUpdateSessionStatus();
 				queryParameters.ValidateParameters();
 				var plan = GetHQLQueryPlan(queryExpression, true);
-				AutoFlushIfRequired(plan.QuerySpaces);
+				await AutoFlushIfRequired(plan.QuerySpaces);
 
 				dontFlushFromFind++; //stops flush being called multiple times if this method is recursively called
 				try
@@ -852,13 +852,13 @@ namespace NHibernate.Impl
 				CheckAndUpdateSessionStatus();
 				CollectionFilterImpl filter =
 					new CollectionFilterImpl(queryString, collection, this,
-											 GetFilterQueryPlan(collection, queryString, null, false).ParameterMetadata);
+											 (GetFilterQueryPlan(collection, queryString, null, false).WaitAndUnwrapException()).ParameterMetadata);
 				//filter.SetComment(queryString);
 				return filter;
 			}
 		}
 
-		private FilterQueryPlan GetFilterQueryPlan(object collection, string filter, QueryParameters parameters, bool shallow)
+		private async Task<FilterQueryPlan> GetFilterQueryPlan(object collection, string filter, QueryParameters parameters, bool shallow)
 		{
 			using (new SessionIdLoggingContext(SessionId))
 			{
@@ -889,7 +889,7 @@ namespace NHibernate.Impl
 					// otherwise, we only need to flush if there are in-memory changes
 					// to the queried tables
 					plan = Factory.QueryPlanCache.GetFilterQueryPlan(filter, roleBeforeFlush.Role, shallow, EnabledFilters);
-					if (AutoFlushIfRequired(plan.QuerySpaces))
+					if (await AutoFlushIfRequired(plan.QuerySpaces))
 					{
 						// might need to run a different filter entirely after the flush
 						// because the collection role may have changed
@@ -1245,7 +1245,7 @@ namespace NHibernate.Impl
 		/// </summary>
 		/// <param name="querySpaces"></param>
 		/// <returns></returns>
-		private bool AutoFlushIfRequired(ISet<string> querySpaces)
+		private async Task<bool> AutoFlushIfRequired(ISet<string> querySpaces)
 		{
 			using (new SessionIdLoggingContext(SessionId))
 			{
@@ -1259,7 +1259,7 @@ namespace NHibernate.Impl
 				IAutoFlushEventListener[] autoFlushEventListener = listeners.AutoFlushEventListeners;
 				for (int i = 0; i < autoFlushEventListener.Length; i++)
 				{
-					autoFlushEventListener[i].OnAutoFlush(autoFlushEvent);
+					await autoFlushEventListener[i].OnAutoFlush(autoFlushEvent);
 				}
 				return autoFlushEvent.FlushRequired;
 			}
@@ -1889,7 +1889,7 @@ namespace NHibernate.Impl
 			using (new SessionIdLoggingContext(SessionId))
 			{
 				CheckAndUpdateSessionStatus();
-				FilterQueryPlan plan = GetFilterQueryPlan(collection, filter, queryParameters, false);
+				FilterQueryPlan plan = await GetFilterQueryPlan(collection, filter, queryParameters, false);
 
 				bool success = false;
 				dontFlushFromFind++; //stops flush being called multiple times if this method is recursively called
@@ -1940,7 +1940,7 @@ namespace NHibernate.Impl
 			using (new SessionIdLoggingContext(SessionId))
 			{
 				CheckAndUpdateSessionStatus();
-				FilterQueryPlan plan = GetFilterQueryPlan(collection, filter, queryParameters, true);
+				FilterQueryPlan plan = await GetFilterQueryPlan(collection, filter, queryParameters, true);
 				return await plan.PerformIterate(queryParameters, this);
 			}
 		}
@@ -1950,7 +1950,7 @@ namespace NHibernate.Impl
 			using (new SessionIdLoggingContext(SessionId))
 			{
 				CheckAndUpdateSessionStatus();
-				FilterQueryPlan plan = GetFilterQueryPlan(collection, filter, queryParameters, true);
+				FilterQueryPlan plan = await GetFilterQueryPlan(collection, filter, queryParameters, true);
 				return await plan.PerformIterate<T>(queryParameters, this);
 			}
 		}
@@ -2072,7 +2072,7 @@ namespace NHibernate.Impl
 					spaces.UnionWith(loaders[i].QuerySpaces);
 				}
 
-				AutoFlushIfRequired(spaces);
+				await AutoFlushIfRequired(spaces);
 
 				dontFlushFromFind++;
 
@@ -2173,7 +2173,7 @@ namespace NHibernate.Impl
 				CheckAndUpdateSessionStatus();
 
 				CustomLoader loader = new CustomLoader(customQuery, Factory);
-				AutoFlushIfRequired(loader.QuerySpaces);
+				await AutoFlushIfRequired(loader.QuerySpaces);
 
 				bool success = false;
 				dontFlushFromFind++;
@@ -2766,7 +2766,7 @@ namespace NHibernate.Impl
 				queryParameters.ValidateParameters();
 				NativeSQLQueryPlan plan = GetNativeSQLQueryPlan(nativeQuerySpecification);
 
-				AutoFlushIfRequired(plan.CustomQuery.QuerySpaces);
+				await AutoFlushIfRequired(plan.CustomQuery.QuerySpaces);
 
 				bool success = false;
 				int result;
@@ -2790,7 +2790,7 @@ namespace NHibernate.Impl
 				CheckAndUpdateSessionStatus();
 				queryParameters.ValidateParameters();
 				var plan = GetHQLQueryPlan(queryExpression, false);
-				AutoFlushIfRequired(plan.QuerySpaces);
+				await AutoFlushIfRequired(plan.QuerySpaces);
 
 				bool success = false;
 				int result;

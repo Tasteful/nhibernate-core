@@ -2,6 +2,7 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Data;
+using System.Threading.Tasks;
 using NHibernate.AdoNet;
 using NHibernate.Cfg;
 using NHibernate.Cfg.Loquacious;
@@ -115,11 +116,11 @@ namespace NHibernate.Test.Insertordering
 				return result;
 			}
 
-			public override void AddToBatch(IExpectation expectation)
+			public override Task AddToBatch(IExpectation expectation)
 			{
 				batchSizes[currentBatch]++;
 				Console.WriteLine("Adding to batch [" + batchSQL + "]");
-				base.AddToBatch(expectation);
+				return base.AddToBatch(expectation);
 			}
 
 			protected override void DoExecuteBatch(IDbCommand ps)

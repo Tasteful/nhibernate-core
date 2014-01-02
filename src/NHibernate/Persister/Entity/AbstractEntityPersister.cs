@@ -2638,7 +2638,7 @@ namespace NHibernate.Persister.Entity
 
 					if (useBatch)
 					{
-						session.Batcher.AddToBatch(expectation);
+						await session.Batcher.AddToBatch(expectation);
 					}
 					else
 					{
@@ -2770,7 +2770,7 @@ namespace NHibernate.Persister.Entity
 
 					if (useBatch)
 					{
-						session.Batcher.AddToBatch(expectation);
+						await session.Batcher.AddToBatch(expectation);
 						return true;
 					}
 					else
@@ -2901,7 +2901,7 @@ namespace NHibernate.Persister.Entity
 
 					if (useBatch)
 					{
-						session.Batcher.AddToBatch(expectation);
+						await session.Batcher.AddToBatch(expectation);
 					}
 					else
 					{

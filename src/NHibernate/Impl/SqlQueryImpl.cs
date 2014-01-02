@@ -313,13 +313,13 @@ namespace NHibernate.Impl
 			}
 		}
 
-		protected internal override IEnumerable<ITranslator> GetTranslators(ISessionImplementor sessionImplementor, QueryParameters queryParameters)
+		protected internal override Task<IEnumerable<ITranslator>> GetTranslators(ISessionImplementor sessionImplementor, QueryParameters queryParameters)
 		{
 			// NOTE: updates queryParameters.NamedParameters as (desired) side effect
 			ExpandParameterLists(queryParameters.NamedParameters);
 
 			var sqlQuery = this as ISQLQuery;
-			yield return new SqlTranslator(sqlQuery, sessionImplementor.Factory);
+			return Task.FromResult<IEnumerable<ITranslator>>(new[] {new SqlTranslator(sqlQuery, sessionImplementor.Factory)});
 		}
 	}
 }

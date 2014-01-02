@@ -275,10 +275,10 @@ namespace NHibernate.Impl
 		[Obsolete("Use overload with IQueryExpression")]
 		public virtual IQueryTranslator[] GetQueries(string query, bool scalar)
 		{
-			return GetQueries(query.ToQueryExpression(), scalar);
+			return GetQueries(query.ToQueryExpression(), scalar).WaitAndUnwrapException();
 		}
 		
-		public abstract IQueryTranslator[] GetQueries(IQueryExpression query, bool scalar);
+		public abstract Task<IQueryTranslator[]> GetQueries(IQueryExpression query, bool scalar);
 		public abstract IInterceptor Interceptor { get; }
 		public abstract EventListeners Listeners { get; }
 		public abstract int DontFlushFromFind { get; }

@@ -438,7 +438,7 @@ namespace NHibernate.AdoNet
 		/// If Batching is not supported, then this is when the Command should be executed.  If Batching
 		/// is supported then it should hold of on executing the batch until explicitly told to.
 		/// </remarks>
-		public abstract void AddToBatch(IExpectation expectation);
+		public abstract Task AddToBatch(IExpectation expectation);
 
 		/// <summary>
 		/// Gets the <see cref="ISessionFactoryImplementor"/> the Batcher was

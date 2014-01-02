@@ -279,13 +279,13 @@ namespace NHibernate.Impl
 			get { return new CollectionHelper.EmptyMapClass<string, IFilter>(); }
 		}
 
-		public override IQueryTranslator[] GetQueries(IQueryExpression query, bool scalar)
+		public override Task<IQueryTranslator[]> GetQueries(IQueryExpression query, bool scalar)
 		{
 			using (new SessionIdLoggingContext(SessionId))
 			{
 				// take the union of the query spaces (ie the queried tables)
 				var plan = Factory.QueryPlanCache.GetHQLQueryPlan(query, scalar, EnabledFilters);
-				return plan.Translators;
+				return Task.FromResult(plan.Translators);
 			}
 		}
 

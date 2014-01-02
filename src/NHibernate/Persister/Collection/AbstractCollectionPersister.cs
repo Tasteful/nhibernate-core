@@ -1033,7 +1033,7 @@ namespace NHibernate.Persister.Collection
 						await WriteKey(st, id, offset, session);
 						if (useBatch)
 						{
-							session.Batcher.AddToBatch(expectation);
+							await session.Batcher.AddToBatch(expectation);
 						}
 						else
 						{
@@ -1196,7 +1196,7 @@ namespace NHibernate.Persister.Collection
 								}
 								if (useBatch)
 								{
-									session.Batcher.AddToBatch(expectation);
+									await session.Batcher.AddToBatch(expectation);
 								}
 								else
 								{
@@ -1982,7 +1982,7 @@ namespace NHibernate.Persister.Collection
 				WriteElement(st, collection.GetElement(entry), offset, session);
 				if (useBatch)
 				{
-					session.Batcher.AddToBatch(expectation);
+					await session.Batcher.AddToBatch(expectation);
 				}
 				else
 				{

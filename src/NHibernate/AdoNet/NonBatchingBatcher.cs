@@ -1,5 +1,6 @@
 using System;
 using System.Data;
+using System.Threading.Tasks;
 using NHibernate.AdoNet;
 using NHibernate.Engine;
 
@@ -33,7 +34,7 @@ namespace NHibernate.AdoNet
 		/// Thrown when there is an expected number of rows to be affected and the
 		/// actual number of rows is different.
 		/// </exception>
-		public override async void AddToBatch(IExpectation expectation)
+		public override async Task AddToBatch(IExpectation expectation)
 		{
 			IDbCommand cmd = CurrentCommand;
 			Driver.AdjustCommand(cmd);

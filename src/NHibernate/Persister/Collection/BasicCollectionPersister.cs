@@ -215,7 +215,7 @@ namespace NHibernate.Persister.Collection
 
 							if (useBatch)
 							{
-								session.Batcher.AddToBatch(expectation);
+								await session.Batcher.AddToBatch(expectation);
 							}
 							else
 							{

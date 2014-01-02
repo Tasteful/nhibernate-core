@@ -122,12 +122,12 @@ namespace NHibernate.Impl
 		/// </summary>
 		protected abstract IQueryExpression ExpandParameters(IDictionary<string, TypedValue> namedParamsCopy);
 
-		protected internal override IEnumerable<ITranslator> GetTranslators(ISessionImplementor sessionImplementor, QueryParameters queryParameters)
+		protected internal override async Task<IEnumerable<ITranslator>> GetTranslators(ISessionImplementor sessionImplementor, QueryParameters queryParameters)
 		{
 			// NOTE: updates queryParameters.NamedParameters as (desired) side effect
 			var queryExpression = ExpandParameters(queryParameters.NamedParameters);
 
-			return sessionImplementor.GetQueries(queryExpression, false)
+			return (await sessionImplementor.GetQueries(queryExpression, false))
 									 .Select(queryTranslator => new HqlTranslatorWrapper(queryTranslator));
 		}
 	}

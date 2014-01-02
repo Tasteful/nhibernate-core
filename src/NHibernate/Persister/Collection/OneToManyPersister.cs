@@ -192,7 +192,7 @@ namespace NHibernate.Persister.Collection
 								WriteElementToWhere(st, collection.GetSnapshotElement(entry, i), loc, session);
 								if (useBatch)
 								{
-									session.Batcher.AddToBatch(deleteExpectation);
+									await session.Batcher.AddToBatch(deleteExpectation);
 								}
 								else
 								{
@@ -257,7 +257,7 @@ namespace NHibernate.Persister.Collection
 								WriteElementToWhere(st, collection.GetElement(entry), loc, session);
 								if (useBatch)
 								{
-									session.Batcher.AddToBatch(insertExpectation);
+									await session.Batcher.AddToBatch(insertExpectation);
 								}
 								else
 								{

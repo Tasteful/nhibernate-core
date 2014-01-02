@@ -258,7 +258,7 @@ namespace NHibernate.Engine
 		[Obsolete("Use overload with IQueryExpression")]
 		IQueryTranslator[] GetQueries(string query, bool scalar); // NH specific for MultiQuery
 		
-		IQueryTranslator[] GetQueries(IQueryExpression query, bool scalar); // NH specific for MultiQuery
+		Task<IQueryTranslator[]> GetQueries(IQueryExpression query, bool scalar); // NH specific for MultiQuery
 
 		IInterceptor Interceptor { get; }
 

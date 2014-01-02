@@ -626,12 +626,12 @@ namespace NHibernate.Impl
 			get
 			{
 				if (!resultSetsCommand.HasQueries)
-					AggregateQueriesInformation();
+					AggregateQueriesInformation().WaitAndUnwrapException();
 				return resultSetsCommand.Sql;
 			}
 		}
 
-		private void AggregateQueriesInformation()
+		private async Task AggregateQueriesInformation()
 		{
 			int queryIndex = 0;
 			foreach (AbstractQueryImpl query in queries)
@@ -639,7 +639,7 @@ namespace NHibernate.Impl
 				QueryParameters queryParameters = query.GetQueryParameters();
 				queryParameters.ValidateParameters();
 				query.VerifyParameters();
-				foreach (var translator in query.GetTranslators(session, queryParameters))
+				foreach (var translator in await query.GetTranslators(session, queryParameters))
 				{
 					translators.Add(translator);
 					translatorQueryMap.Add(queryIndex);
@@ -729,7 +729,7 @@ namespace NHibernate.Impl
 			{
 				if (!resultSetsCommand.HasQueries)
 				{
-					AggregateQueriesInformation();
+					AggregateQueriesInformation().WaitAndUnwrapException();
 				}
 				return translators;
 			}
@@ -763,7 +763,7 @@ namespace NHibernate.Impl
 			get
 			{
 				if (!resultSetsCommand.HasQueries)
-					AggregateQueriesInformation();
+					AggregateQueriesInformation().WaitAndUnwrapException();
 				return parameters;
 			}
 		}

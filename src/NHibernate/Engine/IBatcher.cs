@@ -94,7 +94,7 @@ namespace NHibernate.Engine
 		/// for a single <c>PrepareBatchStatement()</c>)
 		/// </summary>
 		/// <param name="expectation">Determines whether the number of rows affected by query is correct.</param>
-		void AddToBatch(IExpectation expectation);
+		Task AddToBatch(IExpectation expectation);
 
 		/// <summary>
 		/// Execute the batch
